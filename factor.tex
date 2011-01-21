@@ -1,0 +1,90 @@
+%TODO Figure out general subfiles strategy, makefiles, etc.
+
+\documentclass[11pt]{article}
+
+\usepackage{todonotes}
+\usepackage{fullpage}
+
+\begin{document}
+
+\begin{itemize}
+
+\item History
+      \begin{itemize}
+        \item Development began in September of 2003
+        \item Began as embedded scripting language hosted on the JVM
+        \item Focus shifted as features were added incrementally
+        \item Moved away from JVM to native code generation
+        \item Today has extensive user libraries
+      \end{itemize}
+
+\item Basic syntax \& semantics
+      \begin{itemize}
+        \item The stack \& postfix notation
+        \item Postfix example (RPN with a stack, \verb|1 2 +| sort of thing)
+        \item Other stack-based languages
+        \item Parsing algorithm
+              \begin{itemize}
+                \item \verb|"|
+                \item token
+                      \begin{itemize}
+                        \item ordinary word (terminology, incl. ``vocabulary'')
+                        \item parsing word
+                      \end{itemize}
+                \item number
+              \end{itemize}
+        \item Example ordinary words: stack shufflers
+        \item Example parsing words: quotations
+      \end{itemize}
+
+\item Concatenative programming
+      \begin{itemize}
+        \item ``Pipeline code''
+        \item Whitespace = function composition
+        \item Point-free style
+        \item Origin of name ``Factor''
+      \end{itemize}
+
+\item Stack effects
+      \begin{itemize}
+        \item Basic stack effects: stack shufflers illustrated
+        \item Complex stack effects: row polymorphism \& types
+        \item Stack checker
+      \end{itemize}
+
+\item Control flow
+      \begin{itemize}
+        \item Combinators
+              \begin{itemize}
+                \item if
+                \item each
+                \item while
+              \end{itemize}
+        \item Dataflow combinators
+              \begin{itemize}
+                \item Dip/keep
+                \item Cleave
+                \item Spread
+                \item Apply
+              \end{itemize}
+      \end{itemize}
+
+\item Object system
+      \begin{itemize}
+        \item tuples
+        \item generics \& methods
+      \end{itemize}
+
+\item Libraries \& metaprogramming
+      \begin{itemize}
+        \item Results of evolution
+        \item locals?
+        \item fry?
+        \item macros?
+        \item functors?
+        \item ffi?
+      \end{itemize}
+
+\end{itemize}
+
+\end{document}
