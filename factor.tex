@@ -7,6 +7,10 @@
 \usepackage{glossaries}
 
 \newacronym{JVM}{JVM}{Java Virtual Machine}
+\newacronym{RPN}{RPN}{Reverse Polish Notation}
+
+% BIG TODO: figure this shit out
+\newcommand{\term}[1]{\textbf{#1\todo{figure out how terms will work}}}
 
 \begin{document}
 
@@ -27,11 +31,17 @@ unfamiliar with the language.  This should be just enough to understand the
 later material in this thesis\todo{cite chapter?}.  More thorough documentation
 can be found via Factor's website\todo{cite factorcode.org}.
 
+\subsection{Stack-Based Programming}
+
+Like \gls{RPN} calculators, Factor's essential evaluation model uses a global
+\term{stack} upon which operands are pushed before operators are called.  This
+lends itself to \term{postfix} notation, in which operators are written after
+their operands.  For example, instead of \verb|1 + 2|, we write \verb|1 2 +|.
+
 \begin{itemize}
 
 \item Basic syntax \& semantics
       \begin{itemize}
-        \item The stack \& postfix notation
         \item Postfix example (RPN with a stack, \verb|1 2 +| sort of thing)
         \item Other stack-based languages
         \item Parsing algorithm
