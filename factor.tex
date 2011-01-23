@@ -4,19 +4,30 @@
 
 \usepackage{todonotes}
 \usepackage{fullpage}
+\usepackage{glossaries}
+
+\newacronym{JVM}{JVM}{Java Virtual Machine}
 
 \begin{document}
 
-\begin{itemize}
+\section{Language Primer}
 
-\item History
-      \begin{itemize}
-        \item Development began in September of 2003
-        \item Began as embedded scripting language hosted on the JVM
-        \item Focus shifted as features were added incrementally
-        \item Moved away from JVM to native code generation
-        \item Today has extensive user libraries
-      \end{itemize}
+\todo[inline]{citations for this history are fragmented across the internet;
+should consolidate some kernel of citation from it}
+
+Factor is a rather young language created by Slava Pestov in September of 2003.
+Its first incarnation targeted the \gls{JVM} as an embedded scripting language
+for a game.  As such, its feature set was minimal.  Factor has since evolved
+into a general-purpose programming language, gaining new features and
+redesigning old ones as necessary for larger programs.  Today's implementation
+sports an extensive standard library and has moved away from the \gls{JVM} in
+favor of native code generation.  In this section\todo{figure out section /
+chapter names}, we cover the basic syntax and semantics of Factor for those
+unfamiliar with the language.  This should be just enough to understand the
+later material in this thesis\todo{cite chapter?}.  More thorough documentation
+can be found via Factor's website\todo{cite factorcode.org}.
+
+\begin{itemize}
 
 \item Basic syntax \& semantics
       \begin{itemize}
