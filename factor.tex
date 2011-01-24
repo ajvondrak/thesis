@@ -33,15 +33,14 @@ their operands.  For example, instead of \texttt{1~+~2}, we write
 Other stack-based programming languages include Forth\todo{cite},
 Joy\todo{cite}, Cat\todo{cite}, and PostScript\todo{cite}.
 
-The strength of this model is its simplicity.  For instance, parsing is made
-very flexible, since whitespace is essentially the only thing that separates
-tokens.  In the Forth tradition, functions (being single tokens delineated by
-whitespace) are called \term{words}.  This also lends to the term
-\term{vocabulary} instead of ``module'' or ``library''.  In Factor, the parser
-works as follows.
+The strength of this model is its simplicity.  Parsing becomes very flexible,
+since whitespace is essentially the only thing that separates tokens.  In the
+Forth tradition, functions (being single tokens delineated by whitespace) are
+called \term{words}.  This also lends to the term \term{vocabulary} instead of
+``module'' or ``library''.   In Factor, the parser works as follows.
 \begin{itemize}
   \item If the current character is a double-quote (\lstinline|"|), try to
-        parse a string literal.
+        parse ahead for a string literal.
   \item Otherwise, scan ahead for a single token.
         \begin{itemize}
           \item If the token is the name of an \term{ordinary word}, it's added
@@ -51,21 +50,36 @@ works as follows.
           \item Otherwise, try to parse the token as a numeric literal.
         \end{itemize}
 \end{itemize}
+Notice too that evaluation (as in \vref{fig:rpn}) simply goes left-to-right:
+literals are pushed to the stack, words are invoked.
+
+Ordinary words correspond to functions.  While infix languages tend to
+distinguish syntactically significant operators (e.g., for arithmetic) from
+normal user-defined functions, there is no such difference here.  Since
+\lstinline|1 2 +| and \lstinline|1 2 foo| are tokenized the same way, other
+languages' special operators are simply words in Factor.
+
+\todo[inline]{More ordinary word examples}
+
+Parsing words serve as hooks into the parser, letting Factor users extend its
+syntax dynamically.  For instance, instead of having special knowledge of
+comments built into the parser, the parsing word \lstinline|!| scans forward
+for a newline and discards any characters read (adding nothing to the parse
+tree).
+
+Other parsing words act as sided delimiters.  The parsing word for the
+left-hand delimiter will scan ahead for the right-hand delimiter, using
+whatever was read in between to add objects to the parse tree.  For example,
+array literals are created by the parsing word \lstinline|{| parsing ahead
+until it finds a \lstinline|}| token, collecting the results into an array
+object that's added to the parse tree.  As it parses recursively, parsing words
+and literals in between the braces are collected while ordinary words are not
+called, since the tokens are collected at parse time.
 
 \begin{itemize}
 
 \item Basic syntax \& semantics
       \begin{itemize}
-        \item Parsing algorithm
-              \begin{itemize}
-                \item \verb|"|
-                \item token
-                      \begin{itemize}
-                        \item ordinary word (terminology, incl. ``vocabulary'')
-                        \item parsing word
-                      \end{itemize}
-                \item number
-              \end{itemize}
         \item Example ordinary words: stack shufflers
         \item Example parsing words: quotations
       \end{itemize}
