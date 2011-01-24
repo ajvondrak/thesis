@@ -1,19 +1,3 @@
-%TODO Figure out general subfiles strategy, makefiles, etc.
-
-\documentclass[11pt]{article}
-
-\usepackage{todonotes}
-\usepackage{fullpage}
-\usepackage{glossaries}
-
-\newacronym{JVM}{JVM}{Java Virtual Machine}
-\newacronym{RPN}{RPN}{Reverse Polish Notation}
-
-% BIG TODO: figure this shit out
-\newcommand{\term}[1]{\textbf{#1\todo{figure out how terms will work}}}
-
-\begin{document}
-
 \section{Language Primer}
 
 \todo[inline]{citations for this history are fragmented across the internet;
@@ -33,17 +17,45 @@ can be found via Factor's website\todo{cite factorcode.org}.
 
 \subsection{Stack-Based Programming}
 
+\inputfig{rpn}
+
 Like \gls{RPN} calculators, Factor's essential evaluation model uses a global
 \term{stack} upon which operands are pushed before operators are called.  This
 lends itself to \term{postfix} notation, in which operators are written after
-their operands.  For example, instead of \verb|1 + 2|, we write \verb|1 2 +|.
+their operands.  For example, instead of \texttt{1~+~2}, we write
+\texttt{1~2~+}.  \Vref{fig:rpn} shows how \texttt{1~2~+} works conceptually:
+\begin{itemize}
+  \item \texttt{1} is pushed onto the stack
+  \item \texttt{2} is pushed onto the stack
+  \item \texttt{+} is called, so two values are popped from the stack, added,
+        and the result (\texttt{3}) is pushed back onto the stack
+\end{itemize}
+Other stack-based programming languages include Forth\todo{cite},
+Joy\todo{cite}, Cat\todo{cite}, and PostScript\todo{cite}.
+
+The strength of this model is its simplicity.  For instance, parsing is made
+very flexible, since whitespace is essentially the only thing that separates
+tokens.  In the Forth tradition, functions (being single tokens delineated by
+whitespace) are called \term{words}.  This also lends to the term
+\term{vocabulary} instead of ``module'' or ``library''.  In Factor, the parser
+works as follows.
+\begin{itemize}
+  \item If the current character is a double-quote (\lstinline|"|), try to
+        parse a string literal.
+  \item Otherwise, scan ahead for a single token.
+        \begin{itemize}
+          \item If the token is the name of an \term{ordinary word}, it's added
+                to the parse tree.
+          \item If the token is the name of a \term{parsing word}, it's invoked
+                with the parser's current information.
+          \item Otherwise, try to parse the token as a numeric literal.
+        \end{itemize}
+\end{itemize}
 
 \begin{itemize}
 
 \item Basic syntax \& semantics
       \begin{itemize}
-        \item Postfix example (RPN with a stack, \verb|1 2 +| sort of thing)
-        \item Other stack-based languages
         \item Parsing algorithm
               \begin{itemize}
                 \item \verb|"|

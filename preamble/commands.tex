@@ -1,0 +1,18 @@
+%TODO figure out the "right" way to do terminology typesetting
+\newcommand{\term}[1]{\emph{#1}}
+
+\newcommand{\inputfig}[1]{
+  \begin{figure}
+    \input{fig/#1}
+    %\caption{#2}
+    \label{fig:#1}
+  \end{figure}
+}
+
+\newcommand{\inputalg}[1]{
+  \begin{algorithm}
+    \input{alg/#1}
+    %\caption{#2}
+    \label{alg:#1}
+  \end{algorithm}
+}
