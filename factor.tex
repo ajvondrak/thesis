@@ -19,7 +19,7 @@ can be found via Factor's website\todo{cite factorcode.org}.
 
 \inputfig{rpn}
 
-Like \gls{RPN} calculators, Factor's essential evaluation model uses a global
+Like \gls{RPN} calculators, Factor's evaluation model uses a global
 \term{stack} upon which operands are pushed before operators are called.  This
 lends itself to \term{postfix} notation, in which operators are written after
 their operands.  For example, instead of \texttt{1~+~2}, we write
@@ -34,7 +34,7 @@ Other stack-based programming languages include Forth\todo{cite},
 Joy\todo{cite}, Cat\todo{cite}, and PostScript\todo{cite}.
 
 The strength of this model is its simplicity.  Parsing becomes very flexible,
-since whitespace is essentially the only thing that separates tokens.  In the
+since whitespace is basically the only thing that separates tokens.  In the
 Forth tradition, functions (being single tokens delineated by whitespace) are
 called \term{words}.  This also lends to the term \term{vocabulary} instead of
 ``module'' or ``library''.   In Factor, the parser works as follows.
@@ -43,23 +43,26 @@ called \term{words}.  This also lends to the term \term{vocabulary} instead of
         parse ahead for a string literal.
   \item Otherwise, scan ahead for a single token.
         \begin{itemize}
-          \item If the token is the name of an \term{ordinary word}, it's added
-                to the parse tree.
-          \item If the token is the name of a \term{parsing word}, it's invoked
-                with the parser's current information.
+          \item If the token is the name of a \term{parsing word}, that word is
+                invoked with the parser's current information.
+          \item If the token is the name of an ordinary (i.e., non-parsing)
+                word, that word is added to the parse tree.
           \item Otherwise, try to parse the token as a numeric literal.
         \end{itemize}
 \end{itemize}
-Notice too that evaluation (as in \vref{fig:rpn}) simply goes left-to-right:
-literals are pushed to the stack, words are invoked.
 
-Ordinary words correspond to functions.  While infix languages tend to
-distinguish syntactically significant operators (e.g., for arithmetic) from
-normal user-defined functions, there is no such difference here.  Since
-\lstinline|1 2 +| and \lstinline|1 2 foo| are tokenized the same way, other
-languages' special operators are simply words in Factor.
+Words correspond to \term{first-class} functions from other languages.  That
+is, words are themselves objects that just perform instructions whenever
+they're told---most commonly, when Factor is executing a piece of code.  While
+infix languages tend to distinguish syntactically significant operators (e.g.,
+for arithmetic) from normal user-defined functions, there is no such difference
+here.  Since \lstinline|1 2 +| and \lstinline|1 2 foo| are tokenized the same
+way, other languages' special operators are just words in Factor.  This simple
+syntax gives rise to a simple evaluation model that essentially goes
+left-to-right (as we saw in \vref{fig:rpn}): literals are pushed to the stack,
+words are executed.
 
-\todo[inline]{More ordinary word examples}
+\todo[inline]{Factor syntax examples; figure out listings (grrr)}
 
 Parsing words serve as hooks into the parser, letting Factor users extend its
 syntax dynamically.  For instance, instead of having special knowledge of
@@ -68,21 +71,40 @@ for a newline and discards any characters read (adding nothing to the parse
 tree).
 
 Other parsing words act as sided delimiters.  The parsing word for the
-left-hand delimiter will scan ahead for the right-hand delimiter, using
-whatever was read in between to add objects to the parse tree.  For example,
-array literals are created by the parsing word \lstinline|{| parsing ahead
-until it finds a \lstinline|}| token, collecting the results into an array
-object that's added to the parse tree.  As it parses recursively, parsing words
-and literals in between the braces are collected while ordinary words are not
-called, since the tokens are collected at parse time.
+left-delimiter will scan ahead for the right-delimiter, using whatever was read
+in between to add objects to the parse tree.  For example, array literals are
+created by the parsing word \lstinline|{| parsing ahead until it finds a
+\lstinline|}| token, collecting the results into an array that's added to the
+parse tree.  Since it parses recursively, array literals can be nested, contain
+comments, etc\todo{example}.  That is, anything parsing words do will work
+inside of an array.  If an ordinary word is parsed, it is added to the
+array---not executed.  Thus, \lstinline|{ 1 2 + }| denotes an array of three
+elements: the numbers \lstinline|1| and \lstinline|2|, and the word
+\lstinline|+|\todo{offshore to example listing?}.
+
+\inputfig{quot}
+
+\todo[inline]{Figure out how to typeset stacks in a more consistent way}
+
+A particularly important set of parsing words in Factor are the square
+brackets, \lstinline|[| and \lstinline|]|.  Any code in between such brackets
+is collected up into a single sequence called a \term{quotation}.  Essentially,
+it's a snippet of code whose execution is suppressed.  The code inside a
+quotation can then be run with the \lstinline|call| word.  Quotations are like
+anonymous functions in other languages, but the stack model makes them
+conceptually simpler, since we don't have to worry about variable binding and
+the like.  Consider a small example like \lstinline|1 2 [ + ] call|.  You can
+think of \lstinline|call| working by ``erasing'' the brackets around a
+quotation, so this example behaves just like \lstinline|1 2 +|.
+\Vref{fig:quot} shows its evaluation: instead of adding the numbers
+immediately, \lstinline|+| is placed in a quotation, which is pushed to the
+stack.  The quotation is then invoked by \lstinline|call|, so \lstinline|+|
+pops and adds the two numbers and pushes the result onto the stack.  We'll show
+how quotations are used in \verb|\ref{sec:primer:control-flow}|\todo{ref}.
+
+%\subsection{Control Flow}\label{sec:primer:control-flow}
 
 \begin{itemize}
-
-\item Basic syntax \& semantics
-      \begin{itemize}
-        \item Example ordinary words: stack shufflers
-        \item Example parsing words: quotations
-      \end{itemize}
 
 \item Concatenative programming
       \begin{itemize}

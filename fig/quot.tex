@@ -1,0 +1,58 @@
+%FIXME still fragile as hell
+
+\centering
+
+\begin{tikzpicture}[node distance=0.2\linewidth]
+  \node (a) {
+    \begin{tabular}{|c|}
+      \texttt{~}        \\
+      \texttt{~}        \\
+      \texttt{~}        \\
+      \lstinline|     | \\ \hline
+    \end{tabular}
+  };
+
+  \node (b) [right of=a] {
+    \begin{tabular}{|c|}
+      \texttt{~}        \\
+      \texttt{~}        \\
+      \texttt{~}        \\ \hline
+      \lstinline|  1  | \\ \hline
+    \end{tabular}
+  };
+
+  \node (c) [right of=b] {
+    \begin{tabular}{|c|}
+      \texttt{~}        \\
+      \texttt{~}        \\ \hline
+      \lstinline|  2  | \\ \hline
+      \lstinline|  1  | \\ \hline
+    \end{tabular}
+  };
+
+  \node (d) [right of=c] {
+    \begin{tabular}{|c|}
+      \texttt{~}        \\ \hline
+      \lstinline|[ + ]| \\ \hline
+      \lstinline|  2  | \\ \hline
+      \lstinline|  1  | \\ \hline
+    \end{tabular}
+  };
+
+  \node (e) [right of=d] {
+    \begin{tabular}{|c|}
+      \texttt{~}        \\
+      \texttt{~}        \\
+      \texttt{~}        \\ \hline
+      \lstinline|  3  | \\ \hline
+    \end{tabular}
+  };
+
+
+  \path[->] (a) edge node [above] {\lstinline|1|}     (b)
+            (b) edge node [above] {\lstinline|2|}     (c)
+            (c) edge node [above] {\lstinline|[ + ]|} (d)
+            (d) edge node [above] {\lstinline|call|}  (e);
+\end{tikzpicture}
+
+\caption{Quotations}
