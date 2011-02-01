@@ -1,4 +1,4 @@
-\section{Language Primer}
+\section{Language Primer}\label{sec:primer}
 
 \todo[inline]{citations for this history are fragmented across the internet;
 should consolidate some kernel of citation from it}
@@ -15,7 +15,7 @@ unfamiliar with the language.  This should be just enough to understand the
 later material in this thesis\todo{cite chapter?}.  More thorough documentation
 can be found via Factor's website\todo{cite factorcode.org}.
 
-\subsection{Stack-Based Programming}
+\subsection{Stack-Based Languages}\label{sec:primer:stack-based}
 
 \inputfig{rpn}
 
@@ -39,7 +39,7 @@ Forth tradition, functions (being single tokens delineated by whitespace) are
 called \term{words}.  This also lends to the term \term{vocabulary} instead of
 ``module'' or ``library''.   In Factor, the parser works as follows.
 \begin{itemize}
-  \item If the current character is a double-quote (\lstinline|"|), try to
+  \item If the current character is a double-quote (\inlinecode|"|), try to
         parse ahead for a string literal.
   \item Otherwise, scan ahead for a single token.
         \begin{itemize}
@@ -56,7 +56,7 @@ is, words are themselves objects that just perform instructions whenever
 they're told---most commonly, when Factor is executing a piece of code.  While
 infix languages tend to distinguish syntactically significant operators (e.g.,
 for arithmetic) from normal user-defined functions, there is no such difference
-here.  Since \lstinline|1 2 +| and \lstinline|1 2 foo| are tokenized the same
+here.  Since \inlinecode|1 2 +| and \inlinecode|1 2 foo| are tokenized the same
 way, other languages' special operators are just words in Factor.  This simple
 syntax gives rise to a simple evaluation model that essentially goes
 left-to-right (as we saw in \vref{fig:rpn}): literals are pushed to the stack,
@@ -66,51 +66,66 @@ words are executed.
 
 Parsing words serve as hooks into the parser, letting Factor users extend its
 syntax dynamically.  For instance, instead of having special knowledge of
-comments built into the parser, the parsing word \lstinline|!| scans forward
+comments built into the parser, the parsing word \inlinecode|!| scans forward
 for a newline and discards any characters read (adding nothing to the parse
 tree).
 
 Other parsing words act as sided delimiters.  The parsing word for the
 left-delimiter will scan ahead for the right-delimiter, using whatever was read
 in between to add objects to the parse tree.  For example, array literals are
-created by the parsing word \lstinline|{| parsing ahead until it finds a
-\lstinline|}| token, collecting the results into an array that's added to the
+created by the parsing word \inlinecode|{| parsing ahead until it finds a
+\inlinecode|}| token, collecting the results into an array that's added to the
 parse tree.  Since it parses recursively, array literals can be nested, contain
 comments, etc\todo{example}.  That is, anything parsing words do will work
 inside of an array.  If an ordinary word is parsed, it is added to the
-array---not executed.  Thus, \lstinline|{ 1 2 + }| denotes an array of three
-elements: the numbers \lstinline|1| and \lstinline|2|, and the word
-\lstinline|+|\todo{offshore to example listing?}.
+array---not executed.  Thus, \inlinecode|{ 1 2 + }| denotes an array of three
+elements: the numbers \inlinecode|1| and \inlinecode|2|, and the word
+\inlinecode|+|\todo{offshore to example listing?}.
 
 \inputfig{quot}
 
 \todo[inline]{Figure out how to typeset stacks in a more consistent way}
 
 A particularly important set of parsing words in Factor are the square
-brackets, \lstinline|[| and \lstinline|]|.  Any code in between such brackets
+brackets, \inlinecode|[| and \inlinecode|]|.  Any code in between such brackets
 is collected up into a single sequence called a \term{quotation}.  Essentially,
 it's a snippet of code whose execution is suppressed.  The code inside a
-quotation can then be run with the \lstinline|call| word.  Quotations are like
+quotation can then be run with the \inlinecode|call| word.  Quotations are like
 anonymous functions in other languages, but the stack model makes them
 conceptually simpler, since we don't have to worry about variable binding and
-the like.  Consider a small example like \lstinline|1 2 [ + ] call|.  You can
-think of \lstinline|call| working by ``erasing'' the brackets around a
-quotation, so this example behaves just like \lstinline|1 2 +|.
+the like.  Consider a small example like \inlinecode|1 2 [ + ] call|.  You can
+think of \inlinecode|call| working by ``erasing'' the brackets around a
+quotation, so this example behaves just like \inlinecode|1 2 +|.
 \Vref{fig:quot} shows its evaluation: instead of adding the numbers
-immediately, \lstinline|+| is placed in a quotation, which is pushed to the
-stack.  The quotation is then invoked by \lstinline|call|, so \lstinline|+|
+immediately, \inlinecode|+| is placed in a quotation, which is pushed to the
+stack.  The quotation is then invoked by \inlinecode|call|, so \inlinecode|+|
 pops and adds the two numbers and pushes the result onto the stack.  We'll show
 how quotations are used in \verb|\ref{sec:primer:control-flow}|\todo{ref}.
 
 %\subsection{Control Flow}\label{sec:primer:control-flow}
 
+\subsection{Concatenative Programming}
+
+The biggest step needed to understand Factor isn't really big: everything else
+follows from the stack-based structure outlined in
+\ref{sec:primer:stack-based}.  With some input on the stack, consecutive words
+transform the data is discrete steps, thereby shaping a result.  This breeds a
+fairly stylized way of writing code that resembles a pipeline.  Though postfix
+code like \inlinecode|1 2 +| seems to read ``backwards'', when viewed in this
+pipelined fashion, it can read more clearly than standard syntax.  Suppose
+we're given a value \inlinecode|x| to manipulate by applying three functions,
+\inlinecode|f|, \inlinecode|g|, and \inlinecode|h|, in order.  Typical function
+application notation looks like \inlinecode|h(g(f(x)))|, which must be read
+from the inside out because of the nesting.  In Factor, we'd write
+\inlinecode|x f g h|, which is flat and reads left-to-right.
+
 \begin{itemize}
 
 \item Concatenative programming
       \begin{itemize}
-        \item ``Pipeline code''
         \item Whitespace = function composition
         \item Point-free style
+        \item What is concatenative programming?
         \item Origin of name ``Factor''
       \end{itemize}
 
