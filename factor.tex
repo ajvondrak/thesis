@@ -109,23 +109,37 @@ how quotations are used in \verb|\ref{sec:primer:control-flow}|\todo{ref}.
 The biggest step needed to understand Factor isn't really big: everything else
 follows from the stack-based structure outlined in
 \ref{sec:primer:stack-based}.  With some input on the stack, consecutive words
-transform the data is discrete steps, thereby shaping a result.  This breeds a
-fairly stylized way of writing code that resembles a pipeline.  Though postfix
-code like \inlinecode|1 2 +| seems to read ``backwards'', when viewed in this
-pipelined fashion, it can read more clearly than standard syntax.  Suppose
-we're given a value \inlinecode|x| to manipulate by applying three functions,
-\inlinecode|f|, \inlinecode|g|, and \inlinecode|h|, in order.  Typical function
-application notation looks like \inlinecode|h(g(f(x)))|, which must be read
-from the inside out because of the nesting.  In Factor, we'd write
-\inlinecode|x f g h|, which is flat and reads left-to-right.
+transform the data in discrete steps, thereby shaping a result.  This breeds a
+fairly stylized way of writing code that resembles a pipeline.  Postfix code
+like \inlinecode|1 2 +| often seems to read ``backwards'', but when viewed in
+this pipelined fashion, it can read more clearly than standard syntax.  For
+instance, suppose we're given a value \inlinecode|x| to manipulate by applying
+three functions, \inlinecode|f|, \inlinecode|g|, and \inlinecode|h|, in order.
+Typical function application notation looks like \inlinecode|h(g(f(x)))|, which
+must be read from the inside out because of the nesting.  In Factor, we'd write
+\inlinecode|x f g h|, which is flat and reads left-to-right.  Having such a
+whitespace-centered syntax reduces noise: instead of grouping arguments, the
+order of evaluation is the order you write your code.
+
+In a way, this makes whitespace equivalent to function composition: just treat
+every word as a function from stacks to stacks---``before'' to ``after''.  Even
+literals (numbers, strings, etc.) can be thought of as functions that take in a
+stack and return that stack with an extra element pushed onto it.  Factor is
+thus said to be a \term{concatenative} language: concatenating any two programs
+denotes the composition of the functions the programs individually
+denote\todo{cite and talk about Joy}.  Note that being stack-based is
+unnecessary for being concatenative, though it's common\todo{list other
+concatenative languages}.
+
+This functional interpretation is useful for formally reasoning about
+concatenative languages\todo{cite Joy}.  % point-free, incl. citations
+
 
 \begin{itemize}
 
 \item Concatenative programming
       \begin{itemize}
-        \item Whitespace = function composition
         \item Point-free style
-        \item What is concatenative programming?
         \item Origin of name ``Factor''
       \end{itemize}
 
