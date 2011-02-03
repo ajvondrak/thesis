@@ -116,32 +116,46 @@ this pipelined fashion, it can read more clearly than standard syntax.  For
 instance, suppose we're given a value \inlinecode|x| to manipulate by applying
 three functions, \inlinecode|f|, \inlinecode|g|, and \inlinecode|h|, in order.
 Typical function application notation looks like \inlinecode|h(g(f(x)))|, which
-must be read from the inside out because of the nesting.  In Factor, we'd write
-\inlinecode|x f g h|, which is flat and reads left-to-right.  Having such a
-whitespace-centered syntax reduces noise: instead of grouping arguments, the
-order of evaluation is the order you write your code.
+must be read from the inside out because of the nested function calls.  In
+Factor, we'd write \inlinecode|x f g h|, which is flat and reads left-to-right.
+Having such a whitespace-centered syntax reduces noise: instead of grouping
+arguments, the order of evaluation is the order you write your code.
 
 In a way, this makes whitespace equivalent to function composition: just treat
 every word as a function from stacks to stacks---``before'' to ``after''.  Even
 literals (numbers, strings, etc.) can be thought of as functions that take in a
-stack and return that stack with an extra element pushed onto it.  Factor is
-thus said to be a \term{concatenative} language: concatenating any two programs
-denotes the composition of the functions the programs individually
-denote\todo{cite and talk about Joy}.  Note that being stack-based is
+stack and return that stack with an extra element pushed onto it.  Since
+concatenating any two programs denotes the composition of the functions that
+the programs individually denote, Factor is said to be a \term{concatenative}
+language\todo{cite and talk about Joy}.  Note that being stack-based is
 unnecessary for being concatenative, though it's common\todo{list other
 concatenative languages}.
 
 This functional interpretation is useful for formally reasoning about
-concatenative languages\todo{cite Joy}.  % point-free, incl. citations
+concatenative languages\todo{cite Joy}, but it also highlights how Factor
+parallels more traditional functional languages.  In particular, languages like
+Haskell encourage \term{point-free style}, wherein calculations are performed
+using function composition rather than application\todo{cite}.  Using this
+idiom, code is more compact and references fewer variables (the ``points'' of
+point-free style).  Since data is passed around the stack in Factor, there's no
+need for variables---point-free style is the default.  In the absence of named
+values, new operators spring up to name different patterns in code.  These make
+data flow explicit, since you can't use intermediate variables or tricks of
+syntax as a crutch.  Such operators are discussed in \ref{sec:primer:dataflow}.
 
+Taken together, concatenative idioms emphasize shorter, clearer code.  Since
+data flow is explicit, complicated patterns become painfully evident.  There's
+little syntactic noise, so repetitive bits of code are easily recognized.
+Because whitespace is composition, these complicated, repetitive sections of
+code are easily ``factored'' (extracted) into new word definitions, hence the
+very name of the Factor language.  By contrast, an applicative program laden
+with variables and syntactic noise requires more work to refactor: identifying
+free variables, pulling out the right functions without causing finicky syntax
+errors, calling a new function with the right variables, etc.  Though Factor's
+stack-based paradigm is atypical, it is part of a design philosophy that aims
+to produce readable programs.
 
 \begin{itemize}
-
-\item Concatenative programming
-      \begin{itemize}
-        \item Point-free style
-        \item Origin of name ``Factor''
-      \end{itemize}
 
 \item Stack effects
       \begin{itemize}
@@ -150,15 +164,15 @@ concatenative languages\todo{cite Joy}.  % point-free, incl. citations
         \item Stack checker
       \end{itemize}
 
-\item Control flow
+\item Combinators
       \begin{itemize}
-        \item Combinators
+        \item Control flow
               \begin{itemize}
                 \item if
                 \item each
                 \item while
               \end{itemize}
-        \item Dataflow combinators
+        \item Data flow
               \begin{itemize}
                 \item Dip/keep
                 \item Cleave
