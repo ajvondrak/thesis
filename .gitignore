@@ -12,3 +12,4 @@
 *.vrb
 *.out
 *.fdb_latexmk
+*.pyg
