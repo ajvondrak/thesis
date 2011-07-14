@@ -23,12 +23,12 @@ Like \gls{RPN} calculators, Factor's evaluation model uses a global
 \term{stack} upon which operands are pushed before operators are called.  This
 lends itself to \term{postfix} notation, in which operators are written after
 their operands.  For example, instead of \texttt{1~+~2}, we write
-\texttt{1~2~+}.  \Vref{fig:rpn} shows how \texttt{1~2~+} works conceptually:
+\texttt{1~2~+}.  \Vref{fig:rpn} shows how \factor|1 2 +| works conceptually:
 \begin{itemize}
-  \item \texttt{1} is pushed onto the stack
-  \item \texttt{2} is pushed onto the stack
-  \item \texttt{+} is called, so two values are popped from the stack, added,
-        and the result (\texttt{3}) is pushed back onto the stack
+  \item \factor|1| is pushed onto the stack
+  \item \factor|2| is pushed onto the stack
+  \item \factor|+| is called, so two values are popped from the stack, added,
+        and the result (\factor|3|) is pushed back onto the stack
 \end{itemize}
 Other stack-based programming languages include Forth\todo{cite},
 Joy\todo{cite}, Cat\todo{cite}, and PostScript\todo{cite}.
@@ -39,7 +39,7 @@ Forth tradition, functions (being single tokens delineated by whitespace) are
 called \term{words}.  This also lends to the term \term{vocabulary} instead of
 ``module'' or ``library''.   In Factor, the parser works as follows.
 \begin{itemize}
-  \item If the current character is a double-quote (\inlinecode|"|), try to
+  \item If the current character is a double-quote (\factor|"|), try to
         parse ahead for a string literal.
   \item Otherwise, scan ahead for a single token.
         \begin{itemize}
@@ -56,7 +56,7 @@ is, words are themselves objects that just perform instructions whenever
 they're told---most commonly, when Factor is executing a piece of code.  While
 infix languages tend to distinguish syntactically significant operators (e.g.,
 for arithmetic) from normal user-defined functions, there is no such difference
-here.  Since \inlinecode|1 2 +| and \inlinecode|1 2 foo| are tokenized the same
+here.  Since \factor|1 2 +| and \factor|1 2 foo| are tokenized the same
 way, other languages' special operators are just words in Factor.  This simple
 syntax gives rise to a simple evaluation model that essentially goes
 left-to-right (as we saw in \vref{fig:rpn}): literals are pushed to the stack,
@@ -66,39 +66,39 @@ words are executed.
 
 Parsing words serve as hooks into the parser, letting Factor users extend its
 syntax dynamically.  For instance, instead of having special knowledge of
-comments built into the parser, the parsing word \inlinecode|!| scans forward
+comments built into the parser, the parsing word \factor|!| scans forward
 for a newline and discards any characters read (adding nothing to the parse
 tree).
 
 Other parsing words act as sided delimiters.  The parsing word for the
 left-delimiter will scan ahead for the right-delimiter, using whatever was read
 in between to add objects to the parse tree.  For example, array literals are
-created by the parsing word \inlinecode|{| parsing ahead until it finds a
-\inlinecode|}| token, collecting the results into an array that's added to the
+created by the parsing word \factor|{| parsing ahead until it finds a
+\factor|}| token, collecting the results into an array that's added to the
 parse tree.  Since it parses recursively, array literals can be nested, contain
 comments, etc\todo{example}.  That is, anything parsing words do will work
 inside of an array.  If an ordinary word is parsed, it is added to the
-array---not executed.  Thus, \inlinecode|{ 1 2 + }| denotes an array of three
-elements: the numbers \inlinecode|1| and \inlinecode|2|, and the word
-\inlinecode|+|\todo{offshore to example listing?}.
+array---not executed.  Thus, \factor|{ 1 2 + }| denotes an array of three
+elements: the numbers \factor|1| and \factor|2|, and the word
+\factor|+|\todo{offshore to example listing?}.
 
 \inputfig{quot}
 
 \todo[inline]{Figure out how to typeset stacks in a more consistent way}
 
 A particularly important set of parsing words in Factor are the square
-brackets, \inlinecode|[| and \inlinecode|]|.  Any code in between such brackets
+brackets, \factor|[| and \factor|]|.  Any code in between such brackets
 is collected up into a single sequence called a \term{quotation}.  Essentially,
 it's a snippet of code whose execution is suppressed.  The code inside a
-quotation can then be run with the \inlinecode|call| word.  Quotations are like
+quotation can then be run with the \factor|call| word.  Quotations are like
 anonymous functions in other languages, but the stack model makes them
 conceptually simpler, since we don't have to worry about variable binding and
-the like.  Consider a small example like \inlinecode|1 2 [ + ] call|.  You can
-think of \inlinecode|call| working by ``erasing'' the brackets around a
-quotation, so this example behaves just like \inlinecode|1 2 +|.
+the like.  Consider a small example like \factor|1 2 [ + ] call|.  You can
+think of \factor|call| working by ``erasing'' the brackets around a
+quotation, so this example behaves just like \factor|1 2 +|.
 \Vref{fig:quot} shows its evaluation: instead of adding the numbers
-immediately, \inlinecode|+| is placed in a quotation, which is pushed to the
-stack.  The quotation is then invoked by \inlinecode|call|, so \inlinecode|+|
+immediately, \factor|+| is placed in a quotation, which is pushed to the
+stack.  The quotation is then invoked by \factor|call|, so \factor|+|
 pops and adds the two numbers and pushes the result onto the stack.  We'll show
 how quotations are used in \verb|\ref{sec:primer:control-flow}|\todo{ref}.
 
@@ -111,13 +111,13 @@ follows from the stack-based structure outlined in
 \ref{sec:primer:stack-based}.  With some input on the stack, consecutive words
 transform the data in discrete steps, thereby shaping a result.  This breeds a
 fairly stylized way of writing code that resembles a pipeline.  Postfix code
-like \inlinecode|1 2 +| often seems to read ``backwards'', but when viewed in
+like \factor|1 2 +| often seems to read ``backwards'', but when viewed in
 this pipelined fashion, it can read more clearly than standard syntax.  For
-instance, suppose we're given a value \inlinecode|x| to manipulate by applying
-three functions, \inlinecode|f|, \inlinecode|g|, and \inlinecode|h|, in order.
-Typical function application notation looks like \inlinecode|h(g(f(x)))|, which
+instance, suppose we're given a value \factor|x| to manipulate by applying
+three functions, \factor|f|, \factor|g|, and \factor|h|, in order.
+Typical function application notation looks like \texttt{h(g(f(x)))}, which
 must be read from the inside out because of the nested function calls.  In
-Factor, we'd write \inlinecode|x f g h|, which is flat and reads left-to-right.
+Factor, we'd write \factor|x f g h|, which is flat and reads left-to-right.
 Having such a whitespace-centered syntax reduces noise: instead of grouping
 arguments, the order of evaluation is the order you write your code.
 
