@@ -1,0 +1,53 @@
+\usepackage{todonotes}
+
+\usepackage{bold-extra}
+
+\usepackage{glossaries}
+
+\usepackage{fullpage}
+
+\usepackage{indentfirst}
+
+\usepackage{hyperref}
+
+\usepackage{varioref}
+\labelformat{figure}{Figure~#1}
+\labelformat{algorithm}{Algorithm~#1}
+\labelformat{subsection}{Section~#1}
+\labelformat{section}{Section~#1}
+
+\usepackage{tikz}
+%\usetikzlibrary{external}
+%\tikzexternalize
+
+\usepackage{lib/minted}
+\usemintedstyle{bw}
+\newminted{factor}{}
+\newmint{factor}{}
+
+\usepackage{float}
+\floatstyle{ruled}
+\newfloat{algorithm}{tbp}{alg}
+\floatname{algorithm}{Algorithm}
+
+%TODO figure out the "right" way to do terminology typesetting
+\newcommand{\term}[1]{\emph{#1}}
+
+\newcommand{\inputfig}[1]{
+  \begin{figure}
+    \input{fig/#1}
+    %\caption{#2}
+    \label{fig:#1}
+  \end{figure}
+}
+
+\newcommand{\inputalg}[1]{
+  \begin{algorithm}
+    \input{alg/#1}
+    %\caption{#2}
+    \label{alg:#1}
+  \end{algorithm}
+}
+
+\usepackage{array}
+\newcolumntype{k}[1]{|>{\centering\arraybackslash\hspace{0pt}}p{#1}|}
