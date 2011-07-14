@@ -1,44 +1,41 @@
-%XXX Fragile: tabulars are only the same widths because each cell is 1 \tt
-%    character wide
-
 \centering
 
 \begin{tikzpicture}[node distance=0.15\linewidth]
   \node (a) {
-    \begin{tabular}{|c|}
-      \texttt{~} \\
-      \texttt{~} \\
-      \texttt{~} \\ \hline
+    \begin{tabular}{k{1em}}
+                  \\
+                  \\
+                  \\ \hline
     \end{tabular}
   };
 
   \node (b) [right of=a] {
-    \begin{tabular}{|c|}
-      \texttt{~} \\
-      \texttt{~} \\ \hline
-      \texttt{1} \\ \hline
+    \begin{tabular}{k{1em}}
+                 \\
+                 \\ \hline
+      \factor|1| \\ \hline
     \end{tabular}
   };
 
   \node (c) [right of=b] {
-    \begin{tabular}{|c|}
-      \texttt{~} \\ \hline
-      \texttt{2} \\ \hline
-      \texttt{1} \\ \hline
+    \begin{tabular}{k{1em}}
+                 \\ \hline
+      \factor|2| \\ \hline
+      \factor|1| \\ \hline
     \end{tabular}
   };
 
   \node (d) [right of=c] {
-    \begin{tabular}{|c|}
-      \texttt{~} \\
-      \texttt{~} \\ \hline
-      \texttt{3} \\ \hline
+    \begin{tabular}{k{1em}}
+                 \\
+                 \\ \hline
+      \factor|3| \\ \hline
     \end{tabular}
   };
 
-  \path[->] (a) edge node [above] {\texttt{1}} (b)
-            (b) edge node [above] {\texttt{2}} (c)
-            (c) edge node [above] {\texttt{+}} (d);
+  \path[->] (a) edge node [above] {\factor|1|} (b)
+            (b) edge node [above] {\factor|2|} (c)
+            (c) edge node [above] {\factor|+|} (d);
 \end{tikzpicture}
 
 \caption{Visualizing stack-based calculation}
