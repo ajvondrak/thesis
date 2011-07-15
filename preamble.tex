@@ -5,16 +5,7 @@
 \usepackage{glossaries}
 
 \usepackage{fullpage}
-
 \usepackage{indentfirst}
-
-\usepackage{hyperref}
-
-\usepackage{varioref}
-\labelformat{figure}{Figure~#1}
-\labelformat{algorithm}{Algorithm~#1}
-\labelformat{subsection}{Section~#1}
-\labelformat{section}{Section~#1}
 
 \usepackage{tikz}
 %\usetikzlibrary{external}
@@ -22,7 +13,7 @@
 
 \usepackage{lib/minted}
 \usemintedstyle{bw}
-\newminted{factor}{}
+\newminted{factor}{gobble=2,linenos,frame=single}
 \newmint{factor}{}
 
 \usepackage{float}
@@ -36,18 +27,30 @@
 \newcommand{\inputfig}[1]{
   \begin{figure}
     \input{fig/#1}
-    %\caption{#2}
     \label{fig:#1}
   \end{figure}
+}
+
+\newcommand{\inputlst}[2][tbph]{
+  \begin{listing}[#1]
+    \input{lst/#2}
+    \label{lst:#2}
+  \end{listing}
 }
 
 \newcommand{\inputalg}[1]{
   \begin{algorithm}
     \input{alg/#1}
-    %\caption{#2}
     \label{alg:#1}
   \end{algorithm}
 }
 
 \usepackage{array}
 \newcolumntype{k}[1]{|>{\centering\arraybackslash\hspace{0pt}}p{#1}|}
+
+\usepackage{varioref}
+\usepackage{hyperref}
+\usepackage[capitalise]{cleveref}
+\def\reftextcurrent{\unskip}
+\crefname{figure}{Figure}{Figures}
+\crefname{subfigure}{Figure}{Figures}

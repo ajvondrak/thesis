@@ -13,15 +13,15 @@
     \begin{tabular}{k{1em}}
                  \\
                  \\ \hline
-      \factor|1| \\ \hline
+      \texttt{1} \\ \hline
     \end{tabular}
   };
 
   \node (c) [right of=b] {
     \begin{tabular}{k{1em}}
                  \\ \hline
-      \factor|2| \\ \hline
-      \factor|1| \\ \hline
+      \texttt{2} \\ \hline
+      \texttt{1} \\ \hline
     \end{tabular}
   };
 
@@ -29,13 +29,13 @@
     \begin{tabular}{k{1em}}
                  \\
                  \\ \hline
-      \factor|3| \\ \hline
+      \texttt{3} \\ \hline
     \end{tabular}
   };
 
-  \path[->] (a) edge node [above] {\factor|1|} (b)
-            (b) edge node [above] {\factor|2|} (c)
-            (c) edge node [above] {\factor|+|} (d);
+  \path[->] (a) edge node [above] {\texttt{1}} (b)
+            (b) edge node [above] {\texttt{2}} (c)
+            (c) edge node [above] {\texttt{+}} (d);
 \end{tikzpicture}
 
 \caption{Visualizing stack-based calculation}
