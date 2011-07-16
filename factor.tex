@@ -157,72 +157,134 @@ are all equally valid.  Further, while the stack effect
 has the same relative height change, this declaration would be wrong, since
 \factor|+| might legitimately be called on only $2$ inputs.
 
-\todo[inline]{
-List of tasks so I don't get stuck doing nothing:
-\begin{itemize}
-  \item Order of names in stack effects
-  \item Demo via stack shuffler diagrams
-  \item Section: defining things
-  \begin{itemize}
-    \item colon defs
-    \item tuples
-    \item generics
-    \item methods
-  \end{itemize}
-\end{itemize}
-}
+\inputfig{shufflers}
 
-\subsection{Concatenative Programming}
+For the purposes of documentation, of course, the names in stack effects do
+matter.  In particular, the values correspond to elements of the stack from
+bottom-to-top.  So, the rightmost value on either side of the declaration names
+the top element of the stack.  We can see this illustrated in
+\vref{fig:shufflers}, which shows the effects of standard \term{stack shuffler}
+words.  These words are used for basic data flow in Factor programs.  For
+example, to discard the top element of the stack, we use the \factor|drop|
+word, whose effect is simply
+%
+\factor|( x -- )|.
+%
+To discard the element just below the top of the stack, we use \factor|nip|,
+whose effect is
+%
+\factor|( x y -- y )|.
+%
+This stack effect indicates that there are at least two elements on the stack
+before \factor|nip| is called: the top element is \factor|y|, and the next
+element is \factor|x|.  After calling the word, \factor|x| is removed, leaving
+the original \factor|y| still on top of the stack.  Other shuffler words that
+remove data from the stack are
+%
+\factor|2drop| with the effect \factor|( x y -- )|,
+%
+\factor|3drop| with the effect \factor|( x y z -- )|, and
+%
+\factor|2nip| with the effect \factor|( x y z -- z )|.
 
-The biggest step needed to understand Factor isn't really big: everything else
-follows from the stack-based structure outlined in
-\cref{sec:primer:stack-based}.  With some input on the stack, consecutive words
-transform the data in discrete steps, thereby shaping a result.  This breeds a
-fairly stylized way of writing code that resembles a pipeline.  Postfix code
-like \texttt{1 2 +} often seems to read ``backwards'', but when viewed in this
-pipelined fashion, it can read more clearly than standard syntax.  For
-instance, suppose we're given a value \texttt{x} to manipulate by applying
-three functions, \texttt{f}, \texttt{g}, and \texttt{h}, in order.  Typical
-function application notation looks like \texttt{h(g(f(x)))}, which must be
-read from the inside out because of the nested function calls.  In Factor, we'd
-write \texttt{x f g h}, which is flat and reads left-to-right.  Having such a
-whitespace-centered syntax reduces noise: instead of grouping arguments, the
-order of evaluation is the order you write your code.
+The next stack shufflers duplicate data.  \factor|dup| copies the top element
+of the stack, as indicated by its effect \factor|( x -- x x )|.  \factor|over|
+has the effect \factor|( x y -- x y x )|, which tells us that it expects at
+least two inputs: the top of the stack is \factor|y|, and the next object is
+\factor|x|.  \factor|x| is copied and pushed on top of the two original
+elements, sandwiching \factor|y| between two \factor|x|s.  Other shuffler words
+that duplicate data on the stack are
+%
+\factor|2dup| with the effect \factor|( x y -- x y x y )|,
+%
+\factor|3dup| with the effect \factor|( x y z -- x y z x y z )|,
+%
+\factor|2over| with the effect \factor|( x y z -- x y z x y )|, and
+%
+\factor|pick| with the effect \factor|( x y z -- x y z x )|.
 
-In a way, this makes whitespace equivalent to function composition: just treat
-every word as a function from stacks to stacks---``before'' to ``after''.  Even
-literals (numbers, strings, etc.) can be thought of as functions that take in a
-stack and return that stack with an extra element pushed onto it.  Since
-concatenating any two programs denotes the composition of the functions that
-the programs individually denote, Factor is said to be a \term{concatenative}
-language\todo{cite and talk about Joy}.  Note that being stack-based is
-unnecessary for being concatenative, though it's common\todo{list other
-concatenative languages}.
+True to the name \factor|swap|, the final shuffler in \vref{fig:shufflers}
+permutes the top two elements of the stack, reversing their order.  The stack
+effect
+%
+\factor|( x y -- y x )|
+%
+indicates as much, since the left side denotes that two inputs are on the stack
+(the top is \factor|y|, the next is \factor|x|), and the outputs are the same,
+but swapped (so the top element is \factor|x| and the next is \factor|y|).
+Factor has other words that permute elements deeper into the stack.  However,
+their use is discouraged because it's harder for the programmer to keep track
+of more than a couple items on the stack at a time.  We'll see how more complex
+data flow patterns are handled in \cref{sec:primer:data-flow}.
 
-This functional interpretation is useful for formally reasoning about
-concatenative languages\todo{cite Joy}, but it also highlights how Factor
-parallels more traditional functional languages.  In particular, languages like
-Haskell encourage \term{point-free style}, wherein calculations are performed
-using function composition rather than application\todo{cite}.  Using this
-idiom, code is more compact and references fewer variables (the ``points'' of
-point-free style).  Since data is passed around the stack in Factor, there's no
-need for variables---point-free style is the default.  In the absence of named
-values, new operators spring up to name different patterns in code.  These make
-data flow explicit, since you can't use intermediate variables or tricks of
-syntax as a crutch.  Such operators are discussed in
-\cref{sec:primer:dataflow}.
+\subsection{Definitions}
 
-Taken together, concatenative idioms emphasize shorter, clearer code.  Since
-data flow is explicit, complicated patterns become painfully evident.  There's
-little syntactic noise, so repetitive bits of code are easily recognized.
-Because whitespace is composition, these complicated, repetitive sections of
-code are easily ``factored'' (extracted) into new word definitions, hence the
-very name of the Factor language.  By contrast, an applicative program laden
-with variables and syntactic noise requires more work to refactor: identifying
-free variables, pulling out the right functions without causing finicky syntax
-errors, calling a new function with the right variables, etc.  Though Factor's
-stack-based paradigm is atypical, it is part of a design philosophy that aims
-to produce readable programs.
+We've now covered enough material to see how to define words.
+
+%\todo[inline]{
+%List of tasks so I don't get stuck doing nothing:
+%\begin{itemize}
+%  \item Section: defining things
+%  \begin{itemize}
+%    \item colon defs
+%    \item tuples
+%    \item generics
+%    \item methods
+%  \end{itemize}
+%\end{itemize}
+%}
+
+% \subsection{Concatenative Programming}
+% 
+% The biggest step needed to understand Factor isn't really big: everything else
+% follows from the stack-based structure outlined in
+% \cref{sec:primer:stack-based}.  With some input on the stack, consecutive words
+% transform the data in discrete steps, thereby shaping a result.  This breeds a
+% fairly stylized way of writing code that resembles a pipeline.  Postfix code
+% like \texttt{1 2 +} often seems to read ``backwards'', but when viewed in this
+% pipelined fashion, it can read more clearly than standard syntax.  For
+% instance, suppose we're given a value \texttt{x} to manipulate by applying
+% three functions, \texttt{f}, \texttt{g}, and \texttt{h}, in order.  Typical
+% function application notation looks like \texttt{h(g(f(x)))}, which must be
+% read from the inside out because of the nested function calls.  In Factor, we'd
+% write \texttt{x f g h}, which is flat and reads left-to-right.  Having such a
+% whitespace-centered syntax reduces noise: instead of grouping arguments, the
+% order of evaluation is the order you write your code.
+% 
+% In a way, this makes whitespace equivalent to function composition: just treat
+% every word as a function from stacks to stacks---``before'' to ``after''.  Even
+% literals (numbers, strings, etc.) can be thought of as functions that take in a
+% stack and return that stack with an extra element pushed onto it.  Since
+% concatenating any two programs denotes the composition of the functions that
+% the programs individually denote, Factor is said to be a \term{concatenative}
+% language\todo{cite and talk about Joy}.  Note that being stack-based is
+% unnecessary for being concatenative, though it's common\todo{list other
+% concatenative languages}.
+% 
+% This functional interpretation is useful for formally reasoning about
+% concatenative languages\todo{cite Joy}, but it also highlights how Factor
+% parallels more traditional functional languages.  In particular, languages like
+% Haskell encourage \term{point-free style}, wherein calculations are performed
+% using function composition rather than application\todo{cite}.  Using this
+% idiom, code is more compact and references fewer variables (the ``points'' of
+% point-free style).  Since data is passed around the stack in Factor, there's no
+% need for variables---point-free style is the default.  In the absence of named
+% values, new operators spring up to name different patterns in code.  These make
+% data flow explicit, since you can't use intermediate variables or tricks of
+% syntax as a crutch.  Such operators are discussed in
+% \cref{sec:primer:dataflow}.
+% 
+% Taken together, concatenative idioms emphasize shorter, clearer code.  Since
+% data flow is explicit, complicated patterns become painfully evident.  There's
+% little syntactic noise, so repetitive bits of code are easily recognized.
+% Because whitespace is composition, these complicated, repetitive sections of
+% code are easily ``factored'' (extracted) into new word definitions, hence the
+% very name of the Factor language.  By contrast, an applicative program laden
+% with variables and syntactic noise requires more work to refactor: identifying
+% free variables, pulling out the right functions without causing finicky syntax
+% errors, calling a new function with the right variables, etc.  Though Factor's
+% stack-based paradigm is atypical, it is part of a design philosophy that aims
+% to produce readable programs.
 
 %\subsection{Control Flow}\label{sec:primer:control-flow}
 

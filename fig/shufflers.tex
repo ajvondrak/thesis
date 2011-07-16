@@ -1,0 +1,168 @@
+\centering
+
+% drop ( x -- )
+\begin{minipage}{0.3\linewidth}
+  \centering
+
+  \begin{tikzpicture}[node distance=0.5\linewidth]
+    \node (before) {
+      \begin{tabular}{k{1em}}
+                   \\
+                   \\
+                   \\
+                   \\ \hline
+        \factor|x| \\ \hline
+      \end{tabular}
+    };
+
+    \node (after) [right of=before] {
+      \begin{tabular}{k{1em}}
+                   \\
+                   \\
+                   \\
+                   \\
+                   \\ \hline
+      \end{tabular}
+    };
+
+    \path[->] (before) edge node [above] {\factor|drop|} (after);
+  \end{tikzpicture}
+
+  \factor|drop ( x -- )|
+\end{minipage}
+%
+\hfill
+%
+% nip ( x y -- y )
+\begin{minipage}{0.3\linewidth}
+  \centering
+
+  \begin{tikzpicture}[node distance=0.5\linewidth]
+    \node (before) {
+      \begin{tabular}{k{1em}}
+                   \\
+                   \\
+                   \\ \hline
+        \factor|y| \\ \hline
+        \factor|x| \\ \hline
+      \end{tabular}
+    };
+
+    \node (after) [right of=before] {
+      \begin{tabular}{k{1em}}
+                   \\
+                   \\
+                   \\
+                   \\ \hline
+        \factor|y| \\ \hline
+      \end{tabular}
+    };
+
+    \path[->] (before) edge node [above] {\factor|nip|} (after);
+  \end{tikzpicture}
+
+  \factor|nip ( x y -- y )|
+\end{minipage}
+%
+\hfill
+%
+% dup ( x -- x x )
+\begin{minipage}{0.3\linewidth}
+  \centering
+
+  \begin{tikzpicture}[node distance=0.5\linewidth]
+    \node (before) {
+      \begin{tabular}{k{1em}}
+                   \\
+                   \\
+                   \\
+                   \\ \hline
+        \factor|x| \\ \hline
+      \end{tabular}
+    };
+
+    \node (after) [right of=before] {
+      \begin{tabular}{k{1em}}
+                   \\
+                   \\
+                   \\ \hline
+        \factor|x| \\ \hline
+        \factor|x| \\ \hline
+      \end{tabular}
+    };
+
+    \path[->] (before) edge node [above] {\factor|dup|} (after);
+  \end{tikzpicture}
+
+  \factor|dup ( x -- x x )|
+\end{minipage}
+%
+
+%
+\hfill
+% over ( x y -- x y x y )
+\begin{minipage}{0.3\linewidth}
+  \centering
+
+  \begin{tikzpicture}[node distance=0.5\linewidth]
+    \node (before) {
+      \begin{tabular}{k{1em}}
+                   \\
+                   \\
+                   \\ \hline
+        \factor|y| \\ \hline
+        \factor|x| \\ \hline
+      \end{tabular}
+    };
+
+    \node (after) [right of=before] {
+      \begin{tabular}{k{1em}}
+                   \\
+                   \\ \hline
+        \factor|x| \\ \hline
+        \factor|y| \\ \hline
+        \factor|x| \\ \hline
+      \end{tabular}
+    };
+
+    \path[->] (before) edge node [above] {\factor|over|} (after);
+  \end{tikzpicture}
+
+  \factor|over ( x y -- x y x )|
+\end{minipage}
+%
+\hfill
+%
+% swap ( x y -- y x )
+\begin{minipage}{0.3\textwidth}
+  \centering
+
+  \begin{tikzpicture}[node distance=0.5\linewidth]
+    \node (before) {
+      \begin{tabular}{k{1em}}
+                   \\
+                   \\
+                   \\ \hline
+        \factor|y| \\ \hline
+        \factor|x| \\ \hline
+      \end{tabular}
+    };
+
+    \node (after) [right of=before] {
+      \begin{tabular}{k{1em}}
+                   \\
+                   \\
+                   \\ \hline
+        \factor|y| \\ \hline
+        \factor|x| \\ \hline
+      \end{tabular}
+    };
+
+    \path[->] (before) edge node [above] {\factor|swap|} (after);
+  \end{tikzpicture}
+
+  \factor|swap ( x y -- y x )|
+\end{minipage}
+\hfill
+~
+\caption{Stack shuffler words and their effects}
