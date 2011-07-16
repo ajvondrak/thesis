@@ -36,11 +36,13 @@ Joy\todo{cite}, Cat\todo{cite}, and PostScript\todo{cite}.
 The strength of this model is its simplicity.  Evaluation essentially goes
 left-to-right: literals (like \texttt{1} and \texttt{2}) are pushed onto the
 stack, and operators (like \texttt{+}) perform some computation using values
-currently on the stack.  Parsing becomes very flexible, since whitespace is
-basically the only thing that separates tokens\todo{not the reason}.  In the
-Forth tradition, functions (being single tokens delineated by whitespace) are
-called \term{words}.  This also lends to the term \term{vocabulary} instead of
-``module'' or ``library''.   In Factor, the parser works as follows.
+currently on the stack.  This ``flatness'' makes parsing easier, since we don't
+need complex grammars with subtle ambiguities and precedence issues.  Rather,
+we basically just scan left-to-right for tokens separated by whitespace.  In
+the Forth tradition, functions (being named by contiguous non-whitespace
+characters) are called \term{words}.  This also lends to the term
+\term{vocabulary} instead of ``module'' or ``library''.   In Factor, the parser
+works as follows.
 \begin{itemize}
   \item If the current character is a double-quote (\texttt{"}), try to
         parse ahead for a string literal.
@@ -56,9 +58,8 @@ called \term{words}.  This also lends to the term \term{vocabulary} instead of
 
 Parsing words serve as hooks into the parser, letting Factor users extend the
 syntax dynamically.  For instance, instead of having special knowledge of
-comments built into the parser, the parsing word \texttt{!}~makes the parser
-scan forward for a newline and discard any characters read (adding nothing to
-the parse tree).
+comments built into the parser, the parsing word \texttt{!}~scans forward for a
+newline and discards any characters read (adding nothing to the parse tree).
 
 Similarly, there are parsing words for what might otherwise be hard-coded
 syntax for data structure literals.  Many act as sided delimeters: the parsing
@@ -106,7 +107,70 @@ a quotation, which is pushed to the stack.  The quotation is then invoked by
 result onto the stack.  We'll show how quotations are used in
 \cref{sec:primer:control-flow}.
 
-%\subsection{Control Flow}\label{sec:primer:control-flow}
+\subsection{Stack Effects}
+
+Everything else about Factor follows from the stack-based structure outlined in
+\cref{sec:primer:stack-based}.  Consecutive words transform the stack in
+discrete steps, thereby shaping a result.  In a way, words are functions from
+stacks to stacks---from ``before'' to ``after''---and whitespace is effectively
+function composition.  Even literals (numbers, strings, arrays, quotations,
+etc.) can be thought of as functions that take in a stack and return that stack
+with an extra element pushed onto it.
+
+With this in mind, Factor requires that the number of elements on the stack
+(the \term{stack height}) is known at each point of the program in order to
+ensure consistency.  To this end, every word is associated with a \term{stack
+effect} declaration using a notation implemented by parsing words.  In general,
+a stack effect declaration has the form
+%
+\begin{center} \factor|( input1 input2 ... -- output1 output2 ... )|
+\end{center}
+%
+where the parsing word \Verb|(| scans forward for the special token \Verb|--|
+to separate the two sides of the declaration, and then for the \Verb|)| token
+to end the declaration.  The names of the intermediate tokens don't technically
+matter---only how many of them there are.  However, names should be meaningful
+for clarity's sake.  The number of tokens on the left side of the declaration
+(before the \Verb|--|) indicates the minimum stack height expected before
+executing the word.  Given exactly this number of inputs, the number of tokens
+on the right side is the stack height after executing the word.
+
+For instance, the stack effect of the \factor|+| word is
+%
+\factor|( x y -- z )|,
+%
+as it pops two numbers off the stack and pushes one number (their sum) onto the
+stack.  This could be written any number of ways, though.
+%
+\factor|( x x -- x )|,
+%
+\factor|( number1 number2 -- sum )|,
+%
+and
+%
+\factor|( m n -- m+n )|
+%
+are all equally valid.  Further, while the stack effect
+%
+\factor|( junk x y -- junk z )|
+%
+has the same relative height change, this declaration would be wrong, since
+\factor|+| might legitimately be called on only $2$ inputs.
+
+\todo[inline]{
+List of tasks so I don't get stuck doing nothing:
+\begin{itemize}
+  \item Order of names in stack effects
+  \item Demo via stack shuffler diagrams
+  \item Section: defining things
+  \begin{itemize}
+    \item colon defs
+    \item tuples
+    \item generics
+    \item methods
+  \end{itemize}
+\end{itemize}
+}
 
 \subsection{Concatenative Programming}
 
@@ -115,15 +179,15 @@ follows from the stack-based structure outlined in
 \cref{sec:primer:stack-based}.  With some input on the stack, consecutive words
 transform the data in discrete steps, thereby shaping a result.  This breeds a
 fairly stylized way of writing code that resembles a pipeline.  Postfix code
-like \factor|1 2 +| often seems to read ``backwards'', but when viewed in
-this pipelined fashion, it can read more clearly than standard syntax.  For
-instance, suppose we're given a value \factor|x| to manipulate by applying
-three functions, \factor|f|, \factor|g|, and \factor|h|, in order.
-Typical function application notation looks like \texttt{h(g(f(x)))}, which
-must be read from the inside out because of the nested function calls.  In
-Factor, we'd write \factor|x f g h|, which is flat and reads left-to-right.
-Having such a whitespace-centered syntax reduces noise: instead of grouping
-arguments, the order of evaluation is the order you write your code.
+like \texttt{1 2 +} often seems to read ``backwards'', but when viewed in this
+pipelined fashion, it can read more clearly than standard syntax.  For
+instance, suppose we're given a value \texttt{x} to manipulate by applying
+three functions, \texttt{f}, \texttt{g}, and \texttt{h}, in order.  Typical
+function application notation looks like \texttt{h(g(f(x)))}, which must be
+read from the inside out because of the nested function calls.  In Factor, we'd
+write \texttt{x f g h}, which is flat and reads left-to-right.  Having such a
+whitespace-centered syntax reduces noise: instead of grouping arguments, the
+order of evaluation is the order you write your code.
 
 In a way, this makes whitespace equivalent to function composition: just treat
 every word as a function from stacks to stacks---``before'' to ``after''.  Even
@@ -159,6 +223,8 @@ free variables, pulling out the right functions without causing finicky syntax
 errors, calling a new function with the right variables, etc.  Though Factor's
 stack-based paradigm is atypical, it is part of a design philosophy that aims
 to produce readable programs.
+
+%\subsection{Control Flow}\label{sec:primer:control-flow}
 
 \begin{itemize}
 
