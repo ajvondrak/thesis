@@ -107,7 +107,7 @@ a quotation, which is pushed to the stack.  The quotation is then invoked by
 result onto the stack.  We'll show how quotations are used in
 \cref{sec:primer:control-flow}.
 
-\subsection{Stack Effects}
+\subsection{Stack Effects}\label{sec:primer:effects}
 
 Everything else about Factor follows from the stack-based structure outlined in
 \cref{sec:primer:stack-based}.  Consecutive words transform the stack in
@@ -123,7 +123,8 @@ ensure consistency.  To this end, every word is associated with a \term{stack
 effect} declaration using a notation implemented by parsing words.  In general,
 a stack effect declaration has the form
 %
-\begin{center} \factor|( input1 input2 ... -- output1 output2 ... )|
+\begin{center}
+  \factor|( input1 input2 ... -- output1 output2 ... )|
 \end{center}
 %
 where the parsing word \Verb|(| scans forward for the special token \Verb|--|
@@ -219,7 +220,26 @@ data flow patterns are handled in \cref{sec:primer:data-flow}.
 
 \subsection{Definitions}
 
-We've now covered enough material to see how to define words.
+\inputlst[tbph]{hello-world}
+
+\inputlst[tbph]{norm}
+
+Using the basic syntax of stack effect declarations described in
+\cref{sec:primer:effects}, we can now understand how to define words.  Most
+words are defined with the parsing word \factor|:|, which scans for a name, a
+stack effect, and then any words up until the \factor|;| token, which becomes
+the body of the definition.  Thus, the classic example in
+\vref{lst:hello-world} defines a word named \factor|hello-world| which expects
+no inputs and pushes no outputs onto the stack.  When called, this word will
+display the canonical greeting on standard output using the \factor|print|
+word.
+
+\inputfig{norm-steps}
+
+A slightly more interesting example is the \factor|norm| word in
+\vref{lst:norm}.  This squares each of the top two numbers on the stack, adds
+them, then takes the square root of the sum.  \vref{fig:norm-steps} shows this
+in action.
 
 %\todo[inline]{
 %List of tasks so I don't get stuck doing nothing:

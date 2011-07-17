@@ -1,0 +1,83 @@
+\centering
+
+\begin{tikzpicture}[node distance=0.2\linewidth]
+  \node (a) {
+    \begin{tabular}{k{3em}}
+      \\
+      \\ \hline
+      \factor|6| \\ \hline
+      \factor|8| \\ \hline
+    \end{tabular}
+  };
+
+  \node (b) [right of=a] {
+    \begin{tabular}{k{3em}}
+      \\ \hline
+      \factor|6| \\ \hline
+      \factor|6| \\ \hline
+      \factor|8| \\ \hline
+    \end{tabular}
+  };
+
+  \node (c) [right of=b] {
+    \begin{tabular}{k{3em}}
+      \\
+      \\ \hline
+      \factor|36| \\ \hline
+      \factor|8| \\ \hline
+    \end{tabular}
+  };
+
+  \node (d) [right of=c] {
+    \begin{tabular}{k{3em}}
+      \\
+      \\ \hline
+      \factor|8| \\ \hline
+      \factor|36| \\ \hline
+    \end{tabular}
+  };
+
+  \node (e) [right of=d] {
+    \begin{tabular}{k{3em}}
+      \\ \hline
+      \factor|8| \\ \hline
+      \factor|8| \\ \hline
+      \factor|36| \\ \hline
+    \end{tabular}
+  };
+
+  \node (f) [below of=b] {
+    \begin{tabular}{k{3em}}
+      \\ 
+      \\ \hline
+      \factor|64| \\ \hline
+      \factor|36| \\ \hline
+    \end{tabular}
+  };
+
+  \node (g) [right of=f] {
+    \begin{tabular}{k{3em}}
+      \\ 
+      \\
+      \\ \hline
+      \factor|100| \\ \hline
+    \end{tabular}
+  };
+
+  \node (h) [right of=g] {
+    \begin{tabular}{k{3em}}
+      \\ 
+      \\
+      \\ \hline
+      \factor|10.0| \\ \hline
+    \end{tabular}
+  };
+
+
+  \path[->] (a) edge node [above] {\factor|dup|}  (b)
+            (b) edge node [above] {\factor|*|}    (c)
+            (c) edge node [above] {\factor|swap|} (d)
+            (d) edge node [above] {\factor|dup|}  (e);
+\end{tikzpicture}
+
+\caption{\factor|norm| example}
