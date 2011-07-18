@@ -46,7 +46,18 @@
     \end{tabular}
   };
 
-  \node (f) [below of=b] {
+  \node (x) [below of=a] {
+    \phantom{
+      \begin{tabular}{k{3em}}
+        \\ \hline
+        \\ \hline
+        \\ \hline
+        \\ \hline
+      \end{tabular}
+    }
+  };
+
+  \node (f) [right of=x] {
     \begin{tabular}{k{3em}}
       \\ 
       \\ \hline
@@ -77,7 +88,10 @@
   \path[->] (a) edge node [above] {\factor|dup|}  (b)
             (b) edge node [above] {\factor|*|}    (c)
             (c) edge node [above] {\factor|swap|} (d)
-            (d) edge node [above] {\factor|dup|}  (e);
+            (d) edge node [above] {\factor|dup|}  (e)
+            (x) edge node [above] {\factor|*|}    (f)
+            (f) edge node [above] {\factor|+|}    (g)
+            (g) edge node [above] {\factor|sqrt|} (h);
 \end{tikzpicture}
 
 \caption{\factor|norm| example}

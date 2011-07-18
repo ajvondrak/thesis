@@ -2,9 +2,12 @@
 
 \begin{minipage}{0.5\linewidth}
   \begin{factorcode}
+    : ^2 ( n -- n^2 )
+      dup * ;
+
     : norm ( x y -- norm )
-      dup * swap dup * + sqrt ;
+      ^2 swap ^2 + sqrt ;
   \end{factorcode}
 \end{minipage}
 
-\caption{The Euclidean norm, $\sqrt{x^2 + y^2}$}
+\caption{\factor|norm| refactored}
