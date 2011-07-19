@@ -264,8 +264,10 @@ languages are laden with variables and syntactic noise that require more work
 to refactor: identifying free variables, pulling out the right functions
 without causing finicky syntax errors, calling a new function with the right
 variables, etc.  Though Factor's stack-based paradigm is atypical, it is part
-of a design philosophy that aims to produce readable code focusing on short,
+of a design philosophy that aims to facilitate readable code focusing on short,
 reusable definitions.
+
+\inputlst{tuples}
 
 You may have noticed that the examples thus far have not used type
 declarations.  While Factor is dynamically typed for the sake of simplicity, it
@@ -273,19 +275,99 @@ does not do away with types altogether.  In fact, Factor is object-oriented.
 However, its object system doesn't rely on classes possessing particular
 methods, as is common.  Instead, it uses \term{generic words} with methods
 implemented for particular classes.  To start, though, we must see how classes
-are defined.  The central data type of Factor's object system is called a
-\term{tuple}, which is a class composed of named \term{slots}---like instance
-variables in other languages.
+are defined.
 
-%\todo[inline]{
-%\begin{itemize}
-%  \begin{itemize}
-%    \item tuples
-%    \item generics
-%    \item methods
-%  \end{itemize}
-%\end{itemize}
-%}
+The central data type of Factor's object system is called a \term{tuple}, which
+is a class composed of named \term{slots}---like instance variables in other
+languages.  Tuples are defined with the \factor|TUPLE:| parsing word as shown
+in \vref{lst:tuples}.  A class name is specified first; if it is followed by
+the \factor|<| token and a superclass name, the tuple inherits the slots of the
+superclass.  If no superclass is specified, it defaults to the \factor|tuple|
+class.
+
+Slots are specified in several different ways.  The simplest is to just provide
+a single token, which is the name of the slot; this slot can then hold any type
+of object.  Using the syntax
+%
+\begin{center} \factor|{ name class }| \end{center}
+%
+\noindent a slot can be limited to hold only instances of a particular class,
+like \factor|integer| or \factor|string|.  Slot specifiers may also be marked
+with particular \term{attributes}---either without the class declared, like
+%
+\begin{center} \factor|{ name attributes... }| \end{center}
+%
+\noindent or with the class declared, as in
+%
+\begin{center} \factor|{ name class attributes... }| \end{center}
+%
+\noindent We will take a closer look at attributes after some examples.
+
+\inputlst{colors}
+
+Consider the two tuples defined in \vref{lst:colors}.  The first,
+\factor|color|, has no slots.  With every tuple, a class predicate is defined
+with the stack effect
+%
+\factor|( object -- ? )|
+%
+whose name is the class suffixed by a question mark.  Here, the word
+\factor|color?| is defined, which pushes a boolean (in Factor, either
+\factor|t| or \factor|f|) indicating whether the top element of the stack is an
+instance of the \factor|color| class.  The second tuple, \factor|rgb|, inherits
+from the \factor|color| class.  While this doesn't give \factor|rgb| any
+different slots, it does mean that an instance of \factor|rgb| will return
+\factor|t| for \factor|color?| due to the ``is-a'' relationship between
+subclass and superclass.  The word \factor|rgb?| is similarly defined.
+
+Notice that the \factor|rgb| tuple declares three slots named \factor|red|,
+\factor|green|, and \factor|blue|.  Since the slots' classes aren't declared,
+any sort of object can be stored in them.  A set of methods are defined to
+manipulate an \factor|rgb| instance's slots.  Three \term{reader} words are
+defined (one for each slot), analogous to ``getter'' methods in other
+languages.  Following the setter word naming template, this example defines
+\factor|red>>|, \factor|green>>|, and \factor|blue>>|.  Each word has the stack
+effect
+%
+\factor|( object -- value )|,
+%
+and extracts the value corresponding to the eponymous slot.  Similarly, the
+\term{writer} words \factor|red<<|, \factor|green<<|, and \factor|blue<<| each
+have the stack effect
+%
+\factor|( value object -- )|,
+%
+and store values in the corresponding \factor|rgb| slots destructively.  To
+leave the modified \factor|rgb| instance on the stack while setting slots, the
+\term{setter} words \factor|>>red|, \factor|>>green|, and \factor|>>blue| are
+also defined, each with the stack effect
+%
+\factor|( object value -- object' )|.
+%
+These words are defined in terms of writers.  For instance, \factor|>>red| is
+the same as \factor|over red<<|, since \factor|over| copies a reference to the
+tuple (i.e., it doesn't make a ``deep'' copy).
+
+To construct an instance of a tuple, we can use either \factor|new| or
+\factor|boa|.  \factor|new| will not initialize any of the slots to a
+particular input value---all slots will default to Factor's canonical false
+value, \factor|f|.  \factor|new| is used in \vref{lst:colors} to define
+\factor|<color>| (by convention, the constructor for \factor|foo| is named
+\factor|<foo>|).  First, we push the class \factor|color| onto the stack (this
+word is also automatically defined by \factor|TUPLE:|), then just call
+\factor|new|, leaving a new instance on the stack.  Since this particular tuple
+has no slots, using \factor|new| makes sense.  We might also use it to
+initialize a class, then use setter words to only assign a particular subset of
+slots' values.
+
+However, we often want to initialize a tuple with values for each of its slots.
+For this, we have \factor|boa|, which works similarly to \factor|new|.  This is
+used in the definition of \factor|<rgb>| in \vref{lst:colors}.  The difference
+here is the additional inputs on the stack---one for each slot, in the order
+they're declared.  That is, we're constructing the tuple \textbf{b}y
+\textbf{o}rder of \textbf{a}rguments, giving us the fun pun ``\factor|boa|
+constructor''.
+
 
 % \subsection{Concatenative Programming}
 % 
@@ -341,47 +423,39 @@ variables in other languages.
 
 %\subsection{Control Flow}\label{sec:primer:control-flow}
 
-\begin{itemize}
-
-\item Stack effects
-      \begin{itemize}
-        \item Complex stack effects: row polymorphism \& types
-        \item Stack checker
-      \end{itemize}
-
-\item Combinators
-      \begin{itemize}
-        \item Control flow
-              \begin{itemize}
-                \item if
-                \item each
-                \item while
-              \end{itemize}
-        \item Data flow
-              \begin{itemize}
-                \item Dip/keep
-                \item Cleave
-                \item Spread
-                \item Apply
-              \end{itemize}
-      \end{itemize}
-
-\item Object system
-      \begin{itemize}
-        \item tuples
-        \item generics \& methods
-      \end{itemize}
-
-\item Libraries \& metaprogramming
-      \begin{itemize}
-        \item Results of evolution
-        \item locals?
-        \item fry?
-        \item macros?
-        \item functors?
-        \item ffi?
-      \end{itemize}
-
-\end{itemize}
-
-\end{document}
+%\begin{itemize}
+%
+%\item Stack effects
+%      \begin{itemize}
+%        \item Complex stack effects: row polymorphism \& types
+%        \item Stack checker
+%      \end{itemize}
+%
+%\item Combinators
+%      \begin{itemize}
+%        \item Control flow
+%              \begin{itemize}
+%                \item if
+%                \item each
+%                \item while
+%              \end{itemize}
+%        \item Data flow
+%              \begin{itemize}
+%                \item Dip/keep
+%                \item Cleave
+%                \item Spread
+%                \item Apply
+%              \end{itemize}
+%      \end{itemize}
+%
+%\item Libraries \& metaprogramming
+%      \begin{itemize}
+%        \item Results of evolution
+%        \item locals?
+%        \item fry?
+%        \item macros?
+%        \item functors?
+%        \item ffi?
+%      \end{itemize}
+%
+%\end{itemize}

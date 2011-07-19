@@ -1,0 +1,17 @@
+\centering
+
+\begin{minipage}{0.5\linewidth}
+  \begin{factorcode}
+    TUPLE: color ;
+
+    : <color> ( -- color )
+      color new ;
+
+    TUPLE: rgb < color red green blue ;
+
+    : <rgb> ( r g b -- rgb )
+      rgb boa ;
+  \end{factorcode}
+\end{minipage}
+
+\caption{Simple tuple examples}
