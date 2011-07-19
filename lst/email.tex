@@ -1,0 +1,17 @@
+\centering
+
+\begin{minipage}{0.65\linewidth} %XXX
+  \begin{factorcode}
+    TUPLE: email
+        { from string }
+        { to array }
+        { cc array }
+        { bcc array }
+        { subject string }
+        { content-type string initial: "text/plain" }
+        { encoding word initial: utf8 }
+        { body string } ;
+  \end{factorcode}
+\end{minipage}
+
+\caption{Special slot specifiers}

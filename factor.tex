@@ -220,6 +220,8 @@ data flow patterns are handled in \cref{sec:primer:data-flow}.
 
 \subsection{Definitions}
 
+%\subsubsection{Colon Definitions}
+
 \inputlst{hello-world}
 
 \inputlst{norm}
@@ -267,6 +269,8 @@ variables, etc.  Though Factor's stack-based paradigm is atypical, it is part
 of a design philosophy that aims to facilitate readable code focusing on short,
 reusable definitions.
 
+%\subsubsection{Tuples}
+
 \inputlst{tuples}
 
 You may have noticed that the examples thus far have not used type
@@ -289,19 +293,11 @@ Slots are specified in several different ways.  The simplest is to just provide
 a single token, which is the name of the slot; this slot can then hold any type
 of object.  Using the syntax
 %
-\begin{center} \factor|{ name class }| \end{center}
+\factor|{ name class }|
 %
-\noindent a slot can be limited to hold only instances of a particular class,
-like \factor|integer| or \factor|string|.  Slot specifiers may also be marked
-with particular \term{attributes}---either without the class declared, like
-%
-\begin{center} \factor|{ name attributes... }| \end{center}
-%
-\noindent or with the class declared, as in
-%
-\begin{center} \factor|{ name class attributes... }| \end{center}
-%
-\noindent We will take a closer look at attributes after some examples.
+a slot can be limited to hold only instances of a particular class, like
+\factor|integer| or \factor|string|.  There are other forms of slot specifiers,
+which we will cover after some examples.
 
 \inputlst{colors}
 
@@ -368,6 +364,35 @@ they're declared.  That is, we're constructing the tuple \textbf{b}y
 \textbf{o}rder of \textbf{a}rguments, giving us the fun pun ``\factor|boa|
 constructor''.
 
+\inputlst{email}
+
+Now that we've seen the various words defined for tuples, we can explore more
+complex slot specifiers.  Using the array-like syntax from before, slot
+specifiers may be marked with certain \term{attributes}---both with the class
+declared (like
+%
+\factor|{ name class attributes... }|)
+%
+and without the class declared (as in 
+%
+\factor|{ name attributes... }|).
+%
+In particular, Factor recognizes two different attributes.  If a slot marked
+\factor|read-only|, the writer (and thus setter) for the slot will not be
+defined, so the slot cannot be altered.  A slot may also provide an initial
+value using the syntax \factor|initial: some-literal|.  This will be the slot's
+value when instantiated with \factor|new|. 
+
+For example, \vref{lst:email} shows a tuple definition from Factor's
+\factor|smtp| vocabulary that defines an \factor|email| object.  The
+\factor|from| address, \factor|subject|, and \factor|body| must be instances of
+\factor|string|, while \factor|to|, \factor|cc|, and \factor|bcc| are
+\factor|array|s of destination addresses.  The \factor|content-type| slot must
+also be a \factor|string|, but if unspecified, it defaults to
+\factor|"text/plain"|.  The \factor|encoding| must be a \factor|word| (in
+Factor, even words are first-class objects), which by default is the
+\factor|utf8| word from the \factor|io.encodings.utf8| vocabulary,
+corresponding to a particular Unicode format.
 
 % \subsection{Concatenative Programming}
 % 
