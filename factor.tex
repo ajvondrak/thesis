@@ -82,14 +82,6 @@ Other literals include \vpageref[the following][those in
 
 \inputlst[h]{seq}
 
-%Words correspond to \term{first-class} functions from other languages.  That
-%is, words are themselves objects that just perform instructions whenever
-%they're told---most commonly, when Factor is executing a piece of code.  While
-%infix languages tend to distinguish syntactically significant operators (e.g.,
-%for arithmetic) from normal user-defined functions, there is no such difference
-%here.  Since \factor|1 2 +| and \factor|1 2 foo| are tokenized the same
-%way, other languages' special operators are just words in Factor.
-
 \inputfig{quot}
 
 A particularly important set of parsing words in Factor are the square
@@ -124,18 +116,18 @@ ensure consistency.  To this end, every word is associated with a \term{stack
 effect} declaration using a notation implemented by parsing words.  In general,
 a stack effect declaration has the form
 %
-\begin{center}
-  \factor|( input1 input2 ... -- output1 output2 ... )|
+\begin{center} \factor|( input1 input2 ... -- output1 output2 ... )|
 \end{center}
 %
-where the parsing word \Verb|(| scans forward for the special token \Verb|--|
-to separate the two sides of the declaration, and then for the \Verb|)| token
-to end the declaration.  The names of the intermediate tokens don't technically
-matter---only how many of them there are.  However, names should be meaningful
-for clarity's sake.  The number of tokens on the left side of the declaration
-(before the \Verb|--|) indicates the minimum stack height expected before
-executing the word.  Given exactly this number of inputs, the number of tokens
-on the right side is the stack height after executing the word.
+\noindent where the parsing word \Verb|(| scans forward for the special token
+\Verb|--| to separate the two sides of the declaration, and then for the
+\Verb|)| token to end the declaration.  The names of the intermediate tokens
+don't technically matter---only how many of them there are.  However, names
+should be meaningful for clarity's sake.  The number of tokens on the left side
+of the declaration (before the \Verb|--|) indicates the minimum stack height
+expected before executing the word.  Given exactly this number of inputs, the
+number of tokens on the right side is the stack height after executing the
+word.
 
 For instance, the stack effect of the \factor|+| word is
 %
@@ -390,57 +382,68 @@ also be a \factor|string|, but if unspecified, it defaults to
 Factor, even words are first-class objects), which by default is \factor|utf8|,
 a word from the \factor|io.encodings.utf8| vocabulary for a Unicode format.
 
-% \subsection{Concatenative Programming}
-% 
-% The biggest step needed to understand Factor isn't really big: everything else
-% follows from the stack-based structure outlined in
-% \cref{sec:primer:stack-based}.  With some input on the stack, consecutive words
-% transform the data in discrete steps, thereby shaping a result.  This breeds a
-% fairly stylized way of writing code that resembles a pipeline.  Postfix code
-% like \texttt{1 2 +} often seems to read ``backwards'', but when viewed in this
-% pipelined fashion, it can read more clearly than standard syntax.  For
-% instance, suppose we're given a value \texttt{x} to manipulate by applying
-% three functions, \texttt{f}, \texttt{g}, and \texttt{h}, in order.  Typical
-% function application notation looks like \texttt{h(g(f(x)))}, which must be
-% read from the inside out because of the nested function calls.  In Factor, we'd
-% write \texttt{x f g h}, which is flat and reads left-to-right.  Having such a
-% whitespace-centered syntax reduces noise: instead of grouping arguments, the
-% order of evaluation is the order you write your code.
-% 
-% In a way, this makes whitespace equivalent to function composition: just treat
-% every word as a function from stacks to stacks---``before'' to ``after''.  Even
-% literals (numbers, strings, etc.) can be thought of as functions that take in a
-% stack and return that stack with an extra element pushed onto it.  Since
-% concatenating any two programs denotes the composition of the functions that
-% the programs individually denote, Factor is said to be a \term{concatenative}
-% language\todo{cite and talk about Joy}.  Note that being stack-based is
-% unnecessary for being concatenative, though it's common\todo{list other
-% concatenative languages}.
-% 
-% This functional interpretation is useful for formally reasoning about
-% concatenative languages\todo{cite Joy}, but it also highlights how Factor
-% parallels more traditional functional languages.  In particular, languages like
-% Haskell encourage \term{point-free style}, wherein calculations are performed
-% using function composition rather than application\todo{cite}.  Using this
-% idiom, code is more compact and references fewer variables (the ``points'' of
-% point-free style).  Since data is passed around the stack in Factor, there's no
-% need for variables---point-free style is the default.  In the absence of named
-% values, new operators spring up to name different patterns in code.  These make
-% data flow explicit, since you can't use intermediate variables or tricks of
-% syntax as a crutch.  Such operators are discussed in
-% \cref{sec:primer:dataflow}.
-% 
-% Taken together, concatenative idioms emphasize shorter, clearer code.  Since
-% data flow is explicit, complicated patterns become painfully evident.  There's
-% little syntactic noise, so repetitive bits of code are easily recognized.
-% Because whitespace is composition, these complicated, repetitive sections of
-% code are easily ``factored'' (extracted) into new word definitions, hence the
-% very name of the Factor language.  By contrast, an applicative program laden
-% with variables and syntactic noise requires more work to refactor: identifying
-% free variables, pulling out the right functions without causing finicky syntax
-% errors, calling a new function with the right variables, etc.  Though Factor's
-% stack-based paradigm is atypical, it is part of a design philosophy that aims
-% to produce readable programs.
+\subsubsection{Generics and Methods}
+
+Unlike more common object systems, we do not define individual methods that
+``belong'' to particular tuples.  In Factor, you define a method that
+specializes on a class for a particular generic word.  That way, when the
+generic word is called, it dispatches on the class of the object, invoking the
+most specific method for the object.
+
+Generic words are declared with the syntax
+%
+\factor|GENERIC: word-name ( stack -- effect )|.
+%
+Words defined this way will then dispatch on the class of the top element of
+the stack (necessarily the rightmost input in the stack effect).  To define a
+new method with which to control this dispatch, we use the syntax
+%
+\begin{center} \factor|M: class word-name definition... ;| \end{center}
+
+\inputlst{sets}
+
+An accessible example of generic word usage in the Factor standard library is
+in the \factor|sets| vocabulary.  \factor|set| is a \term{mixin} class---a
+union of other classes whose members may be extended by the user.  We can see
+the standard definition in \vref{lst:sets}.  Note that the
+%
+\factor|USING: ...  ;|
+%
+form specifies vocabularies being used (like Java's \minted{java}|import|), and
+\factor|IN:| specifies the vocabulary in which the definitions appear (like
+Java's \minted{java}|package|).  We can see here that instances of the
+\factor|sequence|, \factor|hash-set|, and \factor|bit-set| classes are all
+instances of \factor|set|, so will respond \factor|t| to the predicate
+\factor|set?|.  Similarly, \factor|sequence| is a mixin class with many more
+members, including \factor|array|, \factor|vector|, and \factor|string|.
+
+\inputlst{cardinality}
+
+\vref{lst:cardinality} shows the \factor|cardinality| generic from Factor's
+\factor|sets| vocabulary, along with its methods.  This generic word takes a
+\factor|set| instance from the top of the stack and pushes the number of
+elements it contains.  For instance, if the top element is a \factor|bit-set|,
+we extract its \factor|table| slot and invoke another word, \factor|bit-count|,
+on it.  But if the top element is \factor|f| (the canonical false/empty value),
+we know the cardinality is $0$.  For any \factor|sequence|, we may offshore the
+work to a different method, \factor|length|, defined in the \factor|sequences|
+vocabulary.  The final method gives a default behavior for any other
+\factor|set| instance, which simply uses \factor|members| to obtain a
+\factor|sequence| of equivalent set members, then calls \factor|length|.
+
+By viewing a class as a set of objects that respond positively to the class
+predicate, we may partially order classes with the subset relationship.  Method
+dispatch will use this ordering when \factor|cardinality| is called to select
+the most specific method for the object being dispatched upon.  For instance,
+while no explicit method for \factor|array| is defined, any instance of
+\factor|array| is also an instance of \factor|sequence|.  In turn, every
+instance of \factor|sequence| is also an instance of \factor|set|.  We have
+methods that dispatch on both \factor|set| and \factor|sequence|, but the
+latter is more specific, so that is the method invoked.  If we define our own
+class, \factor|foo|, and declare it as an instance of \factor|set| but not as
+an instance of \factor|sequence|, then the \factor|set| method of
+\factor|cardinality| will be invoked.  Sometimes resolving the precedence gets
+more complicated, but these edge-cases are beyond the scope of our discussion.
 
 %\subsection{Control Flow}\label{sec:primer:control-flow}
 
@@ -459,6 +462,7 @@ a word from the \factor|io.encodings.utf8| vocabulary for a Unicode format.
 %                \item if
 %                \item each
 %                \item while
+%                \item times
 %              \end{itemize}
 %        \item Data flow
 %              \begin{itemize}

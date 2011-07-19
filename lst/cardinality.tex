@@ -1,0 +1,25 @@
+\centering
+
+\begin{minipage}{0.5\linewidth}
+  \begin{factorcode}
+    IN: sets
+    GENERIC: cardinality ( set -- n )
+
+    USING: accessors bit-sets math.bitwise sets ;
+    M: bit-set cardinality table>> bit-count ;
+
+    USING: kernel sets ;
+    M: f cardinality drop 0 ;
+
+    USING: accessors assocs hash-sets sets ;
+    M: hash-set cardinality table>> assoc-size ;
+
+    USING: sequences sets ;
+    M: sequence cardinality length ;
+
+    USING: sequences sets ;
+    M: set cardinality members length ;
+  \end{factorcode}
+\end{minipage}
+
+\caption{Set cardinality using Factor's object system}
