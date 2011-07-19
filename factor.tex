@@ -310,9 +310,9 @@ Notice that the \factor|rgb| tuple declares three slots named \factor|red|,
 any sort of object can be stored in them.  A set of methods are defined to
 manipulate an \factor|rgb| instance's slots.  Three \term{reader} words are
 defined (one for each slot), analogous to ``getter'' methods in other
-languages.  Following the setter word naming template, this example defines
-\factor|red>>|, \factor|green>>|, and \factor|blue>>|.  Each word has the stack
-effect
+languages.  Following the template for naming reader words, this example
+defines \factor|red>>|, \factor|green>>|, and \factor|blue>>|.  Each word has
+the stack effect
 %
 \factor|( object -- value )|,
 %
@@ -351,7 +351,9 @@ used in the definition of \factor|<rgb>| in \cref{lst:colors}.  The difference
 here is the additional inputs on the stack---one for each slot, in the order
 they're declared.  That is, we're constructing the tuple \textbf{b}y
 \textbf{o}rder of \textbf{a}rguments, giving us the fun pun ``\factor|boa|
-constructor''.
+constructor''.  So, \factor|1 2 3 <rgb>| will construct an \factor|rgb|
+instance with the \factor|red| slot set to \factor|1|, the \factor|green| slot
+set to \factor|2|, and the \factor|blue| slot set to \factor|3|.
 
 \inputlst{email}
 
@@ -398,7 +400,7 @@ Words defined this way will then dispatch on the class of the top element of
 the stack (necessarily the rightmost input in the stack effect).  To define a
 new method with which to control this dispatch, we use the syntax
 %
-\begin{center} \factor|M: class word-name definition... ;| \end{center}
+\factor|M: class word-name definition... ;|.
 
 \inputlst{sets}
 
@@ -409,9 +411,9 @@ the standard definition in \vref{lst:sets}.  Note that the
 %
 \factor|USING: ...  ;|
 %
-form specifies vocabularies being used (like Java's \minted{java}|import|), and
+form specifies vocabularies being used (like Java's \mint{java}|import|), and
 \factor|IN:| specifies the vocabulary in which the definitions appear (like
-Java's \minted{java}|package|).  We can see here that instances of the
+Java's \mint{java}|package|).  We can see here that instances of the
 \factor|sequence|, \factor|hash-set|, and \factor|bit-set| classes are all
 instances of \factor|set|, so will respond \factor|t| to the predicate
 \factor|set?|.  Similarly, \factor|sequence| is a mixin class with many more
@@ -428,8 +430,8 @@ on it.  But if the top element is \factor|f| (the canonical false/empty value),
 we know the cardinality is $0$.  For any \factor|sequence|, we may offshore the
 work to a different method, \factor|length|, defined in the \factor|sequences|
 vocabulary.  The final method gives a default behavior for any other
-\factor|set| instance, which simply uses \factor|members| to obtain a
-\factor|sequence| of equivalent set members, then calls \factor|length|.
+\factor|set| instance, which simply uses \factor|members| to obtain an
+equivalent \factor|sequence| of set members, then calls \factor|length|.
 
 By viewing a class as a set of objects that respond positively to the class
 predicate, we may partially order classes with the subset relationship.  Method
