@@ -1,0 +1,109 @@
+\subsection{Stack Effects}\label{sec:primer:effects}
+
+Everything else about Factor follows from the stack-based structure outlined in
+\cref{sec:primer:stack-based}.  Consecutive words transform the stack in
+discrete steps, thereby shaping a result.  In a way, words are functions from
+stacks to stacks---from ``before'' to ``after''---and whitespace is effectively
+function composition.  Even literals (numbers, strings, arrays, quotations,
+etc.) can be thought of as functions that take in a stack and return that stack
+with an extra element pushed onto it.
+
+With this in mind, Factor requires that the number of elements on the stack
+(the \term{stack height}) is known at each point of the program in order to
+ensure consistency.  To this end, every word is associated with a \term{stack
+effect} declaration using a notation implemented by parsing words.  In general,
+a stack effect declaration has the form
+%
+\begin{center} \factor|( input1 input2 ... -- output1 output2 ... )|
+\end{center}
+%
+\noindent where the parsing word \Verb|(| scans forward for the special token
+\Verb|--| to separate the two sides of the declaration, and then for the
+\Verb|)| token to end the declaration.  The names of the intermediate tokens
+don't technically matter---only how many of them there are.  However, names
+should be meaningful for clarity's sake.  The number of tokens on the left side
+of the declaration (before the \Verb|--|) indicates the minimum stack height
+expected before executing the word.  Given exactly this number of inputs, the
+number of tokens on the right side is the stack height after executing the
+word.
+
+For instance, the stack effect of the \factor|+| word is
+%
+\factor|( x y -- z )|,
+%
+as it pops two numbers off the stack and pushes one number (their sum) onto the
+stack.  This could be written any number of ways, though.
+%
+\factor|( x x -- x )|,
+%
+\factor|( number1 number2 -- sum )|,
+%
+and
+%
+\factor|( m n -- m+n )|
+%
+are all equally valid.  Further, while the stack effect
+%
+\factor|( junk x y -- junk z )|
+%
+has the same relative height change, this declaration would be wrong, since
+\factor|+| might legitimately be called on only two inputs.
+
+\inputfig{shufflers}
+
+For the purposes of documentation, of course, the names in stack effects do
+matter.  They correspond to elements of the stack from bottom-to-top.  So, the
+rightmost value on either side of the declaration names the top element of the
+stack.  We can see this in \vref{fig:shufflers}, which shows the effects of
+standard \term{stack shuffler} words.  These words are used for basic data flow
+in Factor programs.  For example, to discard the top element of the stack, we
+use the \factor|drop| word, whose effect is simply
+%
+\factor|( x -- )|.
+%
+To discard the element just below the top of the stack, we use \factor|nip|,
+whose effect is
+%
+\factor|( x y -- y )|.
+%
+This stack effect indicates that there are at least two elements on the stack
+before \factor|nip| is called: the top element is \factor|y|, and the next
+element is \factor|x|.  After calling the word, \factor|x| is removed, leaving
+the original \factor|y| still on top of the stack.  Other shuffler words that
+remove data from the stack are
+%
+\factor|2drop| with the effect \factor|( x y -- )|,
+%
+\factor|3drop| with the effect \factor|( x y z -- )|, and
+%
+\factor|2nip| with the effect \factor|( x y z -- z )|.
+
+The next stack shufflers duplicate data.  \factor|dup| copies the top element
+of the stack, as indicated by its effect \factor|( x -- x x )|.  \factor|over|
+has the effect \factor|( x y -- x y x )|, which tells us that it expects at
+least two inputs: the top of the stack is \factor|y|, and the next object is
+\factor|x|.  \factor|x| is copied and pushed on top of the two original
+elements, sandwiching \factor|y| between two \factor|x|s.  Other shuffler words
+that duplicate data on the stack are
+%
+\factor|2dup| with the effect \factor|( x y -- x y x y )|,
+%
+\factor|3dup| with the effect \factor|( x y z -- x y z x y z )|,
+%
+\factor|2over| with the effect \factor|( x y z -- x y z x y )|, and
+%
+\factor|pick| with the effect \factor|( x y z -- x y z x )|.
+
+True to the name \factor|swap|, the final shuffler in \vref{fig:shufflers}
+permutes the top two elements of the stack, reversing their order.  The stack
+effect
+%
+\factor|( x y -- y x )|
+%
+indicates as much.  The left side denotes that two inputs are on the stack (the
+top is \factor|y|, the next is \factor|x|), and the right side shows the
+outputs are swapped (the top element is \factor|x| and the next is \factor|y|).
+Factor has other words that permute elements deeper into the stack.  However,
+their use is discouraged because it's harder for the programmer to mentally
+keep track of more than a couple items on the stack.  We'll see how more
+complex data flow patterns are handled in \cref{sec:primer:data-flow}.

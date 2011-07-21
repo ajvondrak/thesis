@@ -1,0 +1,45 @@
+\subsection{Definitions}\label{sec:primer:colon-defs}
+
+\inputlst{hello-world}
+
+\inputlst{norm}
+
+Using the basic syntax of stack effect declarations described in
+\cref{sec:primer:effects}, we can now understand how to define words.  Most
+words are defined with the parsing word \factor|:|, which scans for a name, a
+stack effect, and then any words up until the \factor|;| token, which together
+become the body of the definition.  Thus, the classic example in
+\vref{lst:hello-world} defines a word named \factor|hello-world| which expects
+no inputs and pushes no outputs onto the stack.  When called, this word will
+display the canonical greeting on standard output using the \factor|print|
+word.
+
+\inputfig{norm-steps}
+
+A slightly more interesting example is the \factor|norm| word in
+\vref{lst:norm}.  This squares each of the top two numbers on the stack, adds
+them, then takes the square root of the sum.  \vref{fig:norm-steps} shows this
+in action.  By defining a word to perform these steps, we can replace virtually
+any instance of
+%
+\factor|dup * swap dup * + sqrt|
+%
+in a program simply with \factor|norm|.  This is a deceptively important point.
+Data flow is made explicit via stack manipulation rather than being hidden in
+variable assignments, so repetitive patterns become painfully evident.  This
+makes identifying, extracting, and replacing redundant code easy.  Often, you
+can just copy a repetitive sequence of words into its own definition verbatim.
+This emphasis on ``factoring'' your code is what gives Factor its name.
+
+\inputlst{norm-factored}
+
+As a simple case in point, we see the subexpression \factor|dup *| appears
+twice in the definition of \factor|norm| in \vref{lst:norm}.  We can easily
+factor that out into a new word and substitute it for the old expressions, as
+in \vref{lst:norm-factored}.  By contrast, programs in more traditional
+languages are laden with variables and syntactic noise that require more work
+to refactor: identifying free variables, pulling out the right functions
+without causing finicky syntax errors, calling a new function with the right
+variables, etc.  Though Factor's stack-based paradigm is atypical, it is part
+of a design philosophy that aims to facilitate readable code focusing on short,
+reusable definitions.

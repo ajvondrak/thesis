@@ -1,0 +1,83 @@
+\subsection{Stack-Based Languages}\label{sec:primer:stack-based}
+
+\inputfig{rpn}
+
+Like \gls{RPN} calculators, Factor's evaluation model uses a global stack upon
+which operands are pushed before operators are called.  This naturally
+facilitates postfix notation, in which operators are written after their
+operands.  For example, instead of \texttt{1~+~2}, we write \texttt{1~2~+}.
+\vref{fig:rpn} shows how \texttt{1~2~+} works conceptually:
+\begin{itemize}
+  \item \texttt{1} is pushed onto the stack
+  \item \texttt{2} is pushed onto the stack
+  \item \texttt{+} is called, so two values are popped from the stack, added,
+        and the result (\texttt{3}) is pushed back onto the stack
+\end{itemize}
+Other stack-based programming languages include Forth\todo{cite},
+Joy\todo{cite}, Cat\todo{cite}, and PostScript\todo{cite}.
+
+The strength of this model is its simplicity.  Evaluation essentially goes
+left-to-right: literals (like \texttt{1} and \texttt{2}) are pushed onto the
+stack, and operators (like \texttt{+}) perform some computation using values
+currently on the stack.  This ``flatness'' makes parsing easier, since we don't
+need complex grammars with subtle ambiguities and precedence issues.  Rather,
+we basically just scan left-to-right for tokens separated by whitespace.  In
+the Forth tradition, functions are called \term{words} since they're made up of
+any contiguous non-whitespace characters.  This also lends to the term
+\term{vocabulary} instead of ``module'' or ``library''.   In Factor, the parser
+works as follows.
+\begin{itemize}
+  \item If the current character is a double-quote (\texttt{"}), try to
+        parse ahead for a string literal.
+  \item Otherwise, scan ahead for a single token.
+        \begin{itemize}
+          \item If the token is the name of a \term{parsing word}, that word is
+                invoked with the parser's current state.
+          \item If the token is the name of an ordinary (i.e., non-parsing)
+                word, that word is added to the parse tree.
+          \item Otherwise, try to parse the token as a numeric literal.
+        \end{itemize}
+\end{itemize}
+
+Parsing words serve as hooks into the parser, letting Factor users extend the
+syntax dynamically.  For instance, instead of having special knowledge of
+comments built into the parser, the parsing word \texttt{!}~scans forward for a
+newline and discards any characters read (adding nothing to the parse tree).
+
+Similarly, there are parsing words for what might otherwise be hard-coded
+syntax for data structure literals.  Many act as sided delimeters: the parsing
+word for the left-delimiter will parse ahead until it reaches the
+right-delimiter, using whatever was read in between to add objects to the data
+structure.  For example, \factor|{ 1 2 3 }| denotes an array of three numbers.
+Note the deliberate spaces in between the tokens, so that the delimeters are
+themselves distinct words.  In
+%
+\Verb[showspaces]|{ 1 2 3 }| (with spaces as marked), the parsing word \Verb|{|
+parses objects until it reaches \Verb|}|, collecting the results into an array.
+The \verb|{| word would not be called if not for that space, whereas
+%
+\Verb[showspaces]|{1 2 3}| parses as the word \Verb|{1|, the number \Verb|2|,
+and the word \Verb|3}|---not an array.  Further, since the left-delimeter words
+parse recursively, such literals can be nested, contain comments, etc.  Other
+literals include \vpageref[the following][those in
+\vref{lst:literals}~]{lst:literals}.
+
+\inputlst[h]{literals}
+
+\inputfig{quot}
+
+A particularly important set of parsing words in Factor are the square
+brackets, \Verb|[| and \Verb|]|.  Any code in between such brackets is
+collected up into a special sequence called a \term{quotation}.  Essentially,
+it's a snippet of code whose execution is suppressed.  The code inside a
+quotation can then be run with the \factor|call| word.  Quotations are like
+anonymous functions in other languages, but the stack model makes them
+conceptually simpler, since we don't have to worry about variable binding and
+the like.  Consider a small example like \factor|1 2 [ + ] call|.  You can
+think of \factor|call| working by ``erasing'' the brackets around a quotation,
+so this example behaves just like \factor|1 2 +|.  \vref{fig:quot} shows its
+evaluation: instead of adding the numbers immediately, \factor|+| is placed in
+a quotation, which is pushed to the stack.  The quotation is then invoked by
+\factor|call|, so \factor|+| pops and adds the two numbers and pushes the
+result onto the stack.  We'll show how quotations are used in
+\cref{sec:primer:combinators}.

@@ -1,0 +1,187 @@
+\subsection{Object Orientation}\label{sec:primer:oo}
+
+You may have noticed that the examples in \cref{sec:primer:colon-defs} did not
+use type declarations.  While Factor is dynamically typed for the sake of
+simplicity, it does not do away with types altogether.  In fact, Factor is
+object-oriented.  However, its object system doesn't rely on classes possessing
+particular methods, as is common.  Instead, it uses \term{generic words} with
+methods implemented for particular classes.  To start, though, we must see how
+classes are defined.
+
+\subsubsection{Tuples}
+
+\inputlst{tuples}
+
+The central data type of Factor's object system is called a \term{tuple}, which
+is a class composed of named \term{slots}---like instance variables in other
+languages.  Tuples are defined with the \factor|TUPLE:| parsing word as shown
+in \vref{lst:tuples}.  A class name is specified first; if it is followed by
+the \factor|<| token and a superclass name, the tuple inherits the slots of the
+superclass.  If no superclass is specified, the default is the \factor|tuple|
+class.
+
+Slots can be specified in several ways.  The simplest is to just provide a
+single token, which is the name of the slot.  This slot can then hold any type
+of object.  Using the syntax
+%
+\factor|{ name class }|,
+%
+a slot can be limited to hold only instances of a particular class, like
+\factor|integer| or \factor|string|.  There are other forms of slot specifiers,
+which we will cover after some examples.
+
+\inputlst{colors}
+
+Consider the two tuples defined in \vref{lst:colors}.  The first,
+\factor|color|, has no slots.  With every tuple, a class predicate is defined
+with the stack effect
+%
+\verb|( object -- ? )|
+%
+whose name is the class suffixed by a question mark.  Here, the word
+\factor|color?| is defined, which pushes a boolean (in Factor, either
+\factor|t| or \factor|f|) indicating whether the top element of the stack is an
+instance of the \factor|color| class.  The second tuple, \factor|rgb|, inherits
+from the \factor|color| class.  While this doesn't give \factor|rgb| any
+different slots, it does mean that an instance of \factor|rgb| will return
+\factor|t| for \factor|color?| due to the ``is-a'' relationship between
+subclass and superclass.  The word \factor|rgb?| is similarly defined.
+
+Notice that the \factor|rgb| tuple declares three slots named \factor|red|,
+\factor|green|, and \factor|blue|.  Since the slots' classes aren't declared,
+any sort of object can be stored in them.  A set of methods are defined to
+manipulate an \factor|rgb| instance's slots.  Three \term{reader} words are
+defined (one for each slot), analogous to ``getter'' methods in other
+languages.  Following the template for naming reader words, this example
+defines \factor|red>>|, \factor|green>>|, and \factor|blue>>|.  Each word has
+the stack effect
+%
+\factor|( object -- value )|,
+%
+and extracts the value corresponding to the eponymous slot.  Similarly, the
+\term{writer} words \factor|red<<|, \factor|green<<|, and \factor|blue<<| each
+have the stack effect
+%
+\factor|( value object -- )|,
+%
+and store values in the corresponding \factor|rgb| slots destructively.  To
+leave the modified \factor|rgb| instance on the stack while setting slots, the
+\term{setter} words \factor|>>red|, \factor|>>green|, and \factor|>>blue| are
+also defined, each with the stack effect
+%
+\factor|( object value -- object' )|.
+%
+These words are defined in terms of writers.  For instance, \factor|>>red| is
+the same as \factor|over red<<|, since \factor|over| copies a reference to the
+tuple (i.e., it doesn't make a ``deep'' copy).
+
+To construct an instance of a tuple, we can use either \factor|new| or
+\factor|boa|.  \factor|new| will not initialize any of the slots to a
+particular input value---all slots will default to Factor's canonical false
+value, \factor|f|.  \factor|new| is used in \vref{lst:colors} to define
+\factor|<color>| (by convention, the constructor for \factor|foo| is named
+\factor|<foo>|).  First, we push the class \factor|color| onto the stack (this
+word is also automatically defined by \factor|TUPLE:|), then just call
+\factor|new|, leaving a new instance on the stack.  Since this particular tuple
+has no slots, using \factor|new| makes sense.  We might also use it to
+initialize a class, then use setter words to only assign a particular subset of
+slots' values.
+
+However, we often want to initialize a tuple with values for each of its slots.
+For this, we have \factor|boa|, which works similarly to \factor|new|.  This is
+used in the definition of \factor|<rgb>| in \vref{lst:colors}.  The difference
+here is the additional inputs on the stack---one for each slot, in the order
+they're declared.  That is, we're constructing the tuple \textbf{b}y
+\textbf{o}rder of \textbf{a}rguments, giving us the fun pun ``\factor|boa|
+constructor''.  So, \factor|1 2 3 <rgb>| will construct an \factor|rgb|
+instance with the \factor|red| slot set to \factor|1|, the \factor|green| slot
+set to \factor|2|, and the \factor|blue| slot set to \factor|3|.
+
+\inputlst{email}
+
+Now that we've seen the various words defined for tuples, we can explore more
+complex slot specifiers.  Using the array-like syntax from before, slot
+specifiers may be marked with certain \term{attributes}---both with the class
+declared (like
+%
+\factor|{ name class attributes... }|)
+%
+and without the class declared (as in 
+%
+\factor|{ name attributes... }|).
+%
+In particular, Factor recognizes two different attributes.  If a slot marked
+\factor|read-only|, the writer (and thus setter) for the slot will not be
+defined, so the slot cannot be altered.  A slot may also provide an initial
+value using the syntax \factor|initial: some-literal|.  This will be the slot's
+value when instantiated with \factor|new|. 
+
+For example, \vref{lst:email} shows a tuple definition from Factor's
+\factor|smtp| vocabulary that defines an \factor|email| object.  The
+\factor|from| address, \factor|subject|, and \factor|body| must be instances of
+\factor|string|, while \factor|to|, \factor|cc|, and \factor|bcc| are
+\factor|array|s of destination addresses.  The \factor|content-type| slot must
+also be a \factor|string|, but if unspecified, it defaults to
+\factor|"text/plain"|.  The \factor|encoding| must be a \factor|word| (in
+Factor, even words are first-class objects), which by default is \factor|utf8|,
+a word from the \factor|io.encodings.utf8| vocabulary for a Unicode format.
+
+\subsubsection{Generics and Methods}
+
+Unlike more common object systems, we do not define individual methods that
+``belong'' to particular tuples.  In Factor, you define a method that
+specializes on a class for a particular generic word.  That way, when the
+generic word is called, it dispatches on the class of the object, invoking the
+most specific method for the object.
+
+Generic words are declared with the syntax
+%
+\factor|GENERIC: word-name ( stack -- effect )|.
+%
+Words defined this way will then dispatch on the class of the top element of
+the stack (necessarily the rightmost input in the stack effect).  To define a
+new method with which to control this dispatch, we use the syntax
+%
+\factor|M: class word-name definition... ;|.
+
+\inputlst{sets}
+
+An accessible example of a generic word is in Factor's \factor|sets|
+vocabulary.  \factor|set| is a \term{mixin} class---a union of other classes
+whose members may be extended by the user.  We can see the standard definition
+in \vref{lst:sets}.  Note that the \factor|USING:| form specifies vocabularies
+being used (like Java's \mint{java}|import|), and \factor|IN:| specifies the
+vocabulary in which the definitions appear (like Java's \mint{java}|package|).
+We can see here that instances of the \factor|sequence|, \factor|hash-set|, and
+\factor|bit-set| classes are all instances of \factor|set|, so will respond
+\factor|t| to the predicate \factor|set?|.  Similarly, \factor|sequence| is a
+mixin class with many more members, including \factor|array|, \factor|vector|,
+and \factor|string|.
+
+\inputlst{cardinality}
+
+\vref{lst:cardinality} shows the \factor|cardinality| generic from Factor's
+\factor|sets| vocabulary, along with its methods.  This generic word takes a
+\factor|set| instance from the top of the stack and pushes the number of
+elements it contains.  For instance, if the top element is a \factor|bit-set|,
+we extract its \factor|table| slot and invoke another word, \factor|bit-count|,
+on that.  But if the top element is \factor|f| (the canonical false/empty
+value), we know the cardinality is $0$.  For any \factor|sequence|, we may
+offshore the work to a different generic, \factor|length|, defined in the
+\factor|sequences| vocabulary.  The final method gives a default behavior for
+any other \factor|set| instance, which simply uses \factor|members| to obtain
+an equivalent \factor|sequence| of set members, then calls \factor|length|.
+
+By viewing a class as a set of all objects that respond positively to the class
+predicate, we may partially order classes with the subset relationship.  Method
+dispatch will use this ordering when \factor|cardinality| is called to select
+the most specific method for the object being dispatched upon.  For instance,
+while no explicit method for \factor|array| is defined, any instance of
+\factor|array| is also an instance of \factor|sequence|.  In turn, every
+instance of \factor|sequence| is also an instance of \factor|set|.  We have
+methods that dispatch on both \factor|set| and \factor|sequence|, but the
+latter is more specific, so that is the method invoked.  If we define our own
+class, \factor|foo|, and declare it as an instance of \factor|set| but not as
+an instance of \factor|sequence|, then the \factor|set| method of
+\factor|cardinality| will be invoked.  Sometimes resolving the precedence gets
+more complicated, but these edge-cases are beyond the scope of our discussion.
