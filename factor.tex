@@ -1,5 +1,3 @@
-%XXX compiles were taking forever, only to loop on vrefs; as a temporary
-% solution, I did %s/vref/cref/g
 \section{Language Primer}\label{sec:primer}
 
 \todo[inline]{citations for this history are fragmented across the internet}
@@ -24,7 +22,7 @@ Like \gls{RPN} calculators, Factor's evaluation model uses a global stack upon
 which operands are pushed before operators are called.  This naturally
 facilitates postfix notation, in which operators are written after their
 operands.  For example, instead of \texttt{1~+~2}, we write \texttt{1~2~+}.
-\cref{fig:rpn} shows how \texttt{1~2~+} works conceptually:
+\vref{fig:rpn} shows how \texttt{1~2~+} works conceptually:
 \begin{itemize}
   \item \texttt{1} is pushed onto the stack
   \item \texttt{2} is pushed onto the stack
@@ -78,7 +76,7 @@ The \verb|{| word would not be called if not for that space, whereas
 and the word \Verb|3}|---not an array.  Further, since the left-delimeter words
 parse recursively, sequence literals can be nested, contain comments, etc.
 Other literals include \vpageref[the following][those in
-\cref{lst:seq}~]{lst:seq}.
+\vref{lst:seq}~]{lst:seq}.
 
 \inputlst[h]{seq}
 
@@ -93,7 +91,7 @@ anonymous functions in other languages, but the stack model makes them
 conceptually simpler, since we don't have to worry about variable binding and
 the like.  Consider a small example like \factor|1 2 [ + ] call|.  You can
 think of \factor|call| working by ``erasing'' the brackets around a quotation,
-so this example behaves just like \factor|1 2 +|.  \cref{fig:quot} shows its
+so this example behaves just like \factor|1 2 +|.  \vref{fig:quot} shows its
 evaluation: instead of adding the numbers immediately, \factor|+| is placed in
 a quotation, which is pushed to the stack.  The quotation is then invoked by
 \factor|call|, so \factor|+| pops and adds the two numbers and pushes the
@@ -156,7 +154,7 @@ has the same relative height change, this declaration would be wrong, since
 For the purposes of documentation, of course, the names in stack effects do
 matter.  They correspond to elements of the stack from bottom-to-top.  So, the
 rightmost value on either side of the declaration names the top element of the
-stack.  We can see this in \cref{fig:shufflers}, which shows the effects of
+stack.  We can see this in \vref{fig:shufflers}, which shows the effects of
 standard \term{stack shuffler} words.  These words are used for basic data flow
 in Factor programs.  For example, to discard the top element of the stack, we
 use the \factor|drop| word, whose effect is simply
@@ -196,7 +194,7 @@ that duplicate data on the stack are
 %
 \factor|pick| with the effect \factor|( x y z -- x y z x )|.
 
-True to the name \factor|swap|, the final shuffler in \cref{fig:shufflers}
+True to the name \factor|swap|, the final shuffler in \vref{fig:shufflers}
 permutes the top two elements of the stack, reversing their order.  The stack
 effect
 %
@@ -221,7 +219,7 @@ Using the basic syntax of stack effect declarations described in
 words are defined with the parsing word \factor|:|, which scans for a name, a
 stack effect, and then any words up until the \factor|;| token, which together
 become the body of the definition.  Thus, the classic example in
-\cref{lst:hello-world} defines a word named \factor|hello-world| which expects
+\vref{lst:hello-world} defines a word named \factor|hello-world| which expects
 no inputs and pushes no outputs onto the stack.  When called, this word will
 display the canonical greeting on standard output using the \factor|print|
 word.
@@ -229,8 +227,8 @@ word.
 \inputfig{norm-steps}
 
 A slightly more interesting example is the \factor|norm| word in
-\cref{lst:norm}.  This squares each of the top two numbers on the stack, adds
-them, then takes the square root of the sum.  \cref{fig:norm-steps} shows this
+\vref{lst:norm}.  This squares each of the top two numbers on the stack, adds
+them, then takes the square root of the sum.  \vref{fig:norm-steps} shows this
 in action.  By defining a word to perform these actions, we can replace
 virtually any instance of
 %
@@ -246,9 +244,9 @@ This emphasis on ``factoring'' your code is what gives Factor its name.
 \inputlst{norm-factored}
 
 As a simple case in point, we see the subexpression \factor|dup *| appears
-twice in the definition of \factor|norm| in \cref{lst:norm}.  We can easily
+twice in the definition of \factor|norm| in \vref{lst:norm}.  We can easily
 factor that out into a new word and substitute it for the old expressions, as
-in \cref{lst:norm-factored}.  By contrast, programs in more traditional
+in \vref{lst:norm-factored}.  By contrast, programs in more traditional
 languages are laden with variables and syntactic noise that require more work
 to refactor: identifying free variables, pulling out the right functions
 without causing finicky syntax errors, calling a new function with the right
@@ -273,7 +271,7 @@ classes are defined.
 The central data type of Factor's object system is called a \term{tuple}, which
 is a class composed of named \term{slots}---like instance variables in other
 languages.  Tuples are defined with the \factor|TUPLE:| parsing word as shown
-in \cref{lst:tuples}.  A class name is specified first; if it is followed by
+in \vref{lst:tuples}.  A class name is specified first; if it is followed by
 the \factor|<| token and a superclass name, the tuple inherits the slots of the
 superclass.  If no superclass is specified, the default is the \factor|tuple|
 class.
@@ -290,7 +288,7 @@ which we will cover after some examples.
 
 \inputlst{colors}
 
-Consider the two tuples defined in \cref{lst:colors}.  The first,
+Consider the two tuples defined in \vref{lst:colors}.  The first,
 \factor|color|, has no slots.  With every tuple, a class predicate is defined
 with the stack effect
 %
@@ -336,7 +334,7 @@ tuple (i.e., it doesn't make a ``deep'' copy).
 To construct an instance of a tuple, we can use either \factor|new| or
 \factor|boa|.  \factor|new| will not initialize any of the slots to a
 particular input value---all slots will default to Factor's canonical false
-value, \factor|f|.  \factor|new| is used in \cref{lst:colors} to define
+value, \factor|f|.  \factor|new| is used in \vref{lst:colors} to define
 \factor|<color>| (by convention, the constructor for \factor|foo| is named
 \factor|<foo>|).  First, we push the class \factor|color| onto the stack (this
 word is also automatically defined by \factor|TUPLE:|), then just call
@@ -347,7 +345,7 @@ slots' values.
 
 However, we often want to initialize a tuple with values for each of its slots.
 For this, we have \factor|boa|, which works similarly to \factor|new|.  This is
-used in the definition of \factor|<rgb>| in \cref{lst:colors}.  The difference
+used in the definition of \factor|<rgb>| in \vref{lst:colors}.  The difference
 here is the additional inputs on the stack---one for each slot, in the order
 they're declared.  That is, we're constructing the tuple \textbf{b}y
 \textbf{o}rder of \textbf{a}rguments, giving us the fun pun ``\factor|boa|
@@ -374,7 +372,7 @@ defined, so the slot cannot be altered.  A slot may also provide an initial
 value using the syntax \factor|initial: some-literal|.  This will be the slot's
 value when instantiated with \factor|new|. 
 
-For example, \cref{lst:email} shows a tuple definition from Factor's
+For example, \vref{lst:email} shows a tuple definition from Factor's
 \factor|smtp| vocabulary that defines an \factor|email| object.  The
 \factor|from| address, \factor|subject|, and \factor|body| must be instances of
 \factor|string|, while \factor|to|, \factor|cc|, and \factor|bcc| are
