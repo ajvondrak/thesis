@@ -38,8 +38,8 @@ stack, and operators (like \texttt{+}) perform some computation using values
 currently on the stack.  This ``flatness'' makes parsing easier, since we don't
 need complex grammars with subtle ambiguities and precedence issues.  Rather,
 we basically just scan left-to-right for tokens separated by whitespace.  In
-the Forth tradition, functions (being named by contiguous non-whitespace
-characters) are called \term{words}.  This also lends to the term
+the Forth tradition, functions are called \term{words} since they're made up of
+any contiguous non-whitespace characters.  This also lends to the term
 \term{vocabulary} instead of ``module'' or ``library''.   In Factor, the parser
 works as follows.
 \begin{itemize}
@@ -229,8 +229,8 @@ word.
 A slightly more interesting example is the \factor|norm| word in
 \vref{lst:norm}.  This squares each of the top two numbers on the stack, adds
 them, then takes the square root of the sum.  \vref{fig:norm-steps} shows this
-in action.  By defining a word to perform these actions, we can replace
-virtually any instance of
+in action.  By defining a word to perform these steps, we can replace virtually
+any instance of
 %
 \factor|dup * swap dup * + sqrt|
 %
@@ -402,20 +402,17 @@ new method with which to control this dispatch, we use the syntax
 
 \inputlst{sets}
 
-An accessible example of generic word usage in the Factor standard library is
-in the \factor|sets| vocabulary.  \factor|set| is a \term{mixin} class---a
-union of other classes whose members may be extended by the user.  We can see
-the standard definition in \vref{lst:sets}.  Note that the
-%
-\factor|USING: ...  ;|
-%
-form specifies vocabularies being used (like Java's \mint{java}|import|), and
-\factor|IN:| specifies the vocabulary in which the definitions appear (like
-Java's \mint{java}|package|).  We can see here that instances of the
-\factor|sequence|, \factor|hash-set|, and \factor|bit-set| classes are all
-instances of \factor|set|, so will respond \factor|t| to the predicate
-\factor|set?|.  Similarly, \factor|sequence| is a mixin class with many more
-members, including \factor|array|, \factor|vector|, and \factor|string|.
+An accessible example of a generic word is in Factor's \factor|sets|
+vocabulary.  \factor|set| is a \term{mixin} class---a union of other classes
+whose members may be extended by the user.  We can see the standard definition
+in \vref{lst:sets}.  Note that the \factor|USING:| form specifies vocabularies
+being used (like Java's \mint{java}|import|), and \factor|IN:| specifies the
+vocabulary in which the definitions appear (like Java's \mint{java}|package|).
+We can see here that instances of the \factor|sequence|, \factor|hash-set|, and
+\factor|bit-set| classes are all instances of \factor|set|, so will respond
+\factor|t| to the predicate \factor|set?|.  Similarly, \factor|sequence| is a
+mixin class with many more members, including \factor|array|, \factor|vector|,
+and \factor|string|.
 
 \inputlst{cardinality}
 
@@ -424,14 +421,14 @@ members, including \factor|array|, \factor|vector|, and \factor|string|.
 \factor|set| instance from the top of the stack and pushes the number of
 elements it contains.  For instance, if the top element is a \factor|bit-set|,
 we extract its \factor|table| slot and invoke another word, \factor|bit-count|,
-on it.  But if the top element is \factor|f| (the canonical false/empty value),
-we know the cardinality is $0$.  For any \factor|sequence|, we may offshore the
-work to a different method, \factor|length|, defined in the \factor|sequences|
-vocabulary.  The final method gives a default behavior for any other
-\factor|set| instance, which simply uses \factor|members| to obtain an
-equivalent \factor|sequence| of set members, then calls \factor|length|.
+on that.  But if the top element is \factor|f| (the canonical false/empty
+value), we know the cardinality is $0$.  For any \factor|sequence|, we may
+offshore the work to a different generic, \factor|length|, defined in the
+\factor|sequences| vocabulary.  The final method gives a default behavior for
+any other \factor|set| instance, which simply uses \factor|members| to obtain
+an equivalent \factor|sequence| of set members, then calls \factor|length|.
 
-By viewing a class as a set of objects that respond positively to the class
+By viewing a class as a set of all objects that respond positively to the class
 predicate, we may partially order classes with the subset relationship.  Method
 dispatch will use this ordering when \factor|cardinality| is called to select
 the most specific method for the object being dispatched upon.  For instance,
@@ -445,7 +442,11 @@ an instance of \factor|sequence|, then the \factor|set| method of
 \factor|cardinality| will be invoked.  Sometimes resolving the precedence gets
 more complicated, but these edge-cases are beyond the scope of our discussion.
 
-%\subsection{Control Flow}\label{sec:primer:control-flow}
+\subsection{Combinators}\label{sec:primer:combinators}
+
+\subsubsection{Control Flow}\label{sec:primer:control-flow}
+
+\subsubsection{Data Flow}\label{sec:primer:data-flow}
 
 %\begin{itemize}
 %
