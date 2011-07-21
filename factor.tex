@@ -96,7 +96,7 @@ evaluation: instead of adding the numbers immediately, \factor|+| is placed in
 a quotation, which is pushed to the stack.  The quotation is then invoked by
 \factor|call|, so \factor|+| pops and adds the two numbers and pushes the
 result onto the stack.  We'll show how quotations are used in
-\cref{sec:primer:control-flow}.
+\cref{sec:primer:combinators}.
 
 \subsection{Stack Effects}\label{sec:primer:effects}
 
@@ -444,44 +444,18 @@ more complicated, but these edge-cases are beyond the scope of our discussion.
 
 \subsection{Combinators}\label{sec:primer:combinators}
 
+Quotations, introduced in \cref{sec:primer:stack-based}, form the basis of both
+control flow and data flow in Factor.  Not only are they the equivalent of
+anonymous functions, the stack model makes them syntactically lightweight
+enough to serve as blocks of code, akin to the use of curly braces in Java or
+C.  The higher-order words that make use of quotations on the stack are called
+\term{combinators}.  It's simple to express familiar conditional logic and
+loops using combinators, as we'll show in \cref{sec:primer:control-flow}.  In
+the presence of explicit data flow via stack operations, even more patterns
+arise that can be abstracted away.  \cref{sec:primer:data-flow} explores how we
+can use combinators to express otherwise convoluted stack-shuffling logic more
+succinctly.
+
 \subsubsection{Control Flow}\label{sec:primer:control-flow}
 
 \subsubsection{Data Flow}\label{sec:primer:data-flow}
-
-%\begin{itemize}
-%
-%\item Stack effects
-%      \begin{itemize}
-%        \item Complex stack effects: row polymorphism \& types
-%        \item Stack checker
-%      \end{itemize}
-%
-%\item Combinators
-%      \begin{itemize}
-%        \item Control flow
-%              \begin{itemize}
-%                \item if
-%                \item each
-%                \item while
-%                \item times
-%              \end{itemize}
-%        \item Data flow
-%              \begin{itemize}
-%                \item Dip/keep
-%                \item Cleave
-%                \item Spread
-%                \item Apply
-%              \end{itemize}
-%      \end{itemize}
-%
-%\item Libraries \& metaprogramming
-%      \begin{itemize}
-%        \item Results of evolution
-%        \item locals?
-%        \item fry?
-%        \item macros?
-%        \item functors?
-%        \item ffi?
-%      \end{itemize}
-%
-%\end{itemize}
