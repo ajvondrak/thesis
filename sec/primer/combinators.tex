@@ -2,16 +2,66 @@
 
 Quotations, introduced in \cref{sec:primer:stack-based}, form the basis of both
 control flow and data flow in Factor.  Not only are they the equivalent of
-anonymous functions, the stack model makes them syntactically lightweight
-enough to serve as blocks of code, akin to the use of curly braces in Java or
-C.  The higher-order words that make use of quotations on the stack are called
-\term{combinators}.  It's simple to express familiar conditional logic and
-loops using combinators, as we'll show in \cref{sec:primer:control-flow}.  In
-the presence of explicit data flow via stack operations, even more patterns
+anonymous functions, but the stack model also makes them syntactically
+lightweight enough to serve as blocks akin to the code between curly braces in
+C or Java.  Higher-order words that make use of quotations on the stack are
+called \term{combinators}.  It's simple to express familiar conditional logic
+and loops using combinators, as we'll show in \cref{sec:primer:control-flow}.
+In the presence of explicit data flow via stack operations, even more patterns
 arise that can be abstracted away.  \cref{sec:primer:data-flow} explores how we
 can use combinators to express otherwise convoluted stack-shuffling logic more
 succinctly.
 
 \subsubsection{Control Flow}\label{sec:primer:control-flow}
+
+\inputlst{if}
+
+The most primitive form of control flow in typical programming languages is, of
+course, the \mint{java}|if| statement, and the same holds true for Factor.  The
+only difference is that Factor's \factor|if| isn't syntactically
+significant---it's just another word, albeit implemented as a primitive.  For
+the moment, it will do to think of \factor|if| as having the stack effect
+%
+\factor|( ? true false -- )|.
+%
+The third element from the top of the stack is a condition, and it's followed
+by two quotations.  The first quotation (second element from the top of the
+stack) is called if the condition is true, and the second quotation (the top of
+the stack) is called if the condition is false.  Specifically, \factor|f| is a
+special object in Factor.  It is a singleton object---the sole instance of the
+\factor|f| class---and is the only false value in the entire language.  Any
+other object is necessarily boolean true.  For a canonical boolean, there is
+the \factor|t| object, but its truth value exists only because it is not
+\factor|f|.  Basic \factor|if| use is shown in \cref{lst:if}.  The first
+example will print ``odd'', the second ``empty'', and the third ``isn't f'';
+all leave nothing on the stack.
+
+\inputlst{if-effects}
+
+However, the simplified stack effect above is quite restrictive.  It doesn't
+allow us to push any outputs.  But to allow that, per
+\cref{sec:primer:effects}, Factor requires the stack height to be known at each
+point of the program---including after the \factor|if| call.  How do we know
+what the stack effect should be?  Consider the words defined in
+\vref{lst:if-effects}.  In the \factor|example1| word, both quotations passed
+to \factor|if| have the stack effect
+%
+\factor|( a -- b )|.
+%
+So, no matter which branch is taken, the stack height remains the same.
+\factor|example2| shows another case of balanced input quotations, but unlike
+\factor|example1|, they each have the effect
+%
+\factor|( a b -- c )|.
+%
+For that matter, the third word has a balanced overall stack effect, since only
+one item is left on the stack after a call to \factor|example3| regardless.
+Yet the two quotations have different stack effects: \factor|+| has the effect
+%
+\factor|( a b -- c )|,
+%
+while \factor|drop| has the effect
+%
+\factor|( a -- )|.
 
 \subsubsection{Data Flow}\label{sec:primer:data-flow}
