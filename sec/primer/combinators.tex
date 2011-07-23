@@ -112,4 +112,82 @@ effect for \factor|if| is
 quotation will each create the same relative change in stack height as
 \factor|if| does overall.
 
+\inputlst{loops}
+
+Though \factor|if| is necessarily a language primitive, other control flow
+constructs are defined in Factor itself.  Since quotations are basically just
+anonymous functions, looping combinators just need to recursively invoke them.
+\vref{lst:loops} showcases some common looping patterns.  The most basic, yet
+most versatile, is \factor|each|, whose stack effect is
+%
+\begin{center}
+%
+  \factor|( ... seq quot: ( ... x -- ... ) -- ... )|
+%
+\end{center}
+%
+\noindent Here, unlike with \factor|if|, we enforce that the input stack height
+is exactly the same as the output (since we use the same row variable).  So,
+each element \factor|x| of \factor|seq| will be passed to \factor|quot|, which
+may use any of the underlying stack elements.  As long as the quotation doesn't
+push or pop any excess elements, the effect of \factor|each| is balanced.
+Thus, the first example in \vref{lst:loops} is equivalent to
+%
+\begin{center}
+%
+  \factor|"Lorem" print "ipsum" print "dolor" print|
+%
+\end{center}
+%
+\noindent while the second example is the same as
+%
+\begin{center}
+%
+  \factor|0 1 + 2 + 3 +|
+%
+\end{center}
+%
+\noindent Both leave the stack the same height as at the start: the first with
+no items, the second with one (the total sum of the sequence elements).
+
+Any instance of the extensive \factor|sequence| mixin will work with
+\factor|each|, making it very flexible.  The third example shows \factor|iota|,
+which is used to create a \term{virtual} sequence of integers from $0$ to $9$
+(inclusive).  No actual sequence is allocated, merely an object that behaves
+like a sequence.  So, it's common practice to use \factor|iota| and
+\factor|each| in favor of repetitive C-like \mint{c}|for| loops.
+
+Of course, we sometimes don't need the induction variable in counted loops.
+That is, we just want to execute a body of code a certain number of times.  For
+these cases, there's the \factor|times| combinator, with the stack effect
+%
+\begin{center}
+%
+  \factor|( ... n quot: ( ... -- ... ) -- ... )|
+%
+\end{center}
+%
+\noindent This is similar to \factor|each|, except that \factor|n| is a number
+(so we needn't use \factor|iota|) and the quotation doesn't expect an extra
+argument (like a sequence element) on the stack.  Therefore, the example in
+\vref{lst:loops} executes
+%
+\factor|"Ho!" print|
+%
+three times.
+
+Naturally, Factor also has the \factor|while| combinator, whose stack effect is
+%
+\begin{center}
+%
+  \Verb|( ..a pred: ( ..a -- ..b ? ) body: ( ..b -- ..a ) -- ..b )|
+%
+\end{center}
+%
+\noindent The row variables are a bit messy, but it works as you'd expected:
+the \factor|pred| quotation is invoked on each iteration to determine whether
+\factor|body| should be called.  The \factor|do| word is a handy modifier for
+\factor|while| that simply executes the body of the loop once, before leaving
+\factor|while| to test the precondition as per usual.
+
 \subsubsection{Data Flow}\label{sec:primer:data-flow}
