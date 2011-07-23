@@ -22,7 +22,7 @@ only difference is that Factor's \factor|if| isn't syntactically
 significant---it's just another word, albeit implemented as a primitive.  For
 the moment, it will do to think of \factor|if| as having the stack effect
 %
-\factor|( ? true false -- )|.
+\Verb|( ? true false -- )|.
 %
 The third element from the top of the stack is a condition, and it's followed
 by two quotations.  The first quotation (second element from the top of the
@@ -32,36 +32,84 @@ special object in Factor.  It is a singleton object---the sole instance of the
 \factor|f| class---and is the only false value in the entire language.  Any
 other object is necessarily boolean true.  For a canonical boolean, there is
 the \factor|t| object, but its truth value exists only because it is not
-\factor|f|.  Basic \factor|if| use is shown in \cref{lst:if}.  The first
-example will print ``odd'', the second ``empty'', and the third ``isn't f'';
-all leave nothing on the stack.
+\factor|f|.  Basic \factor|if| use is shown in \cref{lst:if}\todo{vref}.  The
+first example will print ``odd'', the second ``empty'', and the third ``isn't
+f''.  All of them leave nothing on the stack.
 
 \inputlst{if-effects}
 
-However, the simplified stack effect above is quite restrictive.  It doesn't
-allow us to push any outputs.  But to allow that, per
-\cref{sec:primer:effects}, Factor requires the stack height to be known at each
-point of the program---including after the \factor|if| call.  How do we know
-what the stack effect should be?  Consider the words defined in
-\vref{lst:if-effects}.  In the \factor|example1| word, both quotations passed
-to \factor|if| have the stack effect
+However, the simplified stack effect for \factor|if| is quite restrictive.
 %
-\factor|( a -- b )|.
+\Verb|( ? true false -- )| \todo{extra space after {\tt ?} with minted}
 %
-So, no matter which branch is taken, the stack height remains the same.
-\factor|example2| shows another case of balanced input quotations, but unlike
-\factor|example1|, they each have the effect
+intuitively means that both the \factor|true| and \factor|false| quotations
+can't take any inputs or produce any outputs---that their effects are
 %
-\factor|( a b -- c )|.
+\factor|( -- )|.
 %
-For that matter, the third word has a balanced overall stack effect, since only
-one item is left on the stack after a call to \factor|example3| regardless.
-Yet the two quotations have different stack effects: \factor|+| has the effect
+We'd like to loosen this restriction, but per \cref{sec:primer:effects}, Factor
+must know the stack height after the \factor|if| call.  We could give
+\factor|if| the effect
 %
-\factor|( a b -- c )|,
+\Verb|( x ? true false -- y )|,
+%
+so that the two quotations could each have the stack effect
+%
+\factor|( x -- y )|.
+%
+This would work for the \factor|example1| word in \vref{lst:if-effects}, yet
+it's just as restrictive.  For instance, the \factor|example2| word would need
+\factor|if| to have the effect
+%
+\Verb|( x y ? true false -- z )|,
+%
+since each branch has the effect
+%
+\factor|( x y -- z )|.
+%
+Furthermore, the quotations might even have different effects, but still leave
+the overall stack height balanced.  Only one item is left on the stack after a
+call to \factor|example3| regardless, even though the two quotations have
+different stack effects: \factor|+| has the effect
+%
+\factor|( x y -- z )|,
 %
 while \factor|drop| has the effect
 %
-\factor|( a -- )|.
+\factor|( x -- )|.
+
+In reality, there are infinitely many correct stack effects for \factor|if|.
+For these situations, Factor has a special notation for such
+\term{row-polymorphic} stack effects.  If a token in a stack effect begins with
+two dots, like \factor|..a| or \factor|..b|, it is a \term{row variable}.  If
+either side of a stack effect begins with a row variable, it represents any
+number inputs/outputs.  Thus, we could give \factor|if| the stack effect
+%
+\begin{center} \Verb|( ..a ? true false -- ..b )| \end{center}
+%
+\noindent to indicate that there may be any number of inputs below the
+condition on the stack, and any number of outputs will be present after the
+call to \factor|if|.  Note that these numbers aren't necessarily equal, which
+is why we give each row variable different names in this case.  However, this
+still isn't quite enough to capture the stack height requirements.
+Specifically, it doesn't communicate that \factor|true| and \factor|false| must
+affect the stack in the same ways.  For this, we can use the notation
+%
+\factor|quot: ( stack -- effect )|,
+%
+giving quotations a nested stack effect.  We can use the same names for row
+variables in both the ``inner'' and ``outer'' stack effects in order to refer
+to the same number of inputs or outputs.  Thus, our final (correct) stack
+effect for \factor|if| is 
+%
+\begin{center}
+%
+  \Verb|( ..a ? true: ( ..a -- ..b ) false: ( ..a -- ..b ) -- ..b )|
+%
+\end{center}
+%
+\noindent This tells us that the \factor|true| quotation and the \factor|false|
+quotation will each create the same relative change in stack height as
+\factor|if| does overall.
 
 \subsubsection{Data Flow}\label{sec:primer:data-flow}
