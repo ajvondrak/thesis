@@ -28,13 +28,13 @@ The third element from the top of the stack is a condition, and it's followed
 by two quotations.  The first quotation (second element from the top of the
 stack) is called if the condition is true, and the second quotation (the top of
 the stack) is called if the condition is false.  Specifically, \factor|f| is a
-special object in Factor.  It is a singleton object---the sole instance of the
-\factor|f| class---and is the only false value in the entire language.  Any
-other object is necessarily boolean true.  For a canonical boolean, there is
-the \factor|t| object, but its truth value exists only because it is not
-\factor|f|.  Basic \factor|if| use is shown in \cref{lst:if}\todo{vref}.  The
-first example will print ``odd'', the second ``empty'', and the third ``isn't
-f''.  All of them leave nothing on the stack.
+special object in Factor for falsity.  It is a singleton object---the sole
+instance of the \factor|f| class---and is the only false value in the entire
+language.  Any other object is necessarily boolean true.  For a canonical
+boolean, there is the \factor|t| object, but its truth value exists only
+because it is not \factor|f|.  Basic \factor|if| use is shown in
+\cref{lst:if}\todo{vref}.  The first example will print ``odd'', the second
+``empty'', and the third ``isn't f''.  All of them leave nothing on the stack.
 
 \inputlst{if-effects}
 
@@ -79,28 +79,28 @@ while \factor|drop| has the effect
 \factor|( x -- )|.
 
 In reality, there are infinitely many correct stack effects for \factor|if|.
-For these situations, Factor has a special notation for such
-\term{row-polymorphic} stack effects.  If a token in a stack effect begins with
-two dots, like \factor|..a| or \factor|..b|, it is a \term{row variable}.  If
-either side of a stack effect begins with a row variable, it represents any
-number inputs/outputs.  Thus, we could give \factor|if| the stack effect
+Factor has a special notation for such \term{row-polymorphic} stack effects.
+If a token in a stack effect begins with two dots, like \factor|..a| or
+\factor|..b|, it is a \term{row variable}.  If either side of a stack effect
+begins with a row variable, it represents any number inputs/outputs.  Thus, we
+could give \factor|if| the stack effect
 %
 \begin{center} \Verb|( ..a ? true false -- ..b )| \end{center}
 %
 \noindent to indicate that there may be any number of inputs below the
 condition on the stack, and any number of outputs will be present after the
 call to \factor|if|.  Note that these numbers aren't necessarily equal, which
-is why we give each row variable different names in this case.  However, this
-still isn't quite enough to capture the stack height requirements.
-Specifically, it doesn't communicate that \factor|true| and \factor|false| must
-affect the stack in the same ways.  For this, we can use the notation
+is why we use distinct row variables in this case.  However, this still isn't
+quite enough to capture the stack height requirements.  It doesn't communicate
+that \factor|true| and \factor|false| must affect the stack in the same ways.
+For this, we can use the notation
 %
 \factor|quot: ( stack -- effect )|,
 %
-giving quotations a nested stack effect.  We can use the same names for row
-variables in both the ``inner'' and ``outer'' stack effects in order to refer
-to the same number of inputs or outputs.  Thus, our final (correct) stack
-effect for \factor|if| is 
+giving quotations a nested stack effect.  Using the same names for row
+variables in both the ``inner'' and ``outer'' stack effects will refer to the
+same number of inputs or outputs.  Thus, our final (correct) stack effect for
+\factor|if| is 
 %
 \begin{center}
 %
@@ -115,10 +115,10 @@ quotation will each create the same relative change in stack height as
 \inputlst{loops}
 
 Though \factor|if| is necessarily a language primitive, other control flow
-constructs are defined in Factor itself.  Since quotations are basically just
-anonymous functions, looping combinators just need to recursively invoke them.
-\vref{lst:loops} showcases some common looping patterns.  The most basic, yet
-most versatile, is \factor|each|, whose stack effect is
+constructs are defined in Factor itself.  It's simple to write combinators for
+iteration and looping as tail-recursive words that invoke quotations.
+\vref{lst:loops} showcases some common looping patterns.  The most basic yet
+versatile word is \factor|each|.  Its stack effect is
 %
 \begin{center}
 %
@@ -126,40 +126,42 @@ most versatile, is \factor|each|, whose stack effect is
 %
 \end{center}
 %
-\noindent Here, unlike with \factor|if|, we enforce that the input stack height
-is exactly the same as the output (since we use the same row variable).  So,
-each element \factor|x| of \factor|seq| will be passed to \factor|quot|, which
-may use any of the underlying stack elements.  As long as the quotation doesn't
-push or pop any excess elements, the effect of \factor|each| is balanced.
-Thus, the first example in \vref{lst:loops} is equivalent to
+\noindent Each element \factor|x| of the sequence \factor|seq| will be passed
+to \factor|quot|, which may use any of the underlying stack elements.  Here,
+unlike \factor|if|, we enforce that the input stack height is exactly the same
+as the output (since we use the same row variable).  Otherwise, depending on
+the number of elements in \factor|seq|, we might dig arbitrarily deep into the
+stack or flood it with a varying number of values.  The first use of
+\factor|each| in \vref{lst:loops} is balanced, as the quotation has the effect
 %
-\begin{center}
+\factor|( str -- )|
 %
-  \factor|"Lorem" print "ipsum" print "dolor" print|
+and no additional items were on the stack to begin with.  Essentially, it's
+equivalent to
 %
-\end{center}
+\factor|"Lorem" print "ipsum" print "dolor" print|.
 %
-\noindent while the second example is the same as
+On the other hand, the quotation in the second example has the stack effect
 %
-\begin{center}
+\factor|( total n -- total+n )|.
 %
-  \factor|0 1 + 2 + 3 +|
+This is still balanced, since there is one additional item below the sequence
+on the stack (namely \factor|0|), and one element is left by the end (the sum
+of the sequence elements).  So, this example is the same as
 %
-\end{center}
-%
-\noindent Both leave the stack the same height as at the start: the first with
-no items, the second with one (the total sum of the sequence elements).
+\factor|0 1 + 2 + 3 +|.
 
 Any instance of the extensive \factor|sequence| mixin will work with
-\factor|each|, making it very flexible.  The third example shows \factor|iota|,
-which is used to create a \term{virtual} sequence of integers from $0$ to $9$
-(inclusive).  No actual sequence is allocated, merely an object that behaves
-like a sequence.  So, it's common practice to use \factor|iota| and
-\factor|each| in favor of repetitive C-like \mint{c}|for| loops.
+\factor|each|, making it very flexible.  The third example in \vref{lst:loops}
+shows \factor|iota|, which is used here to create a \term{virtual} sequence of
+integers from $0$ to $9$ (inclusive).  No actual sequence is allocated, merely
+an object that behaves like a sequence.  In Factor, it's common practice to use
+\factor|iota| and \factor|each| in favor of repetitive C-like \mint{c}|for|
+loops.
 
-Of course, we sometimes don't need the induction variable in counted loops.
-That is, we just want to execute a body of code a certain number of times.  For
-these cases, there's the \factor|times| combinator, with the stack effect
+Of course, we sometimes don't need the induction variable in loops.  That is,
+we just want to execute a body of code a certain number of times.  For these
+cases, there's the \factor|times| combinator, with the stack effect
 %
 \begin{center}
 %
@@ -169,12 +171,11 @@ these cases, there's the \factor|times| combinator, with the stack effect
 %
 \noindent This is similar to \factor|each|, except that \factor|n| is a number
 (so we needn't use \factor|iota|) and the quotation doesn't expect an extra
-argument (like a sequence element) on the stack.  Therefore, the example in
-\vref{lst:loops} executes
+argument (i.e., a sequence element).  Therefore, the example in
+\vref{lst:loops} is equivalent to
 %
-\factor|"Ho!" print|
+\factor|"Ho!" print "Ho!" print "Ho!" print|.
 %
-three times.
 
 Naturally, Factor also has the \factor|while| combinator, whose stack effect is
 %
@@ -187,7 +188,50 @@ Naturally, Factor also has the \factor|while| combinator, whose stack effect is
 \noindent The row variables are a bit messy, but it works as you'd expected:
 the \factor|pred| quotation is invoked on each iteration to determine whether
 \factor|body| should be called.  The \factor|do| word is a handy modifier for
-\factor|while| that simply executes the body of the loop once, before leaving
-\factor|while| to test the precondition as per usual.
+\factor|while| that simply executes the body of the loop once before leaving
+\factor|while| to test the precondition as per usual.  Thus, the last example
+in \vref{lst:loops} executes the body once, despite the condition being
+immediately false.
+
+\inputlst{high-order}
+
+In the preceding combinators, quotations were used like blocks of code.  But
+really, they're the same as anonymous functions from other languages.  As such,
+Factor borrows classic tools from functional languages, like \factor|map| and
+\factor|filter|, as shown in \vref{lst:high-order}.  \factor|map| is like
+\factor|each|, except that the quotation should produce a single output.  Each
+such output is collected up into a new sequence of the same class as the input
+sequence.  Here, the example produces
+%
+\factor|{ 2 3 4 }|.
+%
+\factor|filter| selects only those elements from the sequence for which the
+quotation returns a true value.  Thus, the \factor|filter| in
+\vref{lst:high-order} outputs
+%
+\factor|{ 2 4 }|.
+%
+Even \factor|reduce| is in Factor, also known as a \term{left fold}.  An
+initial element is iteratively updated by pushing a value from the sequence and
+invoking the quotation.  In fact, \factor|reduce| is defined as
+%
+\factor|swapd each|,
+%
+where \factor|swapd| is a shuffler word with the stack effect
+%
+\factor|( x y z -- y x z )|.
+%
+Thus, the example in \vref{lst:high-order} is the same as
+%
+\factor|0 { 1 2 3 } [ + ] each|,
+%
+as in \vref{lst:loops}.
+
+These are just some of the control flow combinators defined in Factor.  Several
+variants exist that meld stack shuffling with control flow, or can be used to
+shorten common patterns like empty false branches.  An entire list is beyond
+the scope of our discussion, but the ones we've studied should give a solid
+view of what standard conditional execution, iteration, and looping looks like
+in a stack-based language.
 
 \subsubsection{Data Flow}\label{sec:primer:data-flow}
