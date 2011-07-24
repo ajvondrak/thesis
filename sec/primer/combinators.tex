@@ -235,3 +235,13 @@ view of what standard conditional execution, iteration, and looping looks like
 in a stack-based language.
 
 \subsubsection{Data Flow}\label{sec:primer:data-flow}
+
+While using the stack instead of variables and additional syntax makes it
+easier to refactor code, keeping mental track of the stack can be taxing.  If
+we need to manipulate more than the top few elements of the stack, code gets
+harder to read and write.  Since the flow of data is made explicit via stack
+shufflers, we actually wind up with redundant patterns of data flow that we
+otherwise couldn't identify.  In Factor, there are several combinators that
+clean up common stack-shuffling logic, making code easier to understand.
+
+
