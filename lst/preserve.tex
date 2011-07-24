@@ -1,0 +1,31 @@
+\centering
+
+\begin{minipage}{0.65\linewidth}
+  \begin{factorcode}
+    : without-dip1 ( x y -- x+1 y )
+      swap 1 + swap ;
+
+    : with-dip1 ( x y -- x+1 y )
+      [ 1 + ] dip ;
+    
+    : without-dip2 ( x y z -- x-y z )
+      2over - swapd nip swapd nip swap ;
+
+    : with-dip2 ( x y z -- x-y z )
+      [ - ] dip ;
+
+    : without-keep1 ( x -- x+1 x )
+      dup 1 + swap ;
+
+    : with-keep1 ( x -- x+1 x )
+      [ 1 + ] keep ;
+
+    : without-keep2 ( x y -- x-y y )
+      2dup - swapd nip swap ;
+
+    : with-keep2 ( x y -- x-y y )
+      [ - ] keep ;
+  \end{factorcode}
+\end{minipage}
+
+\caption{Preserving combinators}
