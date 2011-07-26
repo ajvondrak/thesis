@@ -1,0 +1,29 @@
+\centering
+
+  \begin{factorcode}
+    TUPLE: node < identity-tuple ;
+    TUPLE: #introduce < node out-d ;
+    TUPLE: #call < node word in-d out-d body method class info ;
+    TUPLE: #call-recursive < node label in-d out-d info ;
+    TUPLE: #push < node literal out-d ;
+    TUPLE: #renaming < node ;
+    TUPLE: #shuffle < #renaming mapping in-d out-d in-r out-r ;
+    TUPLE: #terminate < node in-d in-r ;
+    TUPLE: #branch < node in-d children live-branches ;
+    TUPLE: #if < #branch ;
+    TUPLE: #dispatch < #branch ;
+    TUPLE: #phi < node phi-in-d phi-info-d out-d terminated ;
+    TUPLE: #declare < node declaration ;
+    TUPLE: #return < node in-d info ;
+    TUPLE: #recursive < node in-d word label loop? child ;
+    TUPLE: #enter-recursive < node in-d out-d label info ;
+    TUPLE: #return-recursive < #renaming in-d out-d label info ;
+    TUPLE: #copy < #renaming in-d out-d ;
+    TUPLE: #alien-node < node params ;
+    TUPLE: #alien-invoke < #alien-node in-d out-d ;
+    TUPLE: #alien-indirect < #alien-node in-d out-d ;
+    TUPLE: #alien-assembly < #alien-node in-d out-d ;
+    TUPLE: #alien-callback < node params child ;
+  \end{factorcode}
+
+\caption{High-level IR nodes}
