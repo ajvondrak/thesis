@@ -320,3 +320,30 @@ single one, there are also the variants \factor|2cleave| and \factor|3cleave|
 (and the corresponding \factor|2bi|, \factor|2tri|, \factor|3bi|, and
 \factor|3tri|), which apply the quotations to the top two and three elements of
 the stack, respectively.
+
+\inputlst{spread}
+
+To apply multiple quotations to multiple values, Factor has \term{spread}
+combinators.  Whereas cleave combinators abstract away repeated instances of
+\factor|keep|, spread combinators replace nested calls to \factor|dip|.  The
+archetypical combinator, \factor|spread|, takes an array of quotations, like
+\factor|cleave|.  However, instead of applying each one to the top element of
+the stack, each one corresponds to a separate element of the stack.  Thus,
+%
+\factor|{ [ a ] [ b ] } spread|
+%
+invokes \factor|b| on the top element, and \factor|a| on the element beneath
+the top.  Much like \factor|cleave|, there are shorthand words for the two- and
+three-quotation cases.  These are suffixed with asterisks to indicate the
+spread variants, so we have \factor|bi*| and \factor|tri*|.  In
+\vref{lst:spread}, the \factor|without-bi*| word shows the simple \factor|dip|
+pattern that \factor|bi*| encapsulates.  Here, we're converting the string
+\factor|str1| (the second element from the top) into uppercase and
+\factor|str2| (the top element) to lowercase.  In \factor|with-bi*|, the
+\factor|>upper| and \factor|>lower| words are seen first, uninterrupted by an
+extra word, making the code easier to read.  More compelling is the way that
+\factor|tri*| replaces the \factor|dip|s that can be seen in
+\factor|without-tri*|.  In comparison, \factor|with-tri*| is less nested and
+easier to comprehend at first glance.  While there are \factor|2bi*| and
+\factor|2tri*| variants that spread quotations to two values apiece on the
+stack, they are uncommon in practice.
