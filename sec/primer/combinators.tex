@@ -293,3 +293,30 @@ right way, obscuring the call to \factor|-| that we really want to focus on.
 On the other hand, \factor|with-keep2| places the subtraction word
 front-and-center in its own quotation, while \factor|keep| does the work of
 retaining the top of the stack.
+
+\inputlst{cleave}
+
+The next set of combinators apply multiple quotations to a single value.  The
+most general form of these so-called \term{cleave} combinators is the word
+\factor|cleave|, which takes an array of quotations as input, and calls each
+one in turn on the top element of the stack.  Of course, for only a couple of
+quotations, wrapping them in an array literal becomes cumbersome.  The word
+\factor|bi| exists for the two-quotation case, and \factor|tri| for the three
+quotations.  Cleave combinators are often used to extract multiple slots from a
+tuple.  \vref{lst:cleave} shows such a case in the \factor|with-bi| word, which
+improves upon using just \factor|keep| in the \factor|without-bi| word.  In
+general, a series of \factor|keep|s like
+%
+\factor|[ a ] keep [ b ] keep c|
+%
+is the same as
+%
+\factor|{ [ a ] [ b ] [ c ] } cleave|,
+%
+which is more readable.  We can see this in action in the difference between
+\factor|without-tri| and \factor|with-tri| in \vref{lst:cleave}.  In cases
+where we need to apply multiple quotations to a set of values instead of just a
+single one, there are also the variants \factor|2cleave| and \factor|3cleave|
+(and the corresponding \factor|2bi|, \factor|2tri|, \factor|3bi|, and
+\factor|3tri|), which apply the quotations to the top two and three elements of
+the stack, respectively.
