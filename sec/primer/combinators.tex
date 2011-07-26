@@ -347,3 +347,30 @@ extra word, making the code easier to read.  More compelling is the way that
 easier to comprehend at first glance.  While there are \factor|2bi*| and
 \factor|2tri*| variants that spread quotations to two values apiece on the
 stack, they are uncommon in practice.
+
+\inputlst{apply}
+
+Finally, \term{apply} combinators invoke a single quotation on multiple stack
+entries in turn.  While there is a generalized word, it's more common to use
+the corresponding shorthands.  Here, they are suffixed with at-signs, so
+\factor|bi@| applies a quotation to each of the top two stack values, and
+\factor|tri@| to each of the top three.  This way, rather than duplicate code
+for each time we want to call a word, we need only specify it once.  This is
+demonstrated clearly in \vref{lst:apply}.  In \factor|without-bi@|, we see that
+the quotation \factor|[ sq ]| (for squaring numbers) appears twice for the call
+to \factor|bi*|.  In general, we can replace spread combinators whose
+quotations are all the same with a single quotation and an apply combinator.
+Thus, \factor|with-bi@| cuts down on the duplicated \factor|[ sq ]| in
+\factor|without-bi@|.  Similarly, we can replace the three repeated quotations
+passed to \factor|tri*| in \factor|without-tri@| with a single instance passed
+to \factor|tri@| in \factor|with-tri@|.  Like other data flow combinators, we
+have the numbered variants.  \factor|2bi@| has the stack effect
+%
+\factor|( w x y z quot -- )|,
+%
+where \factor|quot| expects two inputs, and is thus applied to \factor|w| and
+\factor|x| first, then to \factor|y| and \factor|z|.  Similarly, \factor|2tri@|
+applies the quotation to the top six objects of the stack in groups of two.
+Like their spread counterparts, they are not used very much.
+
+\todo[inline]{Some wrap-up that isn't completely lame.}
