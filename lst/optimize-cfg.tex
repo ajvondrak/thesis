@@ -1,0 +1,17 @@
+\centering
+
+  \begin{factorcode}
+    : optimize-cfg ( cfg -- cfg' )
+        optimize-tail-calls
+        delete-useless-conditionals
+        split-branches
+        join-blocks
+        normalize-height
+        construct-ssa
+        alias-analysis
+        value-numbering
+        copy-propagation
+        eliminate-dead-code ;
+  \end{factorcode}
+
+\caption{Optimization passes on the low-level IR}
