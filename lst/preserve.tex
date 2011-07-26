@@ -21,7 +21,7 @@
       [ 1 + ] keep ;
 
     : without-keep2 ( x y -- x-y y )
-      2dup - swapd nip swap ;
+      swap over - swap ;
 
     : with-keep2 ( x y -- x-y y )
       [ - ] keep ;

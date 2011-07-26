@@ -236,12 +236,60 @@ in a stack-based language.
 
 \subsubsection{Data Flow}\label{sec:primer:data-flow}
 
-While using the stack instead of variables and additional syntax makes it
-easier to refactor code, keeping mental track of the stack can be taxing.  If
-we need to manipulate more than the top few elements of the stack, code gets
-harder to read and write.  Since the flow of data is made explicit via stack
-shufflers, we actually wind up with redundant patterns of data flow that we
-otherwise couldn't identify.  In Factor, there are several combinators that
-clean up common stack-shuffling logic, making code easier to understand.
+While avoiding variables and additional syntax makes it easier to refactor
+code, keeping mental track of the stack can be taxing.  If we need to
+manipulate more than the top few elements of the stack, code gets harder to
+read and write.  Since the flow of data is made explicit via stack shufflers,
+we actually wind up with redundant patterns of data flow that we otherwise
+couldn't identify.  In Factor, there are several combinators that clean up
+common stack-shuffling logic, making code easier to understand.
 
+\inputlst{preserve}
 
+The first combinators we'll look at are \factor|dip| and \factor|keep|.  These
+are used to preserve elements of the stack.  When working with several values,
+sometimes we don't want to use all of them at quite the same time.  Using
+\factor|drop| and the like wouldn't help, as we'd lose the data altogether.
+Rather, we want to retain certain stack elements, do a computation, then
+restore them.  For an uncompelling but illustrative example, suppose we have
+two values on the stack, but we want to increment the second element from the
+top.  \factor|without-dip1| in \vref{lst:preserve} shows one strategy, where we
+shuffle the top element away with \factor|swap|, perform the computation, then
+\factor|swap| the top back to its original place.  A cleaner way is to call
+\factor|dip| on a quotation, which will execute that quotation just under the
+top of the stack, as in \factor|with-dip1|.  While the stack shuffling in
+\factor|without-dip1| isn't terribly complicated, it doesn't convey our meaning
+very well.  Shuffling the top element out of the way becomes increasingly
+difficult with more complex computations.  In \factor|without-dip2|, we want to
+call \factor|-| on the two elements below the top.  For lack of a more robust
+stack shuffler, we use \factor|2over| to isolate the two values so we can call
+\factor|-|.  The rest of the word consists of shuffling to get rid of excess
+values on the stack.  It's also worth noting that \factor|swapd| is a
+deprecated word in Factor, since its use starts making code harder to reason
+about.  Alternatively, we could dream up a more complex stack shuffler with
+exactly the stack effect we wanted in this situation.  But this solution
+doesn't scale: what if we had to calculate something that required more inputs
+or produced more outputs?  Clearly, \factor|dip| provides a cleaner alternative
+in \factor|with-dip2|.
+
+\factor|keep| provides a way to hold onto the top element of the stack, but
+still use it to perform a computation.  In general,
+%
+\factor|[ ... ] keep|
+%
+is equivalent to
+%
+\factor|dup [ ... ] dip|.
+%
+Thus, the current top of the stack remains on top after the use of
+\factor|keep|, but the quotation is still invoked with that value.  In
+\factor|with-keep1| in \vref{lst:preserve}, we want to increment the top, but
+stash the result below.  Again, this logic isn't terribly complicated, though
+\factor|with-keep1| does away with the shuffling.  \factor|without-keep2| shows
+a messier example where a simple \factor|dup| will not save us, as we're using
+more than just the top element in the call to \factor|-|.  Rather, three of the
+four words in the definition are dedicated to rearranging the stack in just the
+right way, obscuring the call to \factor|-| that we really want to focus on.
+On the other hand, \factor|with-keep2| places the subtraction word
+front-and-center in its own quotation, while \factor|keep| does the work of
+retaining the top of the stack.
