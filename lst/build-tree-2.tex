@@ -1,0 +1,15 @@
+\centering
+
+  \begin{factorcode}
+    V{
+        T{ #introduce { out-d { 6256132 6256133 } } }
+        T{ #shuffle
+            { mapping { { 6256134 6256133 } { 6256135 6256132 } } }
+            { in-d V{ 6256132 6256133 } }
+            { out-d V{ 6256134 6256135 } }
+        }
+        T{ #return { in-d V{ 6256134 6256135 } } }
+    }
+  \end{factorcode}
+
+\caption{\factor|[ swap ] build-tree|}

@@ -1,0 +1,16 @@
+\centering
+
+  \begin{factorcode}
+    V{
+        T{ #push { literal 1 } { out-d { 6256273 } } }
+        T{ #introduce { out-d { 6256274 } } }
+        T{ #call
+            { word + }
+            { in-d V{ 6256274 6256273 } }
+            { out-d { 6256275 } }
+        }
+        T{ #return { in-d V{ 6256275 } } }
+    }
+  \end{factorcode}
+
+\caption{\factor|[ 1 + ] build-tree|}

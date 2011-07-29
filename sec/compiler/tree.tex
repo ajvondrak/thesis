@@ -1,1 +1,223 @@
+\subsection{High-level Optimizations}\label{sec:compiler:tree}
+
+To manipulate source code abstractly, we must have at least one \gls{IR}---a
+data structure representing the instructions.  It's common to convert between
+several \glsplural{IR} during compilation, as each form offers different
+properties that facilitate particular analyses.  The Factor compiler optimizes
+code in passes across two different \glsplural{IR}: first at a high-level using
+the \factor|compiler.tree| vocabulary, then at a low-level with the
+\factor|compiler.cfg| vocabulary.
+
 \inputlst{tree}
+
+The high-level \gls{IR} arranges code into a vector of \factor|node| objects,
+which may themselves have children consisting of vectors of node---a tree
+structure that lends to the name \factor|compiler.tree|.  This ordered sequence
+of nodes represents control flow in a way that's effectively simple, annotated
+stack code.  \Vref{lst:tree} shows the definitions of the tuples that represent
+the ``instruction set'' of this stack code.  Each object inherits (directly or
+indirectly) from the \factor|node| class, which itself inherits from
+\factor|identity-tuple|.  This is a tuple whose \factor|equal?| method is
+defined to always return \factor|f| so that no two instances are equivalent
+unless they are the same instance.
+
+Notice that most nodes define some sort of \factor|in-d| and \factor|out-d|
+slots, which mark each of them with the input and output data stacks.  This
+represents the flow of data through the program.  Here, stack values are
+denoted simply by integers, giving each value a unique identifier.  An
+\factor|#introduce| instance is inserted wherever the next node requires stack
+values that have not yet been named.  Thus, while \factor|#introduce| has no
+\factor|in-d|, its \factor|out-d| introduces the necessary stack values.
+Similarly, \factor|#return| is inserted at the end of the sequence to indicate
+the final state of the data stack with its \factor|in-d| slot.
+
+The most basic operations of a stack language are, of course, pushing literals
+and calling functions that pop inputs and push outputs.  The \factor|#push|
+node thus has a \factor|literal| slot and an \factor|out-d| slot, giving a name
+to the single element it pushes to the data stack.  \factor|#call|, of course,
+is used for normal word invocations.  The \factor|in-d| and \factor|out-d|
+slots effectively serve as the stack effect declaration.  In later analyses,
+data about the word's definition may be stored across the \factor|body|,
+\factor|method|, \factor|class|, and \factor|info| slots.
+
+\inputlst{build-tree-1}
+
+The word \factor|build-tree| takes a Factor quotation and constructs the
+equivalent high-level \gls{IR} form.  In \vref{lst:build-tree-1}, we see the
+output of the simple example
+%
+\factor|[ 1 + ] build-tree|.
+%
+Note that
+%
+\factor|T{ class { slot1 value1 } { slot2 value2 } ... }|
+%
+is the syntax for tuple literals.  The first node is a \factor|#push| for the
+\factor|1| literal.  Since \factor|+| needs two input values, an
+\factor|#introduce| pushes a new ``phantom'' value.  \factor|+| gets turned
+into a \factor|#call| instance.  Notice the \factor|in-d| slot refers to the
+values in the order that they're passed to the word, not necessarily the order
+they've been introduced in the \gls{IR}.  The sum is pushed to the data stack,
+so the \factor|out-d| slot is a singleton that names this value.  Finally,
+\factor|#return| indicates the end of the routine, its \factor|in-d| containing
+the value left on the stack (the sum pushed by \factor|#call|).
+
+\inputlst{build-tree-2}
+
+The next tuples in \vref{lst:tree} reassign existing values on the stack to
+fresh identifiers.  The \factor|#renaming| superclass has the two subclasses
+\factor|#copy| and \factor|#shuffle|.  The former represents the bijection from
+elements of \factor|in-d| to elements of \factor|out-d| in the same position;
+corresponding values are copies of each other.  The latter represents a more
+general mapping.  Stack shufflers are translated to \factor|#shuffle| nodes
+with \factor|mapping| slots that dictate how the fresh values in \factor|out-d|
+correspond to the input values in \factor|in-d|.  For instance,
+\vref{lst:build-tree-2} shows how \factor|swap| takes in the values
+\factor|6256132| and \factor|6256133| and outputs \factor|6256134| and
+\factor|6256135|, where the former is mapped to the second element
+(\factor|6256133|) and the latter to the first (\factor|6256132|).  Thus,
+\factor|out-d| swaps the two elements of \factor|in-d|, mapping them to fresh
+identifiers.  The \factor|in-r| and \factor|out-r| slots of \factor|#shuffle|
+correspond to the \term{retain} stack, which is an implementation detail beyond
+the scope of this discussion.
+
+\inputlst{build-tree-3}
+\inputlst{build-tree-4}
+
+\factor|#declare| is a miscellaneous node used for the \factor|declare|
+primitive.  It simply annotates type information to stack values, as in
+\vref{lst:build-tree-3}.  \factor|#terminate| is another one-off node, but a
+much more interesting one.  While Factor normally requires a balanced stack,
+sometimes we purposefully want to throw an error.  \factor|#terminate| is
+introduced where the program halts prematurely.  When checking the stack
+height, it gets to be treated specially so that \term{terminated} stack effects
+unify with any other effect.  That way, branches will still be balanced even if
+one of them unconditionally throws an error.  \vref{lst:build-tree-4} shows
+\factor|#terminate| being introduced by the \factor|throw| word.
+
+Next, \vref{lst:tree} defines nodes for branching based off the superclass
+\factor|#branch|.  The \factor|children| slot contains vectors of nodes
+representing different branches.  \factor|live-branches| is filled in during
+later analyses to indicate which branches are alive so that dead ones may be
+removed.  For instance, \factor|#if| will have two elements in its
+\factor|children| slot representing the true and false branches.  On the other
+hand, \factor|#dispatch| has an arbitrary number of children.  It corresponds
+to the \factor|dispatch| primitive, which is an implementation detail of the
+generic word system used to speed up method dispatch.
+
+You may have noted the emphasis on introducing new values in \factor|out-d|
+slots.  Even \factor|#shuffle|s output fresh identifiers, letting their values
+be determined by its \factor|mapping|.  The reason for this is that
+\factor|compiler.tree| uses \gls{SSA} form, wherein every variable is defined
+by exactly one statement.  This simplifies the properties of variables, which
+helps optimizations perform faster and with better results.  By giving unique
+names to the targets of each assignment, the \gls{SSA} property is guaranteed.
+However, \factor|#branch|es introduce ambiguity: after, say, an \factor|#if|,
+what will the identifiers in \factor|out-d| be?  It depends on which branch is
+taken.  To remedy this problem, after any \factor|#branch| node, Factor will
+place a \factor|#phi| node---the classical \gls{SSA} ``phony function''.  The
+\factor|phi-in-d| slot seen in \vref{lst:tree} is a sequence of sequences; each
+one corresponds to the \factor|out-d| of the child at the same position in the
+\factor|children| of the preceding node.  The \factor|#phi|'s \factor|out-d|
+gives unique names to the output values, thus ensuring the \gls{SSA} property.
+Though it doesn't perform any literal computation, conceptually it select the
+``correct'' \factor|out-d| depending on the control flow.
+
+\inputlst{build-tree-5}
+
+For example, the \factor|#phi| in \vref{lst:build-tree-5} will select between
+the
+%
+\factor|6256248|
+%
+return value of the first child or the 
+%
+\factor|6256249|
+%
+output of the second.  Either way, we can refer to the result as
+\factor|6256250| afterwards.  The \factor|terminated| slot of the \factor|#phi|
+tells us if there was a \factor|#terminate| in any of the branches.
+
+The \factor|#recursive| node encapsulates \term{inline recursive} words.  In
+Factor, words may be annotated with simple compiler declarations, which guide
+optimizations.  If we follow a standard colon definition with the
+\factor|inline| word, we're saying that its definition can be spliced into the
+call-site, rather than generating code to jump to a subroutine.  Inline words
+that call themselves must additionally be declared \factor|recursive|.  For
+example, we could write
+%
+\factor|: foo ( -- ) foo ; inline recursive|.
+%
+The nodes \factor|#enter-recursive|, \factor|#call-recursive|, and
+\factor|#return-recursive| denote different stages of the recursion---the
+beginning, recursive call, and end, respectively.  They carry around a lot of
+metadata about the nature of the recursion, but it doesn't serve our purposes
+to get into the details.  Similarly, we gloss over the final nodes of
+\vref{lst:tree} correspond to Factor's \gls{FFI} vocabulary, called
+\factor|alien|.  At a high level, these are used to make calls to C libraries
+from within Factor.
+
+% dls.pdf verbatim:
+
+%The optimizing compiler is structured as a series of passes operating on two
+%intermediate representations (IRs), referred to as high-level IR and low-level
+%IR. High-level IR represents control ﬂow in a similar manner to a
+%block-structured programming language\todo{or, y'know, like annotated stack
+%code}. Low-level IR represents control ﬂow with a control ﬂow graph of basic
+%blocks. Both intermediate forms make use of single static assignment (SSA) form
+%to improve the accuracy and efﬁciency of analysis [12].
+%
+%High-level IR is constructed by the stack effect checker.  Macro expansion and
+%quotation inlining is performed by the stack checker online while high-level IR
+%is being con- structed. The front end does not deal with local variables, as
+%these have already been eliminated.
+%
+%When static type information is available, Factor’s compiler can eliminate
+%runtime method dispatch and allocation of in- termediate objects, generating
+%code specialized to the under- lying data structures. This resembles previous
+%work in soft typing [10]. Factor provides several mechanisms to facilitate
+%static type propagation:
+%
+%\begin{itemize}
+%
+%\item Functions can be annotated as inline, causing the compiler to replace
+%calls to the function with the function body.
+%
+%\item Functions can be hinted, causing the compiler to gener- ate multiple
+%specialized versions of the function, each assuming different input types, with
+%dispatch at the en- try point to choose the best-ﬁtting specialization for the
+%given inputs.  
+%
+%\item Methods on generic functions propagate the type infor- mation for their
+%dispatched-on inputs.  
+%
+%\item Functions can be declared with static input and output types using the
+%typed library.
+%
+%\end{itemize}
+%
+%The three major optimizations performed on high-level IR are sparse conditional
+%constant propagation (SCCP [45]), escape analysis with scalar replacement, and
+%overﬂow check elimination using modular arithmetic properties.  The major
+%features of our SCCP implementation are an extended value lattice, rewrite
+%rules, and ﬂow sensitivity.  Our SCCP implementation augments the standard
+%single- level constant lattice with information about object types, numeric
+%intervals, array lengths and tuple slot types. Type transfer functions are
+%permitted to replace nodes in the IR with inline expansions. Type functions are
+%deﬁned on many of the core language words.  SCCP is used to statically dispatch
+%generic word calls by inlining a speciﬁc method body at the call site. This
+%inlining generates new type information and new opportunities for constant
+%folding, simpliﬁcation and further inlining. In par- ticular, generic
+%arithmetic operations which require dynamic dispatch in the general case can be
+%lowered to simpler opera- tions as type information is discovered. Overﬂow
+%checks can be removed from integer operations using numeric interval
+%information. The analysis can represent ﬂow-sensitive type information.
+%Additionally, calls to closures which combina- tor inlining cannot eliminate
+%are eliminated when enough in- formation is available [16].  An escape analysis
+%pass is used to discover object alloca- tions which are not stored on the heap
+%or returned from the current function. Scalar replacement is performed on such
+%allocations, converting tuple slots into SSA values.  The modular arithmetic
+%optimization pass identiﬁes in- teger expressions in which the ﬁnal result is
+%taken to be modulo a power of two and removes unnecessary overﬂow checks from
+%any intermediate addition and multiplication operations. This novel
+%optimization is global and can operate over loops.

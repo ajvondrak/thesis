@@ -1,0 +1,16 @@
+\centering
+
+  \begin{factorcode}
+    V{
+        T{ #push { literal "Error!" } { out-d { 6256051 } } }
+        T{ #call
+            { word throw }
+            { in-d V{ 6256051 } }
+            { out-d { } }
+        }
+        T{ #terminate { in-d V{ } } { in-r V{ } } }
+        T{ #return { in-d V{ } } }
+    }
+  \end{factorcode}
+
+\caption{\factor|[ "Error!" throw ] build-tree|}

@@ -1,0 +1,34 @@
+\centering
+
+  \begin{factorcode}
+    V{
+        T{ #introduce { out-d { 6256247 } } }
+        T{ #if
+            { in-d { 6256247 } }
+            { children
+                {
+                    V{
+                        T{ #push
+                            { literal 1 }
+                            { out-d { 6256248 } }
+                        }
+                    }
+                    V{
+                        T{ #push
+                            { literal 2 }
+                            { out-d { 6256249 } }
+                        }
+                    }
+                }
+            }
+        }
+        T{ #phi
+            { phi-in-d { { 6256248 } { 6256249 } } }
+            { out-d { 6256250 } }
+            { terminated V{ f f } }
+        }
+        T{ #return { in-d V{ 6256250 } } }
+    }
+  \end{factorcode}
+
+\caption{\factor|[ [ 1 ] [ 2 ] if ] build-tree|}
