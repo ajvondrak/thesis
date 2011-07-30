@@ -105,6 +105,8 @@ hand, \factor|#dispatch| has an arbitrary number of children.  It corresponds
 to the \factor|dispatch| primitive, which is an implementation detail of the
 generic word system used to speed up method dispatch.
 
+\todo[inline]{Should extract the SSA junk into the general intro of the thesis}
+
 You may have noted the emphasis on introducing new values in \factor|out-d|
 slots.  Even \factor|#shuffle|s output fresh identifiers, letting their values
 be determined by its \factor|mapping|.  The reason for this is that
@@ -154,23 +156,86 @@ beginning, recursive call, and end, respectively.  They carry around a lot of
 metadata about the nature of the recursion, but it doesn't serve our purposes
 to get into the details.  Similarly, we gloss over the final nodes of
 \vref{lst:tree} correspond to Factor's \gls{FFI} vocabulary, called
-\factor|alien|.  At a high level, these are used to make calls to C libraries
-from within Factor.
+\factor|alien|.  At a high level, \factor|#alien-node|, \factor|#alien-invoke|,
+\factor|#alien-indirect|, \factor|#alien-assembly|, and
+\factor|#alien-callback| are used to make calls to C libraries from within
+Factor.
+
+\inputlst{optimize-tree}
+\todo[inline]{Shouldn't bold ``cleanup'' in \cref{lst:optimize-tree}}
+
+Now that we're familiar with the structure of the high-level \gls{IR}, we can
+turn our attention to optimization.  \Vref{lst:optimize-tree} shows the passes
+performed on a sequence of nodes by the word \factor|optimize-tree|.  Before
+optimization can begin, we must gather some information and clean up some
+oddities in the output of \factor|build-tree|.  \factor|analyze-recursive| is
+called first to identify and mark loops in the tree.  Effectively, this means
+we detect tail-recursion introduced by \factor|#recursive| nodes.  Future
+passes can then use this information for data flow analysis.  Then,
+\factor|normalize| makes the tree more consistent by doing two things:
+%
+\begin{itemize}
+%
+  \item All \factor|#introduce| nodes are removed and replaced by a single
+        \factor|#introduce| at the beginning of the whole program.  This way,
+        further passes needn't handle \factor|#introduce| nodes.
+%
+  \item As constructed, the \factor|in-d| of a \factor|#call-recursive| will be
+        the entire stack at the time of the call.  This assumption happens
+        because we don't know how many inputs it needs until the
+        \factor|#return-recursive| is processed, because of row polymorphism.
+        So, here we figure out exactly what stack entries are needed, and trim
+        the \factor|in-d| and \factor|out-d| of each \factor|#call-recursive|
+        accordingly.
+%
+\end{itemize}
+
+Once these passes have cleaned up the tree, \factor|propagate| performs
+probably the most extensive analysis of all the phases.  In short, it performs
+an extended version of \gls{SCCP}\todo{cite}.  The traditional data flow
+analysis combines global copy propagation, constant propagation, and some
+limited constant folding in a \term{flow-sensitive} way.  That is, it will
+propagate information from branches that it knows are definitely taken (e.g.,
+because \factor|#if| is always given a true input).  Instead of using the
+typical single-level (numeric) constant value lattice, Factor uses a lattice
+augmented by information about classes, numeric value ranges, array lengths,
+and tuple slots' classes.  Classes can be used in the lattice with the
+partial-order protocol described briefly in \cref{sec:primer:oo}.
+Additionally, the transfer functions are allowed to inline certain calls if
+enough information is present.  This occurs in the transfer function since
+generic words' inline expansions into particular methods provide more
+information, thus giving us more opportunities for propagation.  This is
+particularly useful for arithmetic words.  In Factor, words like \factor|+| and
+\factor|*| are generics that work across all sorts of numeric representations,
+be they \factor|fixnum|s, \factor|float|s, \factor|bignum|s, etc.  If the
+operation overflows, the values are automatically cast up to larger
+representations.  But iterated refinement of the inputs' classes can let the
+compiler select more specific, efficient methods (e.g., if both arguments are
+\factor|fixnum|s).
+
+Interval propagation also helps propagate class information.  By refining the
+range of possible values a particular item can have, we might discover that,
+say, it's small enough to fit in a \factor|fixnum| rather than a
+\factor|bignum|.  There are plenty more things that interval propagation can
+tell us, too.  For example, it may give us enough information to remove
+overflow checks performed by numeric words.  And if the interval has zero
+length, we may replace the value with a constant.  This then continues getting
+propagated, contributing to constant folding and so forth.
+
+%cleanup
+%dup run-escape-analysis? [
+%    escape-analysis
+%    unbox-tuples
+%] when
+%apply-identities
+%compute-def-use
+%remove-dead-code
+%?check
+%compute-def-use
+%optimize-modular-arithmetic
+%finalize
 
 % dls.pdf verbatim:
-
-%The optimizing compiler is structured as a series of passes operating on two
-%intermediate representations (IRs), referred to as high-level IR and low-level
-%IR. High-level IR represents control ﬂow in a similar manner to a
-%block-structured programming language\todo{or, y'know, like annotated stack
-%code}. Low-level IR represents control ﬂow with a control ﬂow graph of basic
-%blocks. Both intermediate forms make use of single static assignment (SSA) form
-%to improve the accuracy and efﬁciency of analysis [12].
-%
-%High-level IR is constructed by the stack effect checker.  Macro expansion and
-%quotation inlining is performed by the stack checker online while high-level IR
-%is being con- structed. The front end does not deal with local variables, as
-%these have already been eliminated.
 %
 %When static type information is available, Factor’s compiler can eliminate
 %runtime method dispatch and allocation of in- termediate objects, generating
@@ -213,7 +278,9 @@ from within Factor.
 %checks can be removed from integer operations using numeric interval
 %information. The analysis can represent ﬂow-sensitive type information.
 %Additionally, calls to closures which combina- tor inlining cannot eliminate
-%are eliminated when enough in- formation is available [16].  An escape analysis
+%are eliminated when enough in- formation is available [16].
+
+%An escape analysis
 %pass is used to discover object alloca- tions which are not stored on the heap
 %or returned from the current function. Scalar replacement is performed on such
 %allocations, converting tuple slots into SSA values.  The modular arithmetic
