@@ -1,0 +1,18 @@
+\centering
+
+  \begin{factorcode}
+    TUPLE: data-struct
+      { a read-only }
+      { b read-only } ;
+
+    : escaping-via-#return ( -- data-struct )
+      1 2 data-struct boa ;
+
+    : escaping-via-#call ( -- )
+      1 2 data-struct boa pprint ;
+
+    : non-escaping ( -- )
+      1 2 data-struct [ a>> ] [ b>> ] bi + ;
+  \end{factorcode}
+
+\caption{Escaping vs. non-escaping tuple allocations}

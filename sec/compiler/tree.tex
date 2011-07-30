@@ -193,25 +193,24 @@ passes can then use this information for data flow analysis.  Then,
 Once these passes have cleaned up the tree, \factor|propagate| performs
 probably the most extensive analysis of all the phases.  In short, it performs
 an extended version of \gls{SCCP}\todo{cite}.  The traditional data flow
-analysis combines global copy propagation, constant propagation, and some
-limited constant folding in a \term{flow-sensitive} way.  That is, it will
-propagate information from branches that it knows are definitely taken (e.g.,
-because \factor|#if| is always given a true input).  Instead of using the
-typical single-level (numeric) constant value lattice, Factor uses a lattice
-augmented by information about classes, numeric value ranges, array lengths,
-and tuple slots' classes.  Classes can be used in the lattice with the
-partial-order protocol described briefly in \cref{sec:primer:oo}.
-Additionally, the transfer functions are allowed to inline certain calls if
-enough information is present.  This occurs in the transfer function since
-generic words' inline expansions into particular methods provide more
-information, thus giving us more opportunities for propagation.  This is
-particularly useful for arithmetic words.  In Factor, words like \factor|+| and
-\factor|*| are generics that work across all sorts of numeric representations,
-be they \factor|fixnum|s, \factor|float|s, \factor|bignum|s, etc.  If the
-operation overflows, the values are automatically cast up to larger
-representations.  But iterated refinement of the inputs' classes can let the
-compiler select more specific, efficient methods (e.g., if both arguments are
-\factor|fixnum|s).
+analysis combines global copy propagation, constant propagation, and constant
+folding in a \term{flow-sensitive} way.  That is, it will propagate information
+from branches that it knows are definitely taken (e.g., because \factor|#if| is
+always given a true input).  Instead of using the typical single-level
+(numeric) constant value lattice, Factor uses a lattice augmented by
+information about classes, numeric value ranges, array lengths, and tuple
+slots' classes.  Classes can be used in the lattice with the partial-order
+protocol described briefly in \cref{sec:primer:oo}.  Additionally, the transfer
+functions are allowed to inline certain calls if enough information is present.
+This occurs in the transfer function since generic words' inline expansions
+into particular methods provide more information, thus giving us more
+opportunities for propagation.  This is particularly useful for arithmetic
+words.  In Factor, words like \factor|+| and \factor|*| are generics that work
+across all sorts of numeric representations, be they \factor|fixnum|s,
+\factor|float|s, \factor|bignum|s, etc.  If the operation overflows, the values
+are automatically cast up to larger representations.  But iterated refinement
+of the inputs' classes can let the compiler select more specific, efficient
+methods (e.g., if both arguments are \factor|fixnum|s).
 
 Interval propagation also helps propagate class information.  By refining the
 range of possible values a particular item can have, we might discover that,
@@ -222,69 +221,51 @@ overflow checks performed by numeric words.  And if the interval has zero
 length, we may replace the value with a constant.  This then continues getting
 propagated, contributing to constant folding and so forth.
 
-%cleanup
-%dup run-escape-analysis? [
-%    escape-analysis
-%    unbox-tuples
-%] when
-%apply-identities
-%compute-def-use
-%remove-dead-code
-%?check
-%compute-def-use
-%optimize-modular-arithmetic
-%finalize
+\factor|propagate| iterates through the nodes collecting all of this data until
+reaching a stable point where inferences can no longer be drawn.  Technically,
+this information doesn't alter the tree at all; we merely store it so that
+speculative decisions may be realized later.  The next word in
+\vref{lst:optimize-tree}, \Verb|cleanup|, does just this by inlining words,
+folding constants, removing overflow checks, deleting unreachable branches, and
+flattening inline-recursive words that don't actually wind up calling
+themselves (e.g., because the calls got constant-folded).
 
-% dls.pdf verbatim:
-%
-%When static type information is available, Factor’s compiler can eliminate
-%runtime method dispatch and allocation of in- termediate objects, generating
-%code specialized to the under- lying data structures. This resembles previous
-%work in soft typing [10]. Factor provides several mechanisms to facilitate
-%static type propagation:
-%
-%\begin{itemize}
-%
-%\item Functions can be annotated as inline, causing the compiler to replace
-%calls to the function with the function body.
-%
-%\item Functions can be hinted, causing the compiler to gener- ate multiple
-%specialized versions of the function, each assuming different input types, with
-%dispatch at the en- try point to choose the best-ﬁtting specialization for the
-%given inputs.  
-%
-%\item Methods on generic functions propagate the type infor- mation for their
-%dispatched-on inputs.  
-%
-%\item Functions can be declared with static input and output types using the
-%typed library.
-%
-%\end{itemize}
-%
-%The three major optimizations performed on high-level IR are sparse conditional
-%constant propagation (SCCP [45]), escape analysis with scalar replacement, and
-%overﬂow check elimination using modular arithmetic properties.  The major
-%features of our SCCP implementation are an extended value lattice, rewrite
-%rules, and ﬂow sensitivity.  Our SCCP implementation augments the standard
-%single- level constant lattice with information about object types, numeric
-%intervals, array lengths and tuple slot types. Type transfer functions are
-%permitted to replace nodes in the IR with inline expansions. Type functions are
-%deﬁned on many of the core language words.  SCCP is used to statically dispatch
-%generic word calls by inlining a speciﬁc method body at the call site. This
-%inlining generates new type information and new opportunities for constant
-%folding, simpliﬁcation and further inlining. In par- ticular, generic
-%arithmetic operations which require dynamic dispatch in the general case can be
-%lowered to simpler opera- tions as type information is discovered. Overﬂow
-%checks can be removed from integer operations using numeric interval
-%information. The analysis can represent ﬂow-sensitive type information.
-%Additionally, calls to closures which combina- tor inlining cannot eliminate
-%are eliminated when enough in- formation is available [16].
+\inputlst{escaping}
 
-%An escape analysis
-%pass is used to discover object alloca- tions which are not stored on the heap
-%or returned from the current function. Scalar replacement is performed on such
-%allocations, converting tuple slots into SSA values.  The modular arithmetic
-%optimization pass identiﬁes in- teger expressions in which the ﬁnal result is
-%taken to be modulo a power of two and removes unnecessary overﬂow checks from
-%any intermediate addition and multiplication operations. This novel
-%optimization is global and can operate over loops.
+The next major pass is \factor|escape-analysis|, whose information is used for
+the actual transformation \factor|unbox-tuples|.  This discovers tuples that
+\term{escape} by getting passed outside of a word.  For instance, the inputs to
+\factor|#return| obviously escape, as they are passed to the world outside of
+the word in question.  Similarly, inputs to the \factor|#call| of another word
+escape.  So, though the tuples in \factor|escaping-via-#return| and
+\factor|escaping-via-#call| in \vref{lst:escaping} both escape, we can see the
+one in \factor|non-escaping| does not.  In fact, the last allocation is
+unnecessary.  By identifying this, \factor|unbox-tuples| can then rewrite the
+code to avoid allocating a \factor|data-struct| altogether, instead
+manipulating the slots' values directly.  Note that this only happens for
+immutable tuples, all of whose slots are \factor|read-only|.  Otherwise, we
+would need to perform more advanced pointer analyses to discover aliases.
+
+\factor|apply-identities| follows to simplify words with known identity
+elements.  If, say, an argument to \factor|+| is \factor|0|, we can simply
+return the other argument.  This converts the \factor|#call| to \factor|+| into
+a simple \factor|#shuffle|.  These identities are defined for most arithmetic
+words.
+
+Another simple few passes come next in \vref{lst:optimize-tree}.  True to its
+name, \factor|compute-def-use| computes where \gls{SSA} values are defined and
+used.  Values that are never used are eliminated by \factor|remove-dead-code|.
+\factor|?check| conditionally performs some consistency checks on the tree,
+mostly to make sure that no errors were introduced in the stack flow.  If a
+global variable isn't toggled on, this part is skipped.  We run
+\factor|compute-def-use| again to update the information after altering the
+tree with dead code elimination.
+
+Finally, \factor|optimize-modular-arithmetic| performs a form of
+strength-reduction on artihmetic words that only use the low-order bits of
+their inputs/results, which may also remove more unnecessary overflow checks.
+\factor|finalize| cleans up a few random miscellaneous bits of the tree
+(removing empty shufflers, deleting \factor|#copy| nodes, etc.) in preparation
+for lower-level optimizations.
+
+\todo[inline]{Double-check zealous syntax-highlighting}
