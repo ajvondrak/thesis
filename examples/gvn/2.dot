@@ -1,0 +1,38 @@
+digraph {
+	node [label="\N"];
+	graph [labelloc=t,
+		label="After delete-useless-conditionals",
+		bb="0,0,277,1034",
+		lp="138.5,1021"];
+	0 [label="0\n##prologue\l##branch\l", fontname=Courier, fontsize=10, shape=box, color=grey, style=filled, pos="158,986", width="1.0556", height="0.61111"];
+	1 [label="1\n##branch\l", fontname=Courier, fontsize=10, shape=box, pos="158,910", width="0.88889", height="0.5"];
+	2 [label="2\n##load-integer 1 0\l##load-integer 2 100\l##load-integer 3 0\l##copy 4 2 any-rep\l##copy 5 1 any-rep\l##copy 6 4 any-rep\l##copy\
+ 7 3 any-rep\l##inc-d 3\l##branch\l", fontname=Courier, fontsize=10, shape=box, pos="158,792", width="1.8889", height="1.7778"];
+	3 [label="3\n##branch\l", fontname=Courier, fontsize=10, shape=box, pos="158,674", width="0.88889", height="0.5"];
+	4 [label="4\n##compare-integer 10 7 6 cc< 9\l##copy 11 10 any-rep\l##copy 18 6 any-rep\l##copy 19 10 any-rep\l##compare-imm-branch 11 f cc\
+/=\l", fontname=Courier, fontsize=10, shape=box, pos="158,580", width="2.7222", height="1.1111"];
+	5 [label="5\n##branch\l", fontname=Courier, fontsize=10, shape=box, pos="82,486", width="0.88889", height="0.5"];
+	8 [label="8\n##branch\l", fontname=Courier, fontsize=10, shape=box, pos="221,486", width="0.88889", height="0.5"];
+	6 [label="6\n##load-integer 12 1\l##add 13 5 12\l##load-integer 14 1\l##add 15 7 14\l##copy 16 7 any-rep\l##copy 4 6 any-rep\l##copy 5 13 \
+any-rep\l##copy 7 15 any-rep\l##branch\l", fontname=Courier, fontsize=10, shape=box, pos="65,368", width="1.8056", height="1.7778"];
+	7 [label="7\n##branch\l", fontname=Courier, fontsize=10, shape=box, pos="103,250", width="0.88889", height="0.5"];
+	9 [label="9\n##inc-d -2\l##branch\l", fontname=Courier, fontsize=10, shape=box, pos="224,368", width="1.0556", height="0.61111"];
+	10 [label="10\n##branch\l", fontname=Courier, fontsize=10, shape=box, pos="224,250", width="0.88889", height="0.5"];
+	11 [label="11\n##branch\l", fontname=Courier, fontsize=10, shape=box, pos="224,178", width="0.88889", height="0.5"];
+	12 [label="12\n##replace 5 D 0\l##branch\l", fontname=Courier, fontsize=10, shape=box, pos="224,102", width="1.4722", height="0.61111"];
+	13 [label="13\n##epilogue\l##return\l", fontname=Courier, fontsize=10, shape=box, color=grey, style=filled, pos="224,22", width="1.0556", height="0.61111"];
+	0 -> 1 [pos="e,158,928.4 158,963.61 158,955.73 158,946.76 158,938.45"];
+	1 -> 2 [pos="e,158,856.08 158,891.82 158,884.53 158,875.6 158,866.12"];
+	2 -> 3 [pos="e,158,692.45 158,727.82 158,719 158,710.34 158,702.63"];
+	3 -> 4 [pos="e,158,620.26 158,655.88 158,648.51 158,639.6 158,630.52"];
+	4 -> 5 [pos="e,96.814,504.32 125.55,539.86 117.97,530.48 110.08,520.73 103.14,512.15"];
+	4 -> 8 [pos="e,208.72,504.32 184.9,539.86 191.06,530.68 197.45,521.14 203.12,512.68"];
+	5 -> 6 [pos="e,74.231,432.08 79.381,467.82 78.33,460.53 77.044,451.6 75.678,442.12"];
+	6 -> 7 [pos="e,97.06,268.45 85.668,303.82 88.573,294.8 91.425,285.94 93.951,278.1"];
+	7 -> 4 [pos="e,161.55,539.9 118.62,268.2 126.18,278.11 134.57,290.99 139,304 164.74,379.54 165.07,473.29 162.13,529.79"];
+	8 -> 9 [pos="e,223.44,390.02 221.46,467.82 221.92,449.82 222.63,421.88 223.18,400.13"];
+	9 -> 10 [pos="e,224,268.23 224,345.81 224,326.7 224,299.03 224,278.33"];
+	10 -> 11 [pos="e,224,196.41 224,231.83 224,224.13 224,214.97 224,206.42"];
+	11 -> 12 [pos="e,224,124.23 224,159.99 224,152.29 224,143.06 224,134.26"];
+	12 -> 13 [pos="e,224,44.165 224,79.716 224,71.827 224,62.787 224,54.238"];
+}

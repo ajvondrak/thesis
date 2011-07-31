@@ -1,0 +1,19 @@
+digraph {
+	node [label="\N"];
+	graph [labelloc=t,
+		label="After copy-propagation",
+		bb="0,0,320,438",
+		lp="160,425"];
+	0 [label="0\n##prologue\l##branch\l", fontname=Courier, fontsize=10, shape=box, color=grey, style=filled, pos="125,390", width="1.0556", height="0.61111"];
+	1 [label="1\n##inc-d 3\l##load-integer 21 0\l##load-integer 22 100\l##branch\l", fontname=Courier, fontsize=10, shape=box, pos="125,298", width="1.9722", height="0.94444"];
+	2 [label="2\n##phi 29 H{ { 1 21 } { 3 36 } }\l##compare-integer-imm 31 29 100 cc< 46\l##compare-integer-imm-branch 29 100 cc<\l", fontname=Courier, fontsize=10, shape=box, pos="125,200", width="3.4722", height="0.77778"];
+	3 [label="3\n##load-integer 35 1\l##add-imm 36 29 1\l##branch\l", fontname=Courier, fontsize=10, shape=box, pos="125,108", width="1.8056", height="0.77778"];
+	4 [label="4\n##inc-d -2\l##replace 29 D 0\l##branch\l", fontname=Courier, fontsize=10, shape=box, pos="264,108", width="1.5556", height="0.77778"];
+	5 [label="5\n##epilogue\l##return\l", fontname=Courier, fontsize=10, shape=box, color=grey, style=filled, pos="264,22", width="1.0556", height="0.61111"];
+	0 -> 1 [pos="e,125,332.27 125,367.73 125,360.08 125,351.24 125,342.46"];
+	1 -> 2 [pos="e,125,228.1 125,264 125,255.67 125,246.69 125,238.18"];
+	2 -> 3 [pos="e,118.72,136.25 118.73,171.9 118.28,163.86 118.15,154.95 118.33,146.41"];
+	2 -> 4 [pos="e,221.32,136.25 167.46,171.9 181.74,162.44 197.83,151.8 212.72,141.94"];
+	3 -> 2 [pos="e,131.27,171.9 131.28,136.25 131.73,144.3 131.85,153.2 131.66,161.74"];
+	4 -> 5 [pos="e,264,44.224 264,79.84 264,71.712 264,62.776 264,54.411"];
+}

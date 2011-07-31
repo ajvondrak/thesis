@@ -1,0 +1,22 @@
+digraph {
+	node [label="\N"];
+	graph [labelloc=t,
+		label="After join-blocks",
+		bb="0,0,287,594",
+		lp="143.5,581"];
+	0 [label="0\n##prologue\l##branch\l", fontname=Courier, fontsize=10, shape=box, color=grey, style=filled, pos="98,546", width="1.0556", height="0.61111"];
+	1 [label="1\n##load-integer 1 0\l##load-integer 2 100\l##load-integer 3 0\l##copy 4 2 any-rep\l##copy 5 1 any-rep\l##copy 6 4 any-rep\l##copy\
+ 7 3 any-rep\l##inc-d 3\l##branch\l", fontname=Courier, fontsize=10, shape=box, pos="98,424", width="1.8889", height="1.7778"];
+	2 [label="2\n##compare-integer 10 7 6 cc< 9\l##copy 11 10 any-rep\l##copy 18 6 any-rep\l##copy 19 10 any-rep\l##compare-imm-branch 11 f cc\
+/=\l", fontname=Courier, fontsize=10, shape=box, pos="98,284", width="2.7222", height="1.1111"];
+	3 [label="3\n##load-integer 12 1\l##add 13 5 12\l##load-integer 14 1\l##add 15 7 14\l##copy 16 7 any-rep\l##copy 4 6 any-rep\l##copy 5 13 \
+any-rep\l##copy 7 15 any-rep\l##branch\l", fontname=Courier, fontsize=10, shape=box, pos="98,144", width="1.8056", height="1.7778"];
+	4 [label="4\n##inc-d -2\l##replace 5 D 0\l##branch\l", fontname=Courier, fontsize=10, shape=box, pos="234,144", width="1.4722", height="0.77778"];
+	5 [label="5\n##epilogue\l##return\l", fontname=Courier, fontsize=10, shape=box, color=grey, style=filled, pos="234,22", width="1.0556", height="0.61111"];
+	0 -> 1 [pos="e,98,488.02 98,523.91 98,516.39 98,507.53 98,498.23"];
+	1 -> 2 [pos="e,98,324.27 98,359.74 98,351.25 98,342.64 98,334.43"];
+	2 -> 3 [pos="e,91.271,208.18 91.829,243.88 91.499,235.87 91.31,227.21 91.262,218.46"];
+	2 -> 4 [pos="e,206.85,172.05 137.19,243.79 148.44,232.24 160.71,219.63 172,208 181.01,198.72 190.76,188.67 199.79,179.35"];
+	3 -> 2 [pos="e,104.17,243.88 104.73,208.18 104.79,216.73 104.72,225.39 104.51,233.66"];
+	4 -> 5 [pos="e,234,44.058 234,115.7 234,97.293 234,73.237 234,54.11"];
+}
