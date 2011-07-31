@@ -54,3 +54,15 @@
 \def\reftextcurrent{\unskip}
 \crefname{figure}{Figure}{Figures}
 \crefname{subfigure}{Figure}{Figures}
+
+\usepackage{graphicx}
+\newcommand{\whenNewer}[3]{%
+  \ifnum\pdfstrcmp{\pdffilemoddate{#1}}%
+  {\pdffilemoddate{#2}}>0%
+  {\immediate\write18{#3}}\fi%
+}
+\newcommand{\includesvg}[2][]{%
+  \whenNewer{#2.svg}{#2.pdf}%
+    {inkscape -z -D --file=#2.svg --export-pdf=#2.pdf}%
+  \includegraphics[#1]{#2.pdf}%
+}
