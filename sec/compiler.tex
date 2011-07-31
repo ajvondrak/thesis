@@ -14,27 +14,5 @@ particular emphasis on the transformations performed by the optimizing
 compiler.
 
 %\input{sec/compiler/vm}
-\input{sec/compiler/tree}
-%\input{sec/compiler/cfg}
-
-% dls.pdf verbatim:
-
-%Low-level IR is built from high-level IR by analyzing control ﬂow and making
-%stack reads and writes explicit. During this construction phase and a
-%subsequent branch splitting phase, the SSA structure of high-level IR is lost.
-%SSA form is recon- structed using the SSA construction algorithm described in
-%[8], with the minor variation that we construct pruned SSA form rather than
-%semi-pruned SSA, by ﬁrst computing live- ness. To avoid computing iterated
-%dominance frontiers, we use the TDMSC algorithm from [13].  The main
-%optimizations performed on low-level IR are local dead store and redundant load
-%elimination, local value numbering, global copy propagation, representation
-%selec- tion, and instruction scheduling.  The local value numbering pass
-%eliminates common sub- expressions and folds expressions with constant operands
-%[9]. Following value numbering and copy propagation, a representation selection
-%pass decides when to unbox ﬂoating point and SIMD values. A form of instruction
-%scheduling intended to reduce register pressure is performed on low- level IR
-%as the last step before leaving SSA form [39].  We use the second-chance
-%binpacking variation of the lin- ear scan register allocation algorithm [43,
-%47]. Our variant does not take φ nodes into account, so SSA form is destruc-
-%ted ﬁrst by eliminating φ nodes while simultaneously per- forming copy
-%coalescing, using the method described in [6].
+%\input{sec/compiler/tree}
+\input{sec/compiler/cfg}
