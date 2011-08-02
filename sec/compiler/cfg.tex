@@ -116,14 +116,21 @@ is essentially changed into
 %
 thus splitting the block with two predecessors (block $9$) on the left.
 
-%   join-blocks                 <-- can use pretty much anything
-%   normalize-height            <-- can use 0 100 [ 1 fixnum+fast ] times
-%   construct-ssa               <-- can use 0 100 [ 1 fixnum+fast ] times
-%   alias-analysis
-%   value-numbering             <-- can use 0 100 [ 1 fixnum+fast ] times
-%   copy-propagation            <-- can use 0 100 [ 1 fixnum+fast ] times
-%   eliminate-dead-code         <-- can use 0 100 [ 1 fixnum+fast ] times
-%   finalize-cfg                <-- can use 0 100 [ 1 fixnum+fast ] times
+\inputfig{join-blocks}
+
+\inputfig{normalize-height}
+
+\inputfig{construct-ssa}
+
+% alias-analysis
+
+\inputfig{value-numbering}
+
+\inputfig{copy-propagation}
+
+\inputfig{eliminate-dead-code}
+
+\inputfig{finalize-cfg}
 
 % dls.pdf verbatim:
 
