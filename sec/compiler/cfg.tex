@@ -24,6 +24,107 @@ tuple).
 \todo[inline]{Is the complete list really necessary?}
 \input{sec/compiler/insns}
 
+\inputlst{optimize-cfg}
+
+\inputfig{optimize-tail-calls}
+
+By translating the high-level \gls{IR} into instructions that manipulate
+registers directly, we reveal further redundancies that can be optimized away.
+The \factor|optimize-cfg| word in \vref{lst:optimize-cfg} shows the passes
+performed in doing this.  The first word, \factor|optimize-tail-calls|,
+performs tail call elimination on the \gls{CFG}.
+%
+\term{Tail calls}~\todo{used in \cref{sec:compiler:tree}, not defined} are those
+that occur within a procedure and whose results are immediately returned by
+that procedure.  Instead of allocating a new call stack frame, we may convert
+tail calls into simple jumps, since afterwards the current procedure's call
+frame isn't really needed.  In the case of recursive tail calls, we can convert
+special cases of recursion into loops in the \gls{CFG}, so that we won't
+trigger call stack overflows.  For instance, consider
+\vref{fig:optimize-tail-calls}, which shows the effect of
+\factor|optimize-tail-calls| on the following definition:
+%
+\begin{center}
+%
+  \factor|: tail-call ( -- ) tail-call ;|
+%
+\end{center}
+%
+\noindent Note the recursive call (trivially) occurs at the end of the
+definition, just before the return point.  When translated to a \gls{CFG}, this
+is a \factor|##call| instruction, as seen in block $4$ to the left of
+\vref{fig:optimize-tail-calls}.  This is also just before the final
+\factor|##epilogue| and \factor|##return| instructions in block $8$, as blocks
+$5$--$7$ are effectively empty (these excessive \factor|##branch|es will be
+eliminated in a later pass).  Because of this, rather than make a whole new
+subroutine call, we can convert it into a \factor|##branch| back to the
+beginning of the word, as in the \gls{CFG} to the right.
+
+\inputfig{delete-useless-conditionals}
+
+The next pass in \vref{lst:optimize-cfg} is
+\factor|delete-useless-conditionals|, which removes branches that go to the
+same basic block.  This situation might occur as a result of optimizations
+performed in the high-level \gls{IR}.  To see it in action,
+\vref{fig:delete-useless-conditionals} shows the transformation on a
+purposefully useless conditional,
+%
+\factor|[ ] [ ] if|.
+%
+Before removing the useless conditional, the \gls{CFG} \factor|##peek|s at the
+top of the data stack
+%
+(\factor|D 0|),
+%
+storing the result in the virtual register \factor|1|.  This value is popped,
+so we decrement the stack height
+%
+(\factor|##inc-d -1|).
+%
+Then, \factor|##compare-imm-branch| in block $2$ compares the value in the
+virtual register \factor|2| (which is a copy of \factor|1|, the top of the
+stack) to the immediate value \factor|f| to see if it's not equal (signified by
+\factor|cc/=|).  However, both branches jump through several empty blocks and
+merge at the same destination.  Thus, we can remove both branches and replace
+\factor|##compare-imm-branch| with an unconditional \factor|##branch| to the
+eventual destination.  We see this on the right of
+\vref{fig:delete-useless-conditionals}.
+
+\inputfig{split-branches}
+
+In order to expose more opportunities for optimization, \factor|split-branches|
+will actually duplicate code.  We use the fact that code immediately following
+a conditional will be executed along either branch.  If it's sufficiently
+short, we copy it up into the branches individually.  That is, we change
+%
+\factor|[ A ] [ B ] if C|
+%
+into
+%
+\factor|[ A C ] [ B C ] if|,
+%
+as long as \factor|C| is small enough.  Later analyses may then, for example,
+more readily eliminate one of the branches if it's never taken.
+\vref{fig:split-branches} shows what such a transformation looks like on a
+\gls{CFG}.  The example
+%
+\factor|[ 1 ] [ 2 ] if dup|
+%
+is essentially changed into
+%
+\factor|[ 1 dup ] [ 2 dup ] if|,
+%
+thus splitting the block with two predecessors (block $9$) on the left.
+
+%   join-blocks                 <-- can use pretty much anything
+%   normalize-height            <-- can use 0 100 [ 1 fixnum+fast ] times
+%   construct-ssa               <-- can use 0 100 [ 1 fixnum+fast ] times
+%   alias-analysis
+%   value-numbering             <-- can use 0 100 [ 1 fixnum+fast ] times
+%   copy-propagation            <-- can use 0 100 [ 1 fixnum+fast ] times
+%   eliminate-dead-code         <-- can use 0 100 [ 1 fixnum+fast ] times
+%   finalize-cfg                <-- can use 0 100 [ 1 fixnum+fast ] times
+
 % dls.pdf verbatim:
 
 %Low-level IR is built from high-level IR by analyzing control flow and making
@@ -45,6 +146,6 @@ tuple).
 %instruction scheduling intended to reduce register pressure is performed on
 %low-level IR as the last step before leaving SSA form [39].  We use the
 %second-chance binpacking variation of the linear scan register allocation
-%algorithm [43, 47]. Our variant does not take φ nodes into account, so SSA
-%form is destructed first by eliminating $\phi$ nodes while simultaneously
+%algorithm [43, 47]. Our variant does not take $\phi$ nodes into account, so
+%SSA form is destructed first by eliminating $\phi$ nodes while simultaneously
 %performing copy coalescing, using the method described in [6].
