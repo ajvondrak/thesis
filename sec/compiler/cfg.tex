@@ -118,13 +118,102 @@ thus splitting the block with two predecessors (block $9$) on the left.
 
 \inputfig{join-blocks}
 
+The next pass, \factor|join-blocks|, compacts the \gls{CFG} by joining together
+blocks involved in only a single control flow edge.  Mostly, this is to clean
+up the myriad of empty or short blocks introduced during construction, like
+sequences of a bunch of \factor|##branch|es.  \Vref{fig:join-blocks} shows this
+pass on the \gls{CFG} of
+%
+\factor|0 100 [ 1 fixnum+fast ] times|.
+%
+\factor|fixnum+fast| is a specialized version of \factor|+| that suppresses
+overflow and type checks.  We use it here to keep the \gls{CFG} simple.  We'll
+be using this particular code to illustrate all but one of the remaining
+optimization passes in \vref{lst:optimize-cfg}, as it's a motivating example
+for the work in this thesis.  The passes before \factor|join-blocks| don't
+change the \gls{CFG} seen on the left in \vref{fig:join-blocks}, but we get rid
+of the useless \factor|##branch| blocks in the \gls{CFG} on the right.
+
 \inputfig{normalize-height}
+
+\Vref{fig:normalize-height} shows the result of applying
+\factor|normalize-height| to the result of \factor|join-blocks|.  This phase
+combines and canonicalizes the instructions that track the stack height, like
+\factor|##inc-d|.  While the shuffling in this example isn't complex enough to
+be interesting, neither is this phase.  It amounts to more cleanup: multiple
+height changes are combined into single ones at the beginnings of the basic
+blocks.  In \vref{fig:normalize-height}, this means that \factor|##inc-d| is
+moved to the top of block $1$, as compared to the right of
+\vref{fig:join-blocks}.
 
 \inputfig{construct-ssa}
 
-% alias-analysis
+In converting the high-level \gls{IR} to the low-level, we actually lose the
+\gls{SSA} form of \factor|compiler.tree|.  Not only does the construction do
+this, but \factor|split-branches| also copies basic blocks verbatim, so any
+value defined will have a duplicate definition site, violating the \gls{SSA}
+property.  \factor|construct-ssa| recomputes a so-called \term{pruned}
+\gls{SSA} form, wherein $\phi$ functions are inserted only if the variables are
+live after the insertion point.  This cuts down on useless $\phi$ 
+%
+functions\todo{cite TDMSC and construction algorithm}.
+%
+\Vref{fig:construct-ssa} shows the reconstructed \gls{SSA} form of the
+\gls{CFG} from \vref{fig:normalize-height}.
+
+The next pass, \factor|alias-analysis|, doesn't change the \gls{CFG} of
+%
+\factor|0 100 [ 1 fixnum+fast ] times|,
+%
+so we won't have an accompanying \lcnamecref{fig:construct-ssa}.  At a high
+level, \factor|alias-analysis| is easy to understand: it eliminates redundant
+memory loads and stores by rewriting certain patterns of memory access.  If the
+same location is loaded after being stored, we convert the latter load into a
+\factor|##copy| of the value we stored.  Two reads of the same location with no
+intermittent write gets the second read turned into a \factor|##copy|.
+Similarly, if we see two writes without a read in the middle, the first write
+can be removed.
 
 \inputfig{value-numbering}
+
+\factor|value-numbering| is the key focus of this thesis.  It will be detailed
+in \vref{sec:vn}.  For now, it does to think of it as a combination of common
+subexpression elimination and constant folding.  In \vref{fig:value-numbering}, 
+we see several changes:
+%
+\begin{itemize}
+%
+  \item \factor|##load-integer 23 0| in block $1$ of \vref{fig:construct-ssa}
+  (which assigns the value \factor|0| to the virtual register \factor|23|) is
+  redundant, so is replaced by \factor|##copy 23 21|.
+%
+  \item \begin{flushleft}
+  In block $2$, the last instruction
+  %
+  \factor|##compare-imm-branch 32 f cc/=|
+  %
+  is the same as
+  %
+  \factor|##compare-integer-branch 30 26 cc<|.
+  %
+  The source register (\factor|32|) of the original is a \factor|##copy| of
+  \factor|31|, which itself is computed by
+  %
+  \factor|##compare-integer 31 30 26 cc< 9|.
+  %
+  So, the \factor|##compare-imm-branch| is equivalent to a simple
+  \factor|##compare-integer-branch|, which doesn't use the temporary virtual
+  register \factor|9| and doesn't waste time comparing against the \factor|f|
+  object.
+  \end{flushleft}
+%
+  \item The second operands in both \factor|##add|s of block $3$ are just
+  constants stored by \factor|##load-integer|s.  So, these are turned into
+  \factor|##add-imm|s.
+\end{itemize}
+%
+\noindent In \cref{sec:vn}, we'll see how and why this pass fails to identify
+other equivalences.
 
 \inputfig{copy-propagation}
 
@@ -133,14 +222,6 @@ thus splitting the block with two predecessors (block $9$) on the left.
 \inputfig{finalize-cfg}
 
 % dls.pdf verbatim:
-
-%Low-level IR is built from high-level IR by analyzing control flow and making
-%stack reads and writes explicit. During this construction phase and a
-%subsequent branch splitting phase, the SSA structure of high-level IR is lost.
-%SSA form is reconstructed using the SSA construction algorithm described in
-%[8], with the minor variation that we construct pruned SSA form rather than
-%semi-pruned SSA, by first computing liveness. To avoid computing iterated
-%dominance frontiers, we use the TDMSC algorithm from [13]. 
 
 %The main optimizations performed on low-level IR are local dead store and
 %redundant load elimination, local value numbering, global copy propagation,
