@@ -210,6 +210,10 @@ we see several changes:
   \item The second operands in both \factor|##add|s of block $3$ are just
   constants stored by \factor|##load-integer|s.  So, these are turned into
   \factor|##add-imm|s.
+%
+  \item Also, the second \factor|##load-integer| in block $3$ just loads
+  \factor|1| like the first instruction.  Therefore, it's replaced by a
+  \factor|##copy|.
 \end{itemize}
 %
 \noindent In \cref{sec:vn}, we'll see how and why this pass fails to identify
@@ -217,23 +221,32 @@ other equivalences.
 
 \inputfig{copy-propagation}
 
+Following \factor|value-numbering|, \factor|copy-propagation| performs a global
+pass that eliminates \factor|##copy| instructions.  Uses of the copies are
+replaced by the originals.  So, in \vref{fig:copy-propagation}, we can see that
+all of the \factor|##copy| instructions have been removed and, for instance,
+the use of the virtual register \factor|25| in block $2$ has been replaced by
+\factor|21|, since \factor|25| was a copy of it.
+
 \inputfig{eliminate-dead-code}
+
+Next, dead code is removed by \factor|eliminate-dead-code|.
+\Vref{fig:eliminate-dead-code} shows that the \factor|##compare-integer| in
+block $2$ and the \factor|##load-integer| in block $3$ were removed, since they
+defined values that were never used.
 
 \inputfig{finalize-cfg}
 
-% dls.pdf verbatim:
-
-%The main optimizations performed on low-level IR are local dead store and
-%redundant load elimination, local value numbering, global copy propagation,
-%representation selection, and instruction scheduling.  The local value
-%numbering pass eliminates common subexpressions and folds expressions with
-%constant operands [9].
-
-%Following value numbering and copy propagation, a representation selection
-%pass decides when to unbox floating point and SIMD values. A form of
-%instruction scheduling intended to reduce register pressure is performed on
-%low-level IR as the last step before leaving SSA form [39].  We use the
-%second-chance binpacking variation of the linear scan register allocation
-%algorithm [43, 47]. Our variant does not take $\phi$ nodes into account, so
-%SSA form is destructed first by eliminating $\phi$ nodes while simultaneously
-%performing copy coalescing, using the method described in [6].
+The final pass in \vref{lst:optimize-cfg}, \factor|finalize-cfg|, itself
+consists of several more passes.  We will not get into many details here, but
+at a high level, the most important passes figure out how virtual registers
+should map to machine registers.  We first figure out when certain values can
+be unboxed.  Then, instructions are reordered in order to reduce \term{register
+pressure}.  That is, we try to schedule instructions around each other so that
+we don't need to store more values than we have machine registers.  That way,
+we avoid \term{spilling} registers onto the heap, which wastes time.  After
+leaving \gls{SSA} form, we perform a \term{linear scan} register allocation,
+which replaces virtual registers with machine registers and inserts
+\factor|##spill| and \factor|##reload| instructions for the cases we can't
+avoid.  \Vref{fig:finalize-cfg} shows an example on an Intel x86 machine, which
+has enough registers that we needn't spill anything.
