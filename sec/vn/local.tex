@@ -1,0 +1,191 @@
+\subsection{Local Value Numbering}\label{sec:vn:local}
+
+Tracing the exact origins of value numbering is difficult.  It's thought to
+have originally been invented in the 1960s by Balke\todo{cite Simpson}.  The
+earliest tangible reference to a value numbering (at least, the earliest point
+where discussions in the literature seem to start) appears in an oft-cited but
+unpublished work of Cocke\todo{cite-like}.  The technique is relatively simple,
+but not as powerful as other methods for reasons described hereafter.
+
+The algorithm considers a single basic block.  For each instruction (from top
+to bottom) in the block, we essentially let the value number of the assignment
+target be a hash of the operator and the value numbers of the operands.  That
+is, we hash the \term{expression} being computed by an instruction.  Thus,
+assuming a proper hash function, two expressions are \term{congruent} (denoted
+$\texttt{x} \cong \texttt{y}$) if
+%
+\begin{itemize}
+%
+  \item they have the same operators and
+%
+  \item their operands are congruent.
+%
+\end{itemize}
+%
+\noindent This is our approximation of runtime equivalence.  The first property
+is fulfilled by basing the hash, in part, on the operator.  The second property
+holds because the hash is based on the value numbers of the statement's
+operands---not just the operands as they appear in code (i.e., \term{lexical}
+equivalence).  Any information about congruence is propagated through the value
+numbers.  We'll have discovered any such equivalences among the operands before
+computing the value number of the assignment target because every value in a
+basic block is either defined before it's used, or else defined at some point
+in a predecessor of the block, which we don't care about when only considering
+one basic block.
+
+This is the first shortcoming of the algorithm.  It is \term{local}, focusing
+on only one basic block at a time.  Any definitions outside the boundaries of
+the basic block won't be reused, even if they reach the block.  This severely
+limits the scope of the redundancies we can discover.  We could improve upon
+this by considering the algorithm across an entire loop-free \gls{CFG} in any
+\term{topological order}.  In such an ordering, a basic block $B$ comes before
+any other block $B'$ to which it has an edge.  Thus, any ``outside'' variables
+that instructions in $B'$ rely on must have come from $B$ or earlier, which
+will have already been computed in a traversal of such an ordering.  However,
+\glsplural{CFG} usually contain cycles or loops (at least interesting ones do),
+which make such an ordering impossible.  We may still pick a topological order
+that ignores back-edges, but we may encounter operands whose values flow along
+those back-edges.  We'll later address the issue of encountering instructions
+whose operands haven't been processed yet.
+
+In Factor, expressions are basically instructions (the \factor|insn| objects
+discussed in \cref{sec:compiler:cfg}) that have had their destination registers
+stripped.  Instructions can be converted to expressions with the \factor|>expr|
+word defined in the \factor|compiler.cfg.value-numbering.expressions|
+vocabulary.  For instance, an \factor|##add| instruction with the destination
+register \factor|1| and source registers \factor|2| and \factor|3| will be
+converted into an array of three elements:
+%
+\begin{itemize}
+%
+  \item The \factor|##add| class word, indicating the expression is derived
+        from an \factor|##add| instruction.
+%
+  \item The value number of the virtual register \factor|2|.
+%
+  \item The value number of the virtual register \factor|3|.
+%
+\end{itemize}
+%
+\noindent Some instructions are not \term{referentially transparent}, meaning
+they can't be replaced with the value they compute without changing the
+program's behavior.  For example, \factor|##call| and \factor|##branch| cannot
+reasonably be converted into expressions.  In these cases, \factor|>expr|
+merely returns a unique value.
+
+\inputlst{value-numbering-graph}
+
+The hashing of expressions takes place in the so-called \term{expression graph}
+implemented in the vocabulary shown in \vref{lst:value-numbering-graph}.  This
+consists of three global hash tables that relate virtual registers, value
+numbers, instructions, and expressions.  Since virtual registers are just
+integers, we actually use them as value numbers, too.  \factor|vregs>vns| maps
+virtual registers to their value numbers.  If a virtual register  is mapped to
+itself in this table, its definition is the canonical instruction that we use
+to compute the value.  This instruction is stored in the \factor|vns>insns|
+table.  Finally, the most important mapping is \factor|exprs>vns|.  True to its
+name, it uses expressions as keys, which of course are implicitly hashed.
+Thus, we can use this table to determine equivalence of expressions.
+
+Other definitions in \vref{lst:value-numbering-graph} manipulate expressions
+and the graph.  The global variable \factor|input-expr-counter| is used in the
+generation of unique expressions discussed earlier.  \factor|init-value-graph|
+initializes this and all the tables.  \factor|set-vn| establishes a mapping
+from a virtual register to a value number in \factor|vregs>vns|.
+\factor|vn>insn| gives terse access to the \factor|vns>insns| table.
+\factor|vreg>insn| uses \factor|vregs>vns| and \factor|vns>insns| to get the
+canonical instruction that defines a given virtual register.  Finally,
+\factor|vreg>vn| looks up the value of a key in the \factor|vregs>vns| table.
+Importantly, if the key is not yet present in the table, it is automatically
+mapped to itself---it's assumed that the virtual register does not correspond
+to a redundant instruction.
+
+This is the second shortcoming of the algorithm.  It must make a
+\term{pessimistic} assumption about congruences.  That is, it starts by
+assuming that every expression has a unique value number, then tries to prove
+that there are some values which are actually congruent.
+
+%This is the final version depicted in Algorithm~\vref{alg:hash-vn}.  Clearly,
+%it will fail to discover congruences for values that flow along back-edges,
+%since we simply ignore back-edges and started with the assumption that values
+%are distinct.  For example, refer to Figure~\vref{fig:hash-vn-ex}, which uses
+%the SSA form of the CFG in Figure~\vref{fig:cfg-construction}.  We can see that
+%the corresponding \lstinline|i|s and \lstinline|j|s are equivalent, but
+%Algorithm~\ref{alg:hash-vn} must ignore the back-edge and consider the
+%statements in the order shown.  Thus, it only discovers $\code{i$_0$} \cong
+%\code{j$_0$}$, but considers $\code{i$_1$} \not\cong \code{j$_1$} \not\cong
+%\code{i$_2$} \not\cong \code{j$_2$}$.  This is because
+%$\attrib{\code{i$_2$}}{valnum} \ne \attrib{\code{j$_2$}}{valnum}$ (they were
+%initialized uniquely) at the time when $\attrib{\code{i$_1$}}{valnum}$ and
+%$\attrib{\code{j$_1$}}{valnum}$ were being computed, which gave
+%\lstinline|i$_1$| and \lstinline|j$_1$| differing value numbers, which then got
+%propagated to the computation of $\attrib{\code{i$_2$}}{valnum}$ and
+%$\attrib{\code{j$_2$}}{valnum}$.  Notice that congruence only guarantees
+%properties when two values have the same value number.  Nothing can be said of
+%incongruent values---not even that they're nonequal (in this case, we have
+%incongruent values that actually \emph{are} equal).  This illustrates the
+%conservativeness of the solution.
+
+%Factor currently
+%  Cocke & Schwartz (effectively what Factor uses)
+%
+%compiler.cfg.value-numbering
+%  process-instruction
+%  value-numbering
+%  value-numbering-step
+%
+%compiler.cfg.value-numbering.graph
+%  vregs>vns
+%  exprs>vns
+%  vns>insns
+%
+%compiler.cfg.value-numbering.expressions
+%  value-numbering-step
+%    exprs>vns
+%    >expr
+%    <integer-expr>
+%    <reference-expr>
+%
+%-------------------------------------------------------------------------------
+%
+%compiler.cfg.value-numbering.rewrite
+%  rewrite
+%    ! Utilities
+%    insn>integer
+%    vreg>integer
+%    insn>literal
+%    vreg>literal
+%
+%compiler.cfg.value-numbering.alien
+%  rewrite
+%
+%compiler.cfg.value-numbering.comparisons
+%  rewrite
+%    rewrite-boolean-comparison
+%    fold-branch
+%    >test
+%    >compare-imm
+%    simplify-test
+%
+%compiler.cfg.value-numbering.folding
+%  rewrite
+%    binary-constant-fold
+%    unary-constant-fold
+%
+%compiler.cfg.value-numbering.math
+%  rewrite
+%    self-inverse
+%    identity
+%    compiler.cfg.value-numbering.folding
+%    reassociate
+%    distribute
+%    insn>imm-insn
+%
+%compiler.cfg.value-numbering.misc
+%  rewrite
+%
+%compiler.cfg.value-numbering.simd
+%  rewrite
+%
+%compiler.cfg.value-numbering.slots
+%  rewrite

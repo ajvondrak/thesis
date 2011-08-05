@@ -1,0 +1,14 @@
+\centering
+
+  \begin{factorcode}
+    : value-numbering-step ( insns -- insns' )
+        init-value-graph
+        [ process-instruction ] map flatten ;
+
+    : value-numbering ( cfg -- cfg )
+        dup [ value-numbering-step ] simple-optimization
+
+        cfg-changed predecessors-changed ;
+  \end{factorcode}
+
+\caption{Main words from \factor|compiler.cfg.value-numbering|}
