@@ -43,10 +43,10 @@ any other block $B'$ to which it has an edge.  Thus, any ``outside'' variables
 that instructions in $B'$ rely on must have come from $B$ or earlier, which
 will have already been computed in a traversal of such an ordering.  However,
 \glsplural{CFG} usually contain cycles or loops (at least interesting ones do),
-which make such an ordering impossible.  We may still pick a topological order
-that ignores back-edges, but we may encounter operands whose values flow along
-those back-edges.  We'll later address the issue of encountering instructions
-whose operands haven't been processed yet.
+which make such an ordering impossible.  We could still pick a topological
+order that ignores back-edges, but we may encounter operands whose values flow
+along those back-edges, so haven't been processed yet.  We'll address this
+issue later.
 
 In Factor, expressions are basically instructions (the \factor|insn| objects
 discussed in \cref{sec:compiler:cfg}) that have had their destination registers
@@ -82,8 +82,7 @@ numbers, instructions, and expressions.  Since virtual registers are just
 integers, we actually use them as value numbers, too.  \factor|vregs>vns| maps
 virtual registers to their value numbers.  If a virtual register  is mapped to
 itself in this table, its definition is the canonical instruction that we use
-to compute the value.  This instruction is stored in the \factor|vns>insns|
-table.  Finally, the most important mapping is \factor|exprs>vns|.  True to its
+to compute the value.  This instruction is stored in the \factor|vns>insns| table.  Finally, the most important mapping is \factor|exprs>vns|.  True to its
 name, it uses expressions as keys, which of course are implicitly hashed.
 Thus, we can use this table to determine equivalence of expressions.
 
@@ -103,89 +102,463 @@ to a redundant instruction.
 This is the second shortcoming of the algorithm.  It must make a
 \term{pessimistic} assumption about congruences.  That is, it starts by
 assuming that every expression has a unique value number, then tries to prove
-that there are some values which are actually congruent.
+that there are some values which are actually congruent.  This fails to
+discover congruences for values that flow along back-edges, whether we consider
+a single basic block or an entire topological ordering.
 
-%This is the final version depicted in Algorithm~\vref{alg:hash-vn}.  Clearly,
-%it will fail to discover congruences for values that flow along back-edges,
-%since we simply ignore back-edges and started with the assumption that values
-%are distinct.  For example, refer to Figure~\vref{fig:hash-vn-ex}, which uses
-%the SSA form of the CFG in Figure~\vref{fig:cfg-construction}.  We can see that
-%the corresponding \lstinline|i|s and \lstinline|j|s are equivalent, but
-%Algorithm~\ref{alg:hash-vn} must ignore the back-edge and consider the
-%statements in the order shown.  Thus, it only discovers $\code{i$_0$} \cong
-%\code{j$_0$}$, but considers $\code{i$_1$} \not\cong \code{j$_1$} \not\cong
-%\code{i$_2$} \not\cong \code{j$_2$}$.  This is because
-%$\attrib{\code{i$_2$}}{valnum} \ne \attrib{\code{j$_2$}}{valnum}$ (they were
-%initialized uniquely) at the time when $\attrib{\code{i$_1$}}{valnum}$ and
-%$\attrib{\code{j$_1$}}{valnum}$ were being computed, which gave
-%\lstinline|i$_1$| and \lstinline|j$_1$| differing value numbers, which then got
-%propagated to the computation of $\attrib{\code{i$_2$}}{valnum}$ and
-%$\attrib{\code{j$_2$}}{valnum}$.  Notice that congruence only guarantees
-%properties when two values have the same value number.  Nothing can be said of
-%incongruent values---not even that they're nonequal (in this case, we have
-%incongruent values that actually \emph{are} equal).  This illustrates the
-%conservativeness of the solution.
+One the other hand, an advantage of this local value numbering algorithm is its
+simplicity.  It makes a single pass over all the instructions, identifying and
+replacing redundancies \term{online} (i.e., rewriting as it goes).  It's
+straightforward to write, and even to extend.  In particular, there's nothing
+stopping the online replacements from being more complex than \factor|##copy|
+instructions.  At every step, the currently known value numbers will be sound,
+and we can use this information for copy/constant propagation, constant
+folding, and common subexpression elimination.
 
-%Factor currently
-%  Cocke & Schwartz (effectively what Factor uses)
+\inputlst{value-numbering-step}
+
+To see how Factor accomplishes these extensions, we'll take a look at the
+\factor|compiler.cfg.value-numbering| vocabulary.
+\Vref{lst:value-numbering-step} shows the main words that start the
+optimization pass.  The \factor|value-numbering-step| word is called on the
+sequence of instructions that comprise each basic block.  It starts the
+expression graph from a blank slate with \factor|init-value-graph|, then
+\factor|map|s the word \factor|process-instruction| on each of them.  This is a
+generic word that we'll study momentarily; it returns either a single
+\factor|insn| object or a sequence of them (in the case that an instruction is
+replaced by several others).  Then, the work of \factor|value-numbering| is to
+just call \factor|value-numbering-step| on each basic block, which is done with
+a combinator called \factor|simple-optimization|.  The words
+\factor|cfg-changed| and \factor|predecessors-changed| alter some internal
+state of the \gls{CFG} that has been potentially invalidated by some
+transformations performed by \factor|process-instruction|.
+
+\inputlst{process-instruction}
+
+The methods of \factor|process-instruction| are shown in
+\vref{lst:process-instruction}.  The default behavior for dispatching on an
+\factor|insn|\todo{line numbers?} is to invoke yet another generic word,
+\factor|rewrite|.  This word will return either a replacement \factor|insn| (or
+sequence thereof) or \factor|f|, indicating that no change has taken place.
+Thus, by recursively calling \factor|process-instruction|, we can do more
+specialized processing on this rewritten replacement (e.g., dispatching on
+\factor|insn| again, which applies \factor|rewrite| once more).  If the
+instruction can't be simplified further, we simply return it.  (Note that
 %
-%compiler.cfg.value-numbering
-%  process-instruction
-%  value-numbering
-%  value-numbering-step
+\factor|[ X ] [ Y ] ?if|
 %
-%compiler.cfg.value-numbering.graph
-%  vregs>vns
-%  exprs>vns
-%  vns>insns
+is the same as
 %
-%compiler.cfg.value-numbering.expressions
-%  value-numbering-step
-%    exprs>vns
-%    >expr
-%    <integer-expr>
-%    <reference-expr>
+\factor|dup [ nip X ] [ drop Y ] if|.)
+
+For instances of \factor|foldable-insn| (i.e., \factor|insn|s that can be
+converted to useful expressions with \factor|>expr|), we similarly invoke
+\factor|rewrite| recursively until no more rewriting occurs.  When that
+happens, rather than just return the instruction, we invoke
+\factor|check-redundancy|---though only if the instruction defines exactly $1$
+virtual register, which will be stored in a slot named \factor|dst|.
+\factor|check-redundancy| checks if the expression being computed by the
+instruction is already a key of the \factor|exprs>vns| table.  If it is, the
+instruction is redundant, and we call \factor|redundant-instruction|;
+otherwise, we call \factor|useful-instruction|.  The former uses
+\factor|set-vn| to map the instruction's \factor|dst| virtual register to the
+same value number as the expression that was a key of \factor|exprs>vns|.
+Since value numbers are actually virtual registers, we may also use these two
+integers the source and destination registers in a new \factor|##copy|
+instruction, which is then returned.  On the other hand,
+\factor|useful-instruction| saves the instruction's information in the
+expression graph by setting the appropriate values in \factor|vregs>vns|,
+\factor|exprs>vns|, and \factor|vns>insns|.  Note that in definitions using the
+syntax
 %
-%-------------------------------------------------------------------------------
+\factor|:: word-name ( stack -- effect ) ... ;|,
 %
-%compiler.cfg.value-numbering.rewrite
-%  rewrite
-%    ! Utilities
-%    insn>integer
-%    vreg>integer
-%    insn>literal
-%    vreg>literal
+the input values in the stack effect are actually named lexical variables, like
+in most programming languages\todo{move this to primer?}.  Furthermore, the
+first line
 %
-%compiler.cfg.value-numbering.alien
-%  rewrite
+\factor|insn dst>> :> vn|
 %
-%compiler.cfg.value-numbering.comparisons
-%  rewrite
-%    rewrite-boolean-comparison
-%    fold-branch
-%    >test
-%    >compare-imm
-%    simplify-test
+assigns the input instruction's destination register to the variable
+\factor|vn|, which is used later in the definition of
+\factor|useful-instruction|.
+
+The \factor|##copy| method of \factor|process-instruction| cannot do anything
+to simplify the instruction, but will set the value number of the destination
+register to that of the source.  By calling \factor|vreg>vn| on the source
+register, we make sure to call \factor|set-vn| between the destination and the
+canonical value number of the source.
+
+Finally, the \factor|array| method is used for the purposes of recursion, in
+the case that \factor|rewrite| returns a sequence of replacement instructions.
+The correct action is, of course, to descend into this new sequence of
+instructions with \factor|process-instruction|.
+
+Underlying all of the redundancy elimination is the \factor|rewrite| generic
+word.  It has too many methods to look at the source code in-depth here, but
+it's instructive to give an overview of the transformations.  These methods
+actually make up the bulk of the \factor|compiler.cfg.value-numbering| code.
+They're spread across various sub-vocabularies.
+\factor|compiler.cfg.value-numbering.rewrite| defines the generic itself, along
+with a handful of utilities.  The method for the most general instruction
+class, \factor|insn|, is defined to unconditionally return \factor|f|, meaning
+no rewriting is performed by default.  That way, we need only define
+\factor|rewrite| methods for more specific instruction classes to get
+specialized behavior.
+
+\factor|compiler.cfg.value-numbering.alien| contains methods that simplify
+nodes related to Factor's \gls{FFI}.  Most involve fusing together the results
+of intermediate arithmetic.  The instructions that access raw memory (namely
+\factor|##load-memory|, \factor|##load-memory-imm|, \factor|##store-memory|,
+and \factor|##store-memory-imm|) tend to have inputs to perform address
+arithmetic.  Each has slots for a \factor|base| register containing an address
+and a literal \factor|offset| from it.  But if \factor|base| is defined by an
+\factor|##add-imm| instruction, we can just update the \factor|offset|,
+incrementing it by the literal operand of the \factor|##add-imm|.  Then,
+\factor|base| will just be changed to the register operand of the
+\factor|##add-imm|.  This removes the memory instruction's need for the
+\factor|##add-imm|, increasing the chances that the latter will become dead
+code to be removed later.  Unlike the \factor|-imm| variants,
+\factor|##load-memory| and \factor|##store-memory| also take a
+\factor|displacement| register, which works like a non-immediate
+\factor|offset|.  Therefore, \factor|##add|s can be similarly fused into
+\factor|##load-memory-imm| and \factor|##store-memory-imm| by transforming them
+into \factor|##load-memory| and \factor|##store-memory| instructions with the
+\factor|##add|'s operand as the \factor|displacement|.  A few other similar
+transformations are also done, including rewrites for
+\factor|##box-displaced-alien|s and \factor|##unbox-any-c-ptr|s.
+
+\factor|compiler.cfg.value-numbering.comparisons| defines methods for the
+various branching and comparison instructions (which simply store booleans in
+registers, rather than branching upon them).  The major optimizations performed
+are as follows:
 %
-%compiler.cfg.value-numbering.folding
-%  rewrite
-%    binary-constant-fold
-%    unary-constant-fold
+\begin{itemize}
 %
-%compiler.cfg.value-numbering.math
-%  rewrite
-%    self-inverse
-%    identity
-%    compiler.cfg.value-numbering.folding
-%    reassociate
-%    distribute
-%    insn>imm-insn
+\item If possible, instructions are converted to more specific forms.  For
+example, non-immediate instructions (e.g., \factor|##compare|) may be turned
+into their \factor|-imm| counterparts (e.g., \factor|##compare-imm|)  if one of
+their source registers corresponds to a literal value.
+\factor|##compare-integer-imm| is also converted to \factor|##test| if the
+architecture supports it.  This corresponds to a special instruction in x86
+that performs a bitwise AND for its side effects on particular flags,
+discarding the actual result.  This can be more efficient when using the AND
+result as a boolean.
 %
-%compiler.cfg.value-numbering.misc
-%  rewrite
+\item If both inputs to a comparison or branch are literals, we may
+constant-fold the instruction.  In the case of comparisons, this means
+converting it into a \factor|##load-reference| of the proper boolean.  In
+branches, this modifies the \gls{CFG} so that the path which isn't taken is
+removed completely.
 %
-%compiler.cfg.value-numbering.simd
-%  rewrite
+\item Like a novice programmer writing
 %
-%compiler.cfg.value-numbering.slots
-%  rewrite
+\mint{java}|if (some_boolean != false) { ... }|
+%
+in Java, the compiler may generate redundant boolean comparisons that need
+cleaning up.  That is, the intermediate boolean values are eliminated when the
+result of a comparison is used by another comparison, collapsing the whole
+thing into a single instruction.
+%
+\end{itemize}
+
+\factor|compiler.cfg.value-numbering.folding| defines some auxiliary words for
+constant-folding arithmetic words.  Mainly, \factor|unary-constant-fold| and
+\factor|binary-constant-fold| perform the actual operation on the one or two
+constant inputs provided.  These words are used in
+\factor|compiler.cfg.value-numbering.math|, which predictably simplifies math
+via standard rules.  Arithmetic identities are rewritten---conceptually, $x+0$
+becomes just $x$, for instance.  If self-inverting instructions (namely
+\factor|##neg| for numerical negation and \factor|##not| for boolean negation)
+are called on registers that themselves correspond to the same instruction, we
+can safely rewrite them into \factor|##copy| instructions.  Non-immediate
+instructions are converted to their \factor|-imm| forms, if possible, and if
+both operands are constant, the expression is folded.  The most interesting
+math optimizations use the associative and distributive laws.
+\term{Reassociation} conceptually converts $(x \otimes y) \otimes z$ into $x
+\otimes (y \otimes z)$ when both $y$ and $z$ are constants and $\otimes$ is
+associative.  So, for example,
+%
+\begin{center}
+\factor|##add-imm 1 X Y|\\
+\factor|##add-imm 2 1 Z|
+\end{center}
+%
+\noindent is converted into just
+%
+\begin{center}
+\factor|##add-imm 2 X (Y+Z)|
+\end{center}
+%
+\noindent where \factor|X| is a virtual register, and \factor|Y| and \factor|Z|
+are constants.  \term{Distribution} converts $(x \oplus y) \otimes z$ into $(x
+\otimes z) \oplus (y \otimes z)$, where $y$ and $z$ are constants, $\oplus$
+corresponds to addition or subtraction, and $\otimes$ to multiplication or left
+bitwise shifts.  Therefore,
+%
+\begin{center}
+\factor|##add-imm 1 X Y|\\
+\factor|##mul-imm 2 1 Z|
+\end{center}
+%
+\noindent is converted into
+%
+\begin{center}
+  \begin{minipage}{0.2\linewidth}
+    \begin{factorcode*}{gobble=6,frame=none}
+      ##mul-imm 3 X Y
+      ##add-imm 2 3 (Y*Z)
+    \end{factorcode*}
+  \end{minipage}
+\end{center}
+\noindent Notice that a new intermediate virtual register, \factor|3|, had to
+be created.  However, if the product of \factor|Y| and \factor|Z| can be
+computed at compile-time and fits in an immediate operand, then we save cycles
+by using \factor|##mul-imm| on a smaller number.
+
+The last few methods of \factor|rewrite| provide some obvious simplifications.
+\factor|compiler.cfg.value-numbering.simd| performs some limited
+constant-folding for vector operations.
+\factor|compiler.cfg.value-numbering.slots| propagates \factor|##add-imm|
+address calculation to \factor|##slot|, \factor|##set-slot|, and
+\factor|##write-barrier| instructions in a manner similar to
+\factor|compiler.cfg.value-numbering.alien|.  Finally,
+\factor|compiler.cfg.value-numbering.misc| provides a single method to rewrite
+\factor|##replace| into \factor|##replace-imm| if possible.
+
+\todo[inline]{make sure margins don't get overflown by long vocab names}
+
+\inputfig{lvn}
+
+\todo[inline]{make sure side-by-side figures aren't too crammed in final draft}
+
+To finish the discussion of local value numbering and Factor's particular
+implementation, we'll examine the example from \vref{fig:value-numbering} in
+depth.  For convenience, the before/after snapshot of the \gls{CFG} is
+reproduced in \vref{fig:lvn}.
+
+\factor|value-numbering-step| begins at block $1$, where
+\factor|process-instruction| is \factor|map|ped across the instructions.
+%
+\factor|##inc-d 3|
+%
+does not have a \factor|rewrite| method, so remains untouched; it is also not a
+\factor|foldable-insn|, so it is simply returned.  While
+%
+\factor|##load-integer 21 0|
+%
+doesn't have a \factor|rewrite| method, it is a \factor|foldable-insn|, so
+\factor|process-instruction| calls \factor|check-redundancy|.  At this point,
+the expression graph is empty.  Calling \factor|>expr| converts this
+instruction into an \factor|integer-expr| object representing \factor|0|.
+\factor|useful-instruction| leaves the tables as follows:
+%
+  \begin{factorcode}
+    ! vregs>vns
+    H{ { 21 21 } }
+
+    ! exprs>vns
+
+    H{ { T{ integer-expr { value 0 } } 21 } }
+
+    ! vns>insns
+    H{
+        { 21 T{ ##load-integer { dst 21 } { val 0 } { insn# 1 } } }
+    }
+  \end{factorcode}
+%
+\noindent The next instruction in block $1$,
+%
+\factor|##load-integer 22 100|,
+%
+behaves similarly, leaving:
+%
+  \begin{factorcode}
+    ! vregs>vns
+    H{ { 21 21 } { 22 22 } }
+
+    ! exprs>vns
+    H{
+        { T{ integer-expr { value 0 } } 21 }
+        { T{ integer-expr { value 100 } } 22 }
+    }
+
+    ! vns>insns
+    H{
+        { 21 T{ ##load-integer { dst 21 } { val 0 } { insn# 1 } } }
+        {
+            22
+            T{ ##load-integer { dst 22 } { val 100 } { insn# 2 } }
+        }
+    }
+  \end{factorcode}
+%
+\noindent The following instruction is
+%
+\factor|##load-integer 23 0|.
+%
+In calling \factor|check-redundancy|, we discover that the integer expression
+for \factor|0| is already in \factor|exprs>vns|, so this is turned into a
+\factor|##copy|, and the value number is noted.  The remaining instructions in
+block $1$ (aside from \factor|##branch|) are all instances of \factor|##copy|.
+\factor|process-instruction| thus only sets their value numbers in the
+\factor|vregs>vns| table, leaving them with the following at the end of block
+$1$:
+%
+  \begin{factorcode}
+    ! vregs>vns
+    H{
+        { 21 21 }
+        { 22 22 }
+        { 23 21 }
+        { 24 22 }
+        { 25 21 }
+        { 26 22 }
+        { 27 21 }
+    }
+
+    ! exprs>vns
+    H{
+        { T{ integer-expr { value 0 } } 21 }
+        { T{ integer-expr { value 100 } } 22 }
+    }
+
+    ! vns>insns
+    H{
+        { 21 T{ ##load-integer { dst 21 } { val 0 } { insn# 1 } } }
+        {
+            22
+            T{ ##load-integer { dst 22 } { val 100 } { insn# 2 } }
+        }
+    }
+  \end{factorcode}
+
+Next, block $2$ in \vref{fig:lvn} is processed.  The tables are all reset, so
+even though block $1$ happens to dominate\todo{yay, another term} block $2$,
+none of its definitions are known to \factor|value-numbering|.  The
+\factor|##phi|s are ignored, as no important methods dispatch upon them.  In
+trying to rewrite the \factor|##compare-integer|, we call \factor|vreg>vn| on
+the operands.  Since they aren't in the \factor|vregs>vns| table yet, they are
+assumed to be unique values.  This assumption is pessimistic---we'd rather the
+values be the same, so we can remove redundancy.  It happens to be correct
+here, though, as \factor|26| corresponds to the integer \factor|100|, while
+\factor|30| is an induction variable of the loop.  However,
+\factor|##compare-integer| cannot be rewritten into an immediate form, since
+our focus is local to the basic block, so we don't know that \factor|26| has
+the value \factor|100|.  The \factor|##copy| instructions are processed as
+usual, and
+%
+\factor|##compare-imm-branch 32 f cc/=|
+%
+is rewritten into a \factor|##compare-integer-branch|, as the virtual register
+\factor|32| has the same value (through the copies) as the
+\factor|##compare-integer| result.  This is a case of simplifying the 
+%
+\mint{java}|if (some_boolean != false) { ... }|
+%
+pattern, and the definition of the register \factor|31| becomes dead code after
+\factor|rewrite| finishes with this last instruction.  The expression graph is
+populated thus by the end:
+%
+  \begin{factorcode}
+    ! vregs>vns
+    H{
+        { 32 31 }
+        { 33 26 }
+        { 34 31 }
+        { 26 26 }
+        { 30 30 }
+        { 31 31 }
+    }
+
+    ! exprs>vns
+    H{ { { ##compare-integer 30 26 cc< } 31 } }
+
+    ! vns>insns
+    H{
+        {
+            31
+            T{ ##compare-integer
+                { dst 31 }
+                { src1 30 }
+                { src2 22 }
+                { cc cc< }
+                { temp 9 }
+                { insn# 2 }
+            }
+        }
+    }
+  \end{factorcode}
+
+Once again, the tables are reset and we proceed to block $3$.  The first
+instruction,
+%
+\factor|##load-integer 35 1|,
+%
+is entered into the expression graph.  Since \factor|35| is an operand of
+%
+\factor|##add 36 29 35|,
+%
+\factor|rewrite| changes this instruction into an \factor|##add-imm|, as we
+know the constant value of the operand.  The next \factor|##load-integer| gets
+turned into a \factor|##copy|, like in block $1$, and the next \factor|##add|
+is similarly changed to \factor|##add-imm|.  The copies do little but set more
+value numbers.  As \factor|process-instruction| calls \factor|vreg>vn| on their
+sources, we'll insert entries into \factor|vregs>vns| for those defined outside
+of the block, like \factor|26|.  This leaves us with the following tables:
+%
+  \begin{factorcode}
+    ! vregs>vns
+    H{
+        { 35 35 }
+        { 36 36 }
+        { 37 35 }
+        { 38 38 }
+        { 39 30 }
+        { 40 26 }
+        { 41 36 }
+        { 26 26 }
+        { 42 38 }
+        { 29 29 }
+        { 30 30 }
+    }
+
+    ! exprs>vns
+    H{
+        { { ##add-imm 30 1 } 38 }
+        { { ##add-imm 29 1 } 36 }
+        { T{ integer-expr { value 1 } } 35 }
+    }
+
+    ! vns>insns
+    H{
+        { 36 T{ ##add-imm { dst 36 } { src1 29 } { src2 1 } } }
+        { 38 T{ ##add-imm { dst 38 } { src1 30 } { src2 1 } } }
+        { 35 T{ ##load-integer { dst 35 } { val 1 } { insn# 0 } } }
+    }
+  \end{factorcode}
+%
+\noindent The fourth invocation of \factor|value-numbering-step| does not do
+anything interesting, as the \factor|##replace| cannot be changed into a
+\factor|##replace-imm|.
+
+\inputfig{finalize-lvn}
+
+In summary, we managed to replace redundancies within basic blocks online by
+maintaining some simple hash tables.  After copy propagation and dead code
+elimination, the \gls{CFG} gets finalized to the one shown in
+\vref{fig:finalize-lvn}.  Because the value numbering algorithm was local, the
+\factor|##compare-integer-branch| in block $2$ could not be simplified to a
+\factor|##compare-integer-imm-branch|, and we instead have to waste a register
+on the integer \factor|100|.  But it's important to note that even considering
+a topological ordering of the \gls{CFG} wouldn't have worked, as we'd have to
+ignore back-edges.  The \factor|##phi|s that used to be in block $2$ had inputs
+that flowed along the back-edge, and our pessimistic assumption would have to
+classify these values as distinct.  One is for the counter introduced by
+\factor|times|, and the other is from the top value of the stack being
+incremented by \factor|fixnum+fast|.  In this case, however, these induction
+variables are actually equal: both start at \factor|0| and are incremented by
+\factor|1| on each loop.  In terms of the \gls{CFG} in \vref{fig:finalize-lvn},
+the \factor|EAX| and \factor|EDX| registers are equivalent.  Yet the
+combination of the pessimism and locality of the algorithm keep us from
+discovering this.
