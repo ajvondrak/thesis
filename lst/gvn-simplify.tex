@@ -1,0 +1,11 @@
+\centering
+
+  \begin{factorcode}
+    GENERIC: simplify ( insn -- insn' )
+
+    M: insn simplify dup rewrite [ simplify ] [ ] ?if ;
+    M: array simplify [ simplify ] map ;
+    M: ##copy simplify ;
+  \end{factorcode}
+
+\caption{Iterated rewriting \factor|compiler.cfg.gvn|}

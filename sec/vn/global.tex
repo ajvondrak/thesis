@@ -1,5 +1,422 @@
-AWZ (canonical GVN, but too complex)
+\subsection{Global Value Numbering}\label{sec:vn:global}
 
-My changes
-  RPO (diff showing code reuse)
-  Avail-based elimination
+Answering the challenges of Cocke\todo{cite-like}, AWZ~\todo{cite-like}
+described what would be the de facto value numbering algorithm for several
+years, and rightly so.  It was a properly \term{global} value numbering
+algorithm, working across an entire \gls{CFG} instead of on single basic
+blocks.  Their paper was important in another very relevant way: it is the
+first published reference to SSA form\todo{cite VanDrunen}, including an
+algorithm for its construction.
+
+Though we could try to extend the scope of Factor's local value numbering, it
+is still inherently pessimistic.  The algorithm of AWZ\todo{cite-like}, which
+is commonly referred to simply as AWZ\todo{gls?}, uses a modification of
+Hopcroft's~\todo{cite-like} minimization algorithm for finite state automata.
+It works on an \term{optimistic} assumption by first assuming every value has
+the same value number, then trying to prove that values are actually different.
+It does this by treating value numbers as \term{congruence classes} that
+partition the set of virtual registers.  If two values are in the same class,
+then they are congruent, where congruence is defined as in \cref{sec:vn:local}.
+
+Such a partition is not unique, in general.  For instance, a trivial one places
+each value in its own congruence class.  So, we look for the \term{maximal
+fixed point}---the solution that has the most congruent values and therefore
+the fewest congruence classes.  We must start with a congruence class for each
+operation so that, say, all values computed by \factor|##add|s are grouped
+together, those computed by \factor|##mul|s are in the same class, etc.  We
+must then iteratively look at our collection of classes, separating them when
+we discover incongruent values.  For an \gls{SSA} variable in class $P$, we
+look at its defining expression.  If an operand at position $i$ belongs to
+class $Q$, then the $i^\text{th}$ operand of every other value in $P$ should
+also be in $Q$.  Otherwise, $P$ must be \term{split} by removing those
+variables whose $i^\text{th}$ operands are not in class $Q$ and placing them in
+a new congruence class.  We keep splitting classes until the partitioning
+stabilizes.
+
+The optimistic assumption may seem dangerous.  Is it possible that we're
+``overoptimistic''?  That two values assumed to be congruent and not proven
+incongruent might actually be inequivalent when the program is run?  The
+AWZ~\todo{gls?} paper dedicates a section to proving that two congruent
+variables are equivalent at a point $p$ in the program if their definitions
+dominate $p$.  The proof is a bit quirky, but reasonable.  They develop a
+dynamic notion of dominance in a running program which implies static dominance
+in the code, then show that congruence implies runtime equality (though
+equivalence does not imply congruence).
+
+AWZ\todo{gls?}~ made the need for \gls{GVN} algorithms apparent.  However,
+finite state automata minimization makes for a more complicated algorithm than
+hash-based value numbering.  A na\"{i}ve implementation can be quadratic,
+although careful data structure and procedure design can make it $O(n\log n)$.
+Furthermore, it's resistant to the same improvements we easily added to the
+local value numbering.  To even consider the commutativity of operations
+requires changes in operand position tracking and splitting---the heart of the
+algorithm.  It is generally limited by what the programmer writes down: deeper
+congruences due to, say, algebraic identities can't be discovered.
+
+In fact, by performing an optimization that uses the \gls{GVN} information,
+more \gls{GVN} congruences may arise.  If we can somehow perform the two
+analyses simultaneously, they'll produce better results.  This generalizes to
+interdependent compiler optimizations at large, as elucidated in
+Click's\todo{cite-like}~ dissertation, which describes a method for formalizing
+and combining separate optimizations that make optimistic assumptions (whatever
+they happen to be for each particular analysis).  He uses this to merge
+\gls{GVN} with \term{conditional constant propagation}, which itself is a
+combination of constant propagation and unreachable code elimination (pretty
+much like the \factor|propagate| pass from \cref{sec:compiler:tree}).
+Furthermore, \gls{GVN} is extended to handle algebraic identities, propagate
+constants, and fold redundant $\phi$s.  Unfortunately, the straightforward
+algorithm for this is $O(n^2)$, while the $O(n\log n)$ version presented is not
+just complicated, but can also miss some congruences between
+$\phi$-functions\todo{cite Click, Simpson}.
+
+Hot on the heels of this work, Simpson's\todo{cite-like}~ dissertation provides
+probably the most exhaustive treatment of \gls{GVN} algorithms.  He presents
+several extensions, such as incorporating hash-based local value numbering into
+\gls{SSA} construction, handling commutativity in AWZ\todo{gls?}~ \gls{GVN},
+and performing redundant store elimination.  He builds off of the two classical
+algorithms independently, which underlines their inherent differences and
+limitations.  In general, hash-based value numbering is easy to extend without
+greatly impacting the runtime complexity, as is the case in Factor's
+implementation.
+
+Drawing from this experience, Simpson's hallmark algorithm combines the best of
+both worlds by taking the hash-based algorithm which is easy to understand,
+implement, and extend, and making it global, so it identifies more congruences.
+Dubbed the ``\gls{RPO} algorithm'', it simply applies hash-based value
+numbering iteratively over the \gls{CFG} until we reach the same fixed point
+computed by AWZ\todo{gls?}.  (The fact that it computes the \emph{same} fixed
+point is proven fairly straightforwardly in the dissertation.)  It could
+technically traverse the \gls{CFG} in any topological order, but Simpson
+defaults to reverse postorder.
+
+Because it is based off the hashing algorithm, we get the benefits essentially
+for free.  The same simplifications can be performed, but with the added
+knowledge of global congruences.  Since the majority of Factor's value
+numbering code is dedicated to the \factor|rewrite| generic, it makes sense to
+reuse as much of that code as possible.  Therefore, to convert Factor's local
+algorithm to a global one, I modified the existing code to use the \gls{RPO}
+algorithm.
+
+\inputlst{gvn-graph}
+
+The most fundamental change is to the expression graph.  Referring to
+\vref{lst:gvn-graph}, we see most of the same code as in
+\vref{lst:value-numbering-graph}, with changes indicated by arrows
+($\longrightarrow$).  Two more global variables have been added, namely
+\factor|changed?| and \factor|final-iteration?|.  The former is what we use to
+guide the fixed-point iteration.  As long as value numbers are changing, we
+keep iterating.  An important side effect of this is that we can no longer
+perform \factor|rewrite| online, since the transformations we make aren't
+guaranteed to be sound on any iteration except the final one.  This makes the
+\gls{RPO} algorithm work \term{offline}, first discovering redundancies, then
+eliminating them in a separate pass.  When this elimination pass starts, we'll
+set \factor|final-iteration?| to \factor|t|.
+
+A key change is in the \factor|vreg>vn| word, which now makes an optimistic
+assumption about previously unseen values.  Given a new virtual register that
+wasn't in the \factor|vregs>vns| table, the old version would map the register
+to itself, making the value its own canonical representative.  However, if this
+version tries to look up a key that does not exist in the hash table, it will
+simply return \factor|f| (which Factor will do by default with the \factor|at|
+word).  Therefore, every value in the \gls{CFG} starts off with the same value
+``number'', \factor|f|.  By the end of the \gls{GVN} pass, there should be no
+value left that hasn't been put in the \factor|vregs>vns| table, as we'll have
+processed every definition.
+
+To keep track of whether \factor|vregs>vns| changes, we simply need to alter
+\factor|set-vn|.  Here, we use \factor|maybe-set-at|, a utility from the
+\factor|assocs| vocabulary.  This works like \factor|set-at|, establishing a
+mapping in the hash table.  In addition, it returns a boolean indicating
+change: if a new key has been added to the table, we return \factor|t|.
+Otherwise, we return \factor|t| only in the case where an old key is mapped to
+a new value.  If an old key is mapped to the same value that's already in the
+table, \factor|maybe-set-at| returns \factor|f|.  Therefore, when
+\factor|vregs>vns| does change, we set \factor|changed?| to \factor|t| (which
+is what the \factor|on| word does).
+
+Finally, we define a new utility word, \factor|clear-exprs|, which resets the
+\factor|exprs>vns| and \factor|vns>insns| tables.  Unlike the local value
+numbering phase, we don't reset the entire expression graph.  Instead, we make
+a pass over the whole \gls{CFG} at a time.  The only reason optimism works is
+that we keep trying to disprove our foolhardy assumptions.  Really,
+\factor|vregs>vns| establishes congruence classes of value numbers.  At first,
+every value belongs in one class, \factor|f|.  We make a pass over the
+\gls{CFG} to disprove whatever we can about this.  If we've introduced new
+congruence classes (new values in the \factor|vregs>vns| hash), we do another
+iteration.  But each time, we use the congruence classes discovered from the
+previous iteration.  At the start of each new pass, the expressions and
+instructions in \factor|exprs>vns| and \factor|vns>insns| are
+invalidated---their results are based on old information.  So, these are erased
+on each iteration.  Much like AWZ\todo{gls?}, we keep splitting classes until
+they can't be split anymore.
+
+\inputlst{gvn-step}
+
+This logic is captured in \vref{lst:gvn-step}.  Rather than reset the tables
+when we start processing each basic block in \factor|value-numbering-step| like
+before, we call \factor|clear-exprs| on each iteration over the \gls{CFG} in
+\factor|value-numbering-iteration|.  Note that \factor|value-numbering-step| no
+longer returns the changed instructions, as we aren't replacing them online.
+\factor|value-numbering-iteration| uses \factor|simple-analysis| instead of
+\factor|simple-optimization|, which only expects global state to change---no
+instructions are updated in the block.  Much to our advantage,
+\factor|simple-analysis| already traverses the \gls{CFG} in \acrlong{RPO}, so
+we needn't worry about traversal order.  The top-level word
+\factor|determine-value-numbers| ties this all together by calling
+\factor|value-numbering-iteration| until we can get through it with
+\factor|changed?| remaining false.
+
+\inputlst{gvn-simplify}
+\inputlst{gvn-value-number}
+
+Note that the work of \factor|value-numbering-step| is further divided into two
+words, \factor|simplify| and \factor|value-number|.  These combine to do much
+the same work as \factor|process-instruction| in
+\vref{lst:process-instruction}.  \factor|simplify| makes the repeated calls to
+\factor|rewrite| until the instruction cannot be simplified further.  Its
+definition is in \vref{lst:gvn-simplify}.  We then pass the simplified
+instruction to \factor|value-number|, which is defined in
+\vref{lst:gvn-value-number}.  This also has a similar structure to
+\factor|process-instruction|.  The main difference is that instructions are no
+longer returned (again, they aren't altered in place).  So, the \factor|array|
+method uses \factor|each| instead of \factor|map| to recurse into the results
+of \factor|rewrite|.
+
+A subtle change is necessary with the \factor|alien-call-insn| and
+\factor|##callback-inputs| methods.  Whereas \factor|process-instruction|
+merely skipped over certain instructions that could not be rewritten, here we
+don't have that luxury.  We need to be careful to \factor|set-vn| every virtual
+register that gets defined by any instruction.  While making a pessimistic
+assumption, it didn't matter if we did this: any unseen value would be presumed
+important by \factor|vreg>vn|.  However, with the optimistic assumption,
+\factor|vreg>vn| will give the impression that unseen values are all the same
+by returning \factor|f|.  Therefore, we simply record the virtual registers
+defined in instructions that may define one or more of them.  Specifically,
+\factor|alien-call-insn| and \factor|##callback-inputs| are classes that
+correspond to \gls{FFI} instructions.
+
+The \factor|##copy| method uses \factor|set-vn| the same way as before.
+\factor|redundant-instruction|, \factor|useful-instruction|, and
+\factor|check-redundancy| are also largely the same.  These have just been
+tweaked to not return instructions.
+
+\inputlst{phi-expr}
+
+The \factor|##phi| method in \vref{lst:gvn-value-number} represents a major
+change. Before, \factor|##phi|s were left uninterpreted.  Congruences between
+induction variables that flowed along back-edges would not be identifiable.
+But now, by checking for redundant \factor|##phi|s, we may reduce them to
+copies.  Each \factor|##phi| object has an \factor|inputs| slot, which is a
+hash table from basic block to the virtual register that flows from that block.
+Thus, there is one input for each predecessor.  The \factor|values| of the hash
+will be the virtual registers that might be selected for the \factor|dst|
+value.  We look up the value numbers of these, removing all instances of
+\factor|f| with the \factor|sift| word.  If all of the inputs are congruent, we
+can call \factor|redundant-instruction|, setting the value number of the
+\factor|##phi|'s \factor|dst| to the value number of its first input (without
+loss of generality).  The \factor|all-equal?| word will return \factor|t| if
+the sequence is empty (as it's vacuously true), so we must make sure not to
+call \factor|first| on the sequence, since this will be a runtime error.  If
+the sequence is empty, we needn't note the redundancy, as the \factor|##phi|'s
+\factor|dst| will already have the optimistic value number \factor|f| anyway.
+Otherwise, we call \factor|check-redundancy|.  The purpose of this is to
+identify \factor|##phi|s that are equal to each other.  Even if its inputs are
+incongruent, a \factor|##phi| might still represent a copy of another induction
+variable.  So that \factor|check-redundancy| works, we also define a
+\factor|>expr| method in \factor|compiler.cfg.gvn.expressions|, as seen in
+\vref{lst:phi-expr}.  Here, the expression is an array consisting of the
+\factor|##phi| class word, the current basic block's number, and the inputs'
+value numbers.  We include the basic block number because only \factor|##phi|s
+within the same block can be considered equivalent to each other.
+
+The final method in \vref{lst:gvn-value-number} defines the default behavior
+for \factor|value-number|, which calls \factor|check-redundancy| on the
+simplified instruction if it defines a single virtual register.  Note that we
+separate the \factor|alien-call-insn| and \factor|##callback-inputs| logic from
+this, since they happen to define a variable number of registers.  If
+particular instances define only one register, we still don't want to call
+\factor|check-redundancy| on them, since they don't have a \factor|dst| slot.
+To avoid calling \factor|dst>>| and triggering an error in
+\factor|useful-instruction|, we needed separate methods for the \gls{FFI}
+classes.
+
+\inputfig{gvn}
+
+With these changes, we can globally identify value numbers, including
+equivalences that arise from simplifying instructions (even though no
+replacements are actually done yet).  To illustrate this, consider again the
+example
+%
+\factor|0 100 [ 1 fixnum+fast ] times|,
+%
+reproduced in \vref{fig:gvn}.  As the expression graph changes frequently in
+this new algorithm, instead of showing the literal hash tables we'll use a
+shorthand notation.  Virtual registers will be integers, and to avoid confusion
+value numbers will be written in brackets, like \vn{n}.  Then, we'll show
+\factor|vreg>vn| mappings with the notation $n\to\vn{n}$, where $n$ is the
+register and \vn{n} is the value number.  If there is a corresponding
+expression in \factor|exprs>vns|, it will be denoted after the mapping, like
+$n\to\vn{n}~(\textit{expression})$.  With the expressions, the instructions in
+\factor|vns>insns| are a bit redundant for understanding the value numbering
+process, so they will be elided.  Any mappings to \factor|f| will be elided, as
+they're understood to be implicit when a key is absent.
+
+\factor|determine-value-numbers| starts the first iteration, which of course
+starts at basic block $1$.
+
+%Pseudocode is given in Algorithm~\vref{alg:rpo}.  Since we use SSA form, the
+%SSA names of variables can serve as unique identifiers; hence, we use them for
+%value numbers.  To distinguish an SSA name $x$ from its value number, we write
+%$\lrangle{x}$.  The RPO algorithm keeps a global array \id{VN} mapping values
+%(SSA names) to their value numbers.  It repeatedly applies hash-based value
+%numbering, just as in Algorithm~\ref{alg:hash-vn}, except each time it's
+%applied, the initial value numbers are from the previous iteration (as stored
+%in \id{VN}).  Note that \id{VN} is initialized not with unique values as in
+%Algorithm~\ref{alg:hash-vn}, but rather with a single $\top$ value---that is,
+%the RPO algorithm makes an optimistic assumption.  The key difference that
+%makes optimism work here is that we keep trying to break congruences.  The
+%errors that happen in a single pass of hash-based value numbering are
+%repeatedly fixed, as in AWZ, until we can't fix any more errors (until \id{VN}
+%stops changing).
+%
+%Consider the example in Figure~\vref{fig:rpo-ex}.  We start with the optimistic
+%assumption that everything has the same value number, $\top$, in iteration 0.
+%Assignments are considered in reverse postorder of the basic blocks in the CFG,
+%which in this case is just $B_1$ then $B_2$.  The RPO algorithm uses a hash
+%table, \id{table}, to map expressions to value numbers.  Note that this
+%implicitly uses the same hash function of Algorithm~\ref{alg:hash-vn}.  Thus,
+%iteration 1 gives us
+%\begin{align*}
+%  \id{table} = \{&\code{0}                              &\to \ssavn{i$_0$},\\
+%                 &(\phi, \ssavn{i$_0$}, \top)           &\to \ssavn{i$_1$},\\
+%                 &(\code{+}, \ssavn{i$_1$}, \code{1})   &\to \ssavn{i$_2$},\\
+%                 &(\code{+}, \ssavn{i$_1$}, \code{100}) &\to \ssavn{j$_2$} \}
+%\end{align*}
+%which translates to $\code{i$_0$} \cong \code{j$_0$}$, $\code{i$_1$} \cong
+%\code{j$_1$}$, and $\code{i$_2$} \not\cong \code{j$_2$}$ in the \id{VN} array.
+%This is the same result as if Algorithm~\ref{alg:hash-vn} were initialized
+%optimistically.  It's also incorrect.  When the value numbers of \code{i$_1$}
+%and \code{j$_1$} are being computed, we haven't yet figured out $\code{i$_2$}
+%\not\cong \code{j$_2$}$, because they were both initialized to $\top$.
+%Therefore, we erroneously think that $\code{i$_1$} \cong \code{j$_1$}$.
+%
+%But this changed \id{VN}, so we do another iteration to see if the partition
+%has stabilized yet.  We reset \id{table}, but the previous iteration's values
+%stay in \id{VN}.  So the value numbers of \code{i$_2$} and \code{j$_2$}
+%propagate to the earlier definitions that rely on them, namely \code{i$_1$} and
+%\code{j$_1$}.  In iteration 2, \id{table} looks like the following.
+%\begin{align*}
+%  \id{table} = \{&\code{0}                              &\to \ssavn{i$_0$},\\
+%                 &(\phi, \ssavn{i$_0$}, \ssavn{i$_2$})  &\to \ssavn{i$_1$},\\
+%                 &(\phi, \ssavn{i$_0$}, \ssavn{j$_2$})  &\to \ssavn{j$_1$},\\
+%                 &(\code{+}, \ssavn{i$_1$}, \code{1})   &\to \ssavn{i$_2$},\\
+%                 &(\code{+}, \ssavn{j$_1$}, \code{100}) &\to \ssavn{j$_2$} \}
+%\end{align*}
+%This also gives us another reason that $\code{i$_2$} \not\cong \code{j$_2$}$:
+%not only are the constant operands different as in iteration 1, but now we've
+%discovered that their non-constant operands (\code{i$_1$} and \code{j$_1$}) are
+%incongruent.  The value numbers in \id{VN} now tell us that $\code{i$_0$} \cong
+%\code{j$_0$}$ and $\code{i$_1$} \not\cong \code{j$_1$} \not\cong \code{i$_2$}
+%\not\cong \code{j$_2$}$.  This is correct, but we perform one more iteration to
+%prove that nothing changes.
+%
+%As with Algorithms~\ref{alg:hash-vn} and~\ref{alg:hash-vn++}, it's easy to
+%extend RPO value numbering: just try to simplify the expression before hashing
+%it in the \proc{lookup} procedure.  We can also make it more efficient in
+%practice by observing that the only times we \emph{need} to iterate are where
+%there are cyclic dependencies between values in the CFG.  For instance, in the
+%previous example \code{i$_1$} and \code{i$_2$} are cyclically dependent:
+%\code{i$_1$} is defined by a use of \code{i$_2$} and vice versa.  RPO-based
+%value numbering degenerates into hash-based value numbering on code without
+%cyclic dependencies.  Thus, a more efficient algorithm will only iterate over
+%the cycles between definitions instead of over the whole graph.  To represent
+%dependencies between values, we can use a new sort of graph called the
+%\defn{value graph} (or sometimes \defn{SSA graph}).
+%
+%\begin{figure}
+%\begin{center}
+%\begin{minipage}{0.4\linewidth}
+%\begin{tikzpicture}[node distance=1.0in,>=latex]
+%  \node[draw,label=right:$B_1$] (0) at (0,-1.25) {
+%\begin{lstlisting}
+%i$_0$ := 0
+%j$_0$ := 0
+%\end{lstlisting}
+%};
+%  \node[draw,label=right:$B_2$] (1) [below of=0] {
+%\begin{lstlisting}
+%i$_1$ := $\phi($i$_0$,i$_2)$
+%j$_1$ := $\phi($j$_0$,j$_2)$
+%i$_2$ := i$_1$ + 1
+%j$_2$ := j$_1$ + 1
+%if $P$ goto $B_2$
+%\end{lstlisting}
+%};
+%
+%  \draw[->] (0,0) -- (0);
+%  \draw[->] (0) -- (1);
+%  \draw (1.south)
+%        edge[->,out=180,in=270,controls=+(35:-4) and +(-35:-4)]
+%        (1.north);
+%\end{tikzpicture}
+%\end{minipage}
+%\vrule
+%\begin{minipage}{0.4\linewidth}
+%\begin{tikzpicture}[node distance=0.5in,>=latex,->]
+%\node[circle,draw,label=above:\code{i$_1$}] (i1) at (0,0) {$\phi$};
+%\node[circle,draw,label=left:\code{i$_0$}]  (i0) [below left of=i1] {\code{0}};
+%\node[circle,draw,label=right:\code{i$_2$}] (i2) [below right of=i1]{\code{+}};
+%\node[circle,draw,minimum size=2em] (1) [below right of=i2] {\code{1}};
+%
+%\draw (i1) edge (i0) edge (i2)
+%      (i2) edge (1) edge[->,curve to,in=0] (i1.east);
+%
+%\node[circle,draw,label=above:\code{j$_1$}] (j1) at (4,0) {$\phi$};
+%\node[circle,draw,label=left:\code{j$_0$}]  (j0) [below left of=j1] {\code{0}};
+%\node[circle,draw,label=right:\code{j$_2$}] (j2) [below right of=j1]{\code{+}};
+%
+%\draw (j1) edge (j0) edge (j2)
+%      (j2) edge (1) edge[->,curve to,in=0] (j1.east);
+%
+%\end{tikzpicture}
+%\end{minipage}
+%\end{center}
+%\caption{Value Graph Construction}
+%\label{fig:value-graph}
+%\end{figure}
+%
+%Given three-address code in SSA form, the value graph is constructed by
+%converting each definition of a variable (the \emph{only} definition, by SSA
+%form) into a vertex labeled by that variable (usually drawn on the outside of
+%the vertex).  Each such vertex is also labeled on the inside by the operation
+%of the definition (\code{+}, \code{-}, $\phi$, etc.) and has a directed edge to
+%vertices representing the other SSA values that the definition uses.  Edges are
+%\emph{ordered} in the same way that operands are for the definition.  Constants
+%are converted into single vertices whose inside labels are just the constants,
+%and have no outside labels.  Constant assignments/moves of the form
+%\lstinline|x := y| are typically written with just a single vertex whose inside
+%label is \lstinline|y| and whose outside label is \lstinline|x|, though in
+%principle you could just use an inner label of, say, ``\lstinline|:=|''.  An
+%example is given in Figure~\vref{fig:value-graph}.
+%
+%Notice that value graphs just codify def-use information that we already have.
+%Their purpose here is conceptual; in actual implementations, it's not necessary
+%to build up a whole value graph.  \defn{Strongly connected components}
+%(\defn{SCC}s) of the value graph represent portions of code that have some
+%cyclic dependency---the parts that require iteration until reaching a fixed
+%point.  Using an algorithm due to \citeasnoun{Tarjan}, Simpson alters
+%Algorithm~\ref{alg:rpo} in his dissertation to form the \defn{SCC-Based
+%Algorithm}.  We refrain from further discussion of this algorithm, as it's
+%conceptually simple, but there's a deceptively large amount of pseudocode for
+%it.  Most of the code is for discovering the SCCs and iterating over them
+%individually.  It requires some tweaks, such as introducing two different types
+%of hash tables for values instead of the single \id{table} of
+%Algorithm~\ref{alg:rpo}.   SCC-based value numbering is preferred to the RPO
+%algorithm since it's more efficient in practice, but the principles are the
+%same.  This gives us a comparatively simple, easily-extended algorithm for
+%global value numbering with complexity $O(nd)$, where $n$ is the number of
+%vertices in the value graph (i.e., the number of values we're numbering) and
+%$d$ is the \defn{loop connectedness} (the maximum number of back edges on any
+%acyclic path) of the value graph.  Though $d$ can theoretically be $O(n)$, in
+%practice it seems to be bounded by a small constant.  In Simpson's experiments,
+%the maximum value of $d$ was $4$.

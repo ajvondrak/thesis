@@ -1,0 +1,20 @@
+\centering
+
+  \begin{factorcode}
+    : value-numbering-step ( insns -- )
+        [ simplify value-number ] each ;
+
+    : value-numbering-iteration ( cfg -- )
+        clear-exprs [ value-numbering-step ] simple-analysis ;
+
+    : determine-value-numbers ( cfg -- )
+        final-iteration? off
+        init-value-graph
+        '[
+            changed? off
+            _ value-numbering-iteration
+            changed? get
+        ] loop ;
+  \end{factorcode}
+
+\caption{Main logic in \factor|compiler.cfg.gvn|}
