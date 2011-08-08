@@ -1,0 +1,27 @@
+\centering
+
+  \begin{factorcode}
+    : self-inverse ( insn -- insn' )
+        [ dst>> ] [ src>> vreg>insn src>> ] bi <copy> ;
+
+    ! Before
+    M: ##neg rewrite
+        {
+            { [ dup src>> vreg>insn ##neg? ] [ self-inverse ] }
+            { [ dup unary-constant-fold? ] [ unary-constant-fold ] }
+            [ drop f ]
+        } cond ;
+
+    ! After
+    : self-inverse? ( insn quot -- ? )
+        [ src>> vreg>insn ] dip with-available-uses? ; inline
+
+    M: ##neg rewrite
+        {
+            { [ dup [ ##neg? ] self-inverse? ] [ self-inverse ] }
+            { [ dup unary-constant-fold? ] [ unary-constant-fold ] }
+            [ drop f ]
+        } cond ;
+  \end{factorcode}
+
+\caption{Rewriting words that are their own inverses}

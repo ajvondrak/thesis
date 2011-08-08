@@ -69,4 +69,105 @@ below:
 \noindent Here, the subscripts indicate the basic block number.
 $\text{\factor|defined|}_i$ denotes the result of the \factor|defined| word
 from \vref{lst:avail}.  This returns the set of virtual registers defined in a
-basic block.
+basic block.  Since we use virtual registers as value numbers, this is the same
+as giving us all the value numbers produced by a basic block.  ``Killed''
+definitions are impossible by the \gls{SSA} property, so we needn't track
+redefinitions of any virtual register.  Using set intersection as the
+confluence operator means that the \factor|avail-in| set will contain those
+values which are available on all paths from the start of the \gls{CFG} to that
+block.
+
+Using Factor's \factor|compiler.cfg.dataflow-analysis| vocabulary, the
+implementation takes all of two lines of code.  The
+%
+\factor|FORWARD-ANALYSIS: avail|
+%
+line automatically defines several objects, variables, words, and methods that
+don't warrant full detail here.  One we're immediately concerned with is the
+\factor|transfer-set| generic, which dispatches upon the particular type of
+analysis being performed and is invoked on the proper in-set and basic block.
+There is no default implementation, as it is the chief difference between
+analyses.  So, the next line uses \factor|defined| and \factor|assoc-union| to
+calculate the result of the data flow equation.  Other pieces we'll see used
+are the top-level \factor|compute-avail-sets| word that actually performs the
+analysis, the \factor|avail-ins| hash table that maps basic blocks to their
+in-sets, and the \factor|avail-in| word that is shorthand for looking up a
+basic block's in-set.
+
+We want to use the results of this analysis in the \factor|rewrite| methods so
+that they won't overstep their boundaries, and only make meaningful rewrites.
+However, we also want to use \factor|rewrite| in the
+\factor|determine-value-numbers| pass, where we don't care about availability.
+In fact, we want to ignore availability altogether, so that we can discover as
+many congruences as possible.  In order to separate these concerns, we need to
+have two modes for checking availability.  \vref{lst:avail} defines the
+\factor|available?| word to do just this.  It will only check the actual
+availability if \factor|final-iteration?| is true, otherwise defaulting to
+\factor|t|.  Therefore, during the value numbering phase, everything is
+considered available.  We further define the utilities \factor|available-uses?|
+and \factor|with-available-uses?|.  The former checks if all an instruction's
+uses are available, and the latter does this only if another quotation first
+returns true.  That way, we can guard instruction predicates with a test for
+available uses, like
+%
+\factor|[ ##add-imm? ] with-available-uses?|.
+
+\inputlst{fold-branch}
+
+Finding all the instances where \factor|rewrite| needed to be altered was
+subtle.  Since the old \factor|value-numbering| was an online optimization, it
+didn't need to worry about modifying an instruction in memory.  But by doing
+the fixed-point iteration, we cannot permit \factor|rewrite| to destructively
+modify any object instance until the final iteration.  An obvious instance was
+in \factor|compiler.cfg.value-numbering.comparisons| with the word
+\factor|fold-branch|, responsible for modifying the \gls{CFG} to remove an
+untaken branch.  We definitely would not want the branch removed while doing
+the fixed-point iteration, because the transformation is not necessarily sound.
+So, we can protect it with a check for \factor|final-iteration?|.
+
+\inputlst{self-inverse}
+
+More typical were words like \factor|self-inverse| from
+\factor|compiler.cfg.value-numbering.math| (refer to \vref{lst:self-inverse}).
+The idea is to change
+%
+\begin{center}
+  \begin{minipage}{0.2\linewidth}
+    \begin{factorcode*}{gobble=6,frame=none}
+      ##neg 1 2
+      ##neg 3 1
+    \end{factorcode*}
+  \end{minipage}
+\end{center}
+%
+\noindent into
+%
+\begin{center}
+  \begin{minipage}{0.2\linewidth}
+    \begin{factorcode*}{gobble=6,frame=none}
+      ##neg 1 2
+      ##copy 3 2 any-rep
+    \end{factorcode*}
+  \end{minipage}
+\end{center}
+%
+\noindent since \Verb|##neg| undoes itself.  But \factor|rewrite| only has
+knowledge of one instruction at a time, so it looks up the redundant
+\Verb|##neg|'s source register in the \factor|vregs>insns| table to see if
+it's computed by another \Verb|##neg| instruction.  For straight-line code this
+is alright, but the source of the originating \Verb|##neg| (in the example, the
+virtual register \factor|2|) isn't necessarily available.  So, we have to use
+\factor|with-available-uses?| to make sure the virtual registers used by the
+result of a \factor|vreg>insn| can themselves be used before we rewrite
+anything.
+
+An even subtler issue that led to infinite loops occured in simplifcations like
+the arithmetic distribution in \factor|compiler.cfg.value-numbering.math|.  The
+problem is that the \factor|rewrite| method would generate instructions that
+assigned to entirely brand new registers.  These, of course, would invariably
+get value numbered, triggering a change in the \factor|vregs>vns| table.  A new
+iteration would begin, and (since it gets called on the same instructions as
+the previous iteration) \factor|rewrite| would generate new virtual registers
+all over again.  Therefore, the \factor|vregs>vns| table would never stop
+changing.  As a stop-gap, distribution had to be disabled altogether until the
+final iteration.

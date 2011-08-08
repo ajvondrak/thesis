@@ -1,0 +1,19 @@
+\centering
+
+  \begin{factorcode}
+    ! Before
+    : fold-branch ( ? -- insn )
+        0 1 ?
+        basic-block get [ nth 1vector ] change-successors drop
+        \ ##branch new-insn ;
+
+    ! After
+    : fold-branch ( ? -- insn )
+        final-iteration? get [
+            0 1 ?
+            basic-block get [ nth 1vector ] change-successors drop
+        ] [ drop ] if
+        \ ##branch new-insn ;
+  \end{factorcode}
+
+\caption{Branch folding before and after}
