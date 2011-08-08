@@ -23,12 +23,13 @@ techniques.  In \cref{sec:compiler:cfg} we saw the \factor|value-numbering|
 word, which is actually based on some of the earliest---and least
 effective---methods of value numbering.  \Cref{sec:vn:local} describes the way
 Factor's current algorithm works, and highlights its shortcomings to motivate
-the main work of this thesis, which is covered in \cref{sec:vn:global}.  We
-finish the \lcnamecref{sec:vn} by analyzing the results of these changes and
-reviewing the literature for further enhancements that can be made to this
-optimization pass.
+the main work of this thesis, which is covered in
+\cref{sec:vn:global,sec:vn:avail}.  We finish the \lcnamecref{sec:vn} by
+analyzing the results of these changes and reviewing the literature for further
+enhancements that can be made to this optimization pass.
 
 %\input{sec/vn/local}
-\input{sec/vn/global}
+%\input{sec/vn/global}
+\input{sec/vn/avail}
 %\input{sec/vn/results}
 %\input{sec/vn/future}
