@@ -261,162 +261,248 @@ $n\to\vn{n}~(\textit{expression})$.  With the expressions, the instructions in
 process, so they will be elided.  Any mappings to \factor|f| will be elided, as
 they're understood to be implicit when a key is absent.
 
-\factor|determine-value-numbers| starts the first iteration, which of course
-starts at basic block $1$.
+\todo[inline]{Might make separate figures of each block, for easier reference}
 
-%Pseudocode is given in Algorithm~\vref{alg:rpo}.  Since we use SSA form, the
-%SSA names of variables can serve as unique identifiers; hence, we use them for
-%value numbers.  To distinguish an SSA name $x$ from its value number, we write
-%$\lrangle{x}$.  The RPO algorithm keeps a global array \id{VN} mapping values
-%(SSA names) to their value numbers.  It repeatedly applies hash-based value
-%numbering, just as in Algorithm~\ref{alg:hash-vn}, except each time it's
-%applied, the initial value numbers are from the previous iteration (as stored
-%in \id{VN}).  Note that \id{VN} is initialized not with unique values as in
-%Algorithm~\ref{alg:hash-vn}, but rather with a single $\top$ value---that is,
-%the RPO algorithm makes an optimistic assumption.  The key difference that
-%makes optimism work here is that we keep trying to break congruences.  The
-%errors that happen in a single pass of hash-based value numbering are
-%repeatedly fixed, as in AWZ, until we can't fix any more errors (until \id{VN}
-%stops changing).
+\factor|determine-value-numbers| starts the first iteration, which of course
+starts at basic block $1$.  \factor|##inc-d| is a no-op, but the first two
+\factor|##load-integer|s are established as useful instructions.
 %
-%Consider the example in Figure~\vref{fig:rpo-ex}.  We start with the optimistic
-%assumption that everything has the same value number, $\top$, in iteration 0.
-%Assignments are considered in reverse postorder of the basic blocks in the CFG,
-%which in this case is just $B_1$ then $B_2$.  The RPO algorithm uses a hash
-%table, \id{table}, to map expressions to value numbers.  Note that this
-%implicitly uses the same hash function of Algorithm~\ref{alg:hash-vn}.  Thus,
-%iteration 1 gives us
-%\begin{align*}
-%  \id{table} = \{&\code{0}                              &\to \ssavn{i$_0$},\\
-%                 &(\phi, \ssavn{i$_0$}, \top)           &\to \ssavn{i$_1$},\\
-%                 &(\code{+}, \ssavn{i$_1$}, \code{1})   &\to \ssavn{i$_2$},\\
-%                 &(\code{+}, \ssavn{i$_1$}, \code{100}) &\to \ssavn{j$_2$} \}
-%\end{align*}
-%which translates to $\code{i$_0$} \cong \code{j$_0$}$, $\code{i$_1$} \cong
-%\code{j$_1$}$, and $\code{i$_2$} \not\cong \code{j$_2$}$ in the \id{VN} array.
-%This is the same result as if Algorithm~\ref{alg:hash-vn} were initialized
-%optimistically.  It's also incorrect.  When the value numbers of \code{i$_1$}
-%and \code{j$_1$} are being computed, we haven't yet figured out $\code{i$_2$}
-%\not\cong \code{j$_2$}$, because they were both initialized to $\top$.
-%Therefore, we erroneously think that $\code{i$_1$} \cong \code{j$_1$}$.
+\factor|##load-integer 23 0|
 %
-%But this changed \id{VN}, so we do another iteration to see if the partition
-%has stabilized yet.  We reset \id{table}, but the previous iteration's values
-%stay in \id{VN}.  So the value numbers of \code{i$_2$} and \code{j$_2$}
-%propagate to the earlier definitions that rely on them, namely \code{i$_1$} and
-%\code{j$_1$}.  In iteration 2, \id{table} looks like the following.
-%\begin{align*}
-%  \id{table} = \{&\code{0}                              &\to \ssavn{i$_0$},\\
-%                 &(\phi, \ssavn{i$_0$}, \ssavn{i$_2$})  &\to \ssavn{i$_1$},\\
-%                 &(\phi, \ssavn{i$_0$}, \ssavn{j$_2$})  &\to \ssavn{j$_1$},\\
-%                 &(\code{+}, \ssavn{i$_1$}, \code{1})   &\to \ssavn{i$_2$},\\
-%                 &(\code{+}, \ssavn{j$_1$}, \code{100}) &\to \ssavn{j$_2$} \}
-%\end{align*}
-%This also gives us another reason that $\code{i$_2$} \not\cong \code{j$_2$}$:
-%not only are the constant operands different as in iteration 1, but now we've
-%discovered that their non-constant operands (\code{i$_1$} and \code{j$_1$}) are
-%incongruent.  The value numbers in \id{VN} now tell us that $\code{i$_0$} \cong
-%\code{j$_0$}$ and $\code{i$_1$} \not\cong \code{j$_1$} \not\cong \code{i$_2$}
-%\not\cong \code{j$_2$}$.  This is correct, but we perform one more iteration to
-%prove that nothing changes.
+is recognized as redundant, since at this point we know that \factor|21| has
+the value \factor|0|.  The \factor|##copy| instructions all pile on value
+number mappings, leaving us with the following:
 %
-%As with Algorithms~\ref{alg:hash-vn} and~\ref{alg:hash-vn++}, it's easy to
-%extend RPO value numbering: just try to simplify the expression before hashing
-%it in the \proc{lookup} procedure.  We can also make it more efficient in
-%practice by observing that the only times we \emph{need} to iterate are where
-%there are cyclic dependencies between values in the CFG.  For instance, in the
-%previous example \code{i$_1$} and \code{i$_2$} are cyclically dependent:
-%\code{i$_1$} is defined by a use of \code{i$_2$} and vice versa.  RPO-based
-%value numbering degenerates into hash-based value numbering on code without
-%cyclic dependencies.  Thus, a more efficient algorithm will only iterate over
-%the cycles between definitions instead of over the whole graph.  To represent
-%dependencies between values, we can use a new sort of graph called the
-%\defn{value graph} (or sometimes \defn{SSA graph}).
+\begin{align*}
+  21 &\to \vn{21} \quad (0)  \\
+  22 &\to \vn{22} \quad (100)\\
+  23 &\to \vn{21}            \\
+  24 &\to \vn{22}            \\
+  25 &\to \vn{21}            \\
+  26 &\to \vn{22}            \\
+  27 &\to \vn{21}
+\end{align*}
+
+At iteration $1$, basic block $2$, the first \factor|##phi| has inputs
+\factor|25| (from block $1$) and \factor|41| (from block $3$).  The former has
+the value number \vn{21}, while the latter is still at \factor|f|.  We treat
+this value number much like a $\top$ element, unifying it with the other input
+to give us the assumption that \factor|29| will be a copy of \factor|25|.
+Thus, it gets the same value number.  A similar choice happens for the second
+\factor|##phi|.  The instruction 
 %
-%\begin{figure}
-%\begin{center}
-%\begin{minipage}{0.4\linewidth}
-%\begin{tikzpicture}[node distance=1.0in,>=latex]
-%  \node[draw,label=right:$B_1$] (0) at (0,-1.25) {
-%\begin{lstlisting}
-%i$_0$ := 0
-%j$_0$ := 0
-%\end{lstlisting}
-%};
-%  \node[draw,label=right:$B_2$] (1) [below of=0] {
-%\begin{lstlisting}
-%i$_1$ := $\phi($i$_0$,i$_2)$
-%j$_1$ := $\phi($j$_0$,j$_2)$
-%i$_2$ := i$_1$ + 1
-%j$_2$ := j$_1$ + 1
-%if $P$ goto $B_2$
-%\end{lstlisting}
-%};
+\factor|##compare-integer 31 30 26 cc< 9|
 %
-%  \draw[->] (0,0) -- (0);
-%  \draw[->] (0) -- (1);
-%  \draw (1.south)
-%        edge[->,out=180,in=270,controls=+(35:-4) and +(-35:-4)]
-%        (1.north);
-%\end{tikzpicture}
-%\end{minipage}
-%\vrule
-%\begin{minipage}{0.4\linewidth}
-%\begin{tikzpicture}[node distance=0.5in,>=latex,->]
-%\node[circle,draw,label=above:\code{i$_1$}] (i1) at (0,0) {$\phi$};
-%\node[circle,draw,label=left:\code{i$_0$}]  (i0) [below left of=i1] {\code{0}};
-%\node[circle,draw,label=right:\code{i$_2$}] (i2) [below right of=i1]{\code{+}};
-%\node[circle,draw,minimum size=2em] (1) [below right of=i2] {\code{1}};
+is an interesting case.  Due to our optimistic assumptions thus far, we believe
+\factor|30| is carrying the value \factor|0|, and that \factor|26| is set to
+\factor|100|.  Thus, this instruction gets constant-folded by \factor|simplify|
+into
 %
-%\draw (i1) edge (i0) edge (i2)
-%      (i2) edge (1) edge[->,curve to,in=0] (i1.east);
+\factor|##load-reference 31 t|.
 %
-%\node[circle,draw,label=above:\code{j$_1$}] (j1) at (4,0) {$\phi$};
-%\node[circle,draw,label=left:\code{j$_0$}]  (j0) [below left of=j1] {\code{0}};
-%\node[circle,draw,label=right:\code{j$_2$}] (j2) [below right of=j1]{\code{+}};
+The \gls{CFG} isn't changed, but the expression graph reflects this belief.
+Later, this assumption will be invalidated.  The following copies are processed
+as usual, with the distinct difference here that 
 %
-%\draw (j1) edge (j0) edge (j2)
-%      (j2) edge (1) edge[->,curve to,in=0] (j1.east);
+\factor|##copy 33 26 any-rep|
 %
-%\end{tikzpicture}
-%\end{minipage}
-%\end{center}
-%\caption{Value Graph Construction}
-%\label{fig:value-graph}
-%\end{figure}
+has the global knowledge of the value number of \factor|26|.  Because the
+\factor|##compare-integer| was constant-folded, so is the
+\factor|##compare-imm-branch|---and to the same value, no less.  This leaves us
+with:
 %
-%Given three-address code in SSA form, the value graph is constructed by
-%converting each definition of a variable (the \emph{only} definition, by SSA
-%form) into a vertex labeled by that variable (usually drawn on the outside of
-%the vertex).  Each such vertex is also labeled on the inside by the operation
-%of the definition (\code{+}, \code{-}, $\phi$, etc.) and has a directed edge to
-%vertices representing the other SSA values that the definition uses.  Edges are
-%\emph{ordered} in the same way that operands are for the definition.  Constants
-%are converted into single vertices whose inside labels are just the constants,
-%and have no outside labels.  Constant assignments/moves of the form
-%\lstinline|x := y| are typically written with just a single vertex whose inside
-%label is \lstinline|y| and whose outside label is \lstinline|x|, though in
-%principle you could just use an inner label of, say, ``\lstinline|:=|''.  An
-%example is given in Figure~\vref{fig:value-graph}.
+\begin{align*}
+  21 &\to \vn{21} \quad (0)                 \\
+  22 &\to \vn{22} \quad (100)               \\
+  23 &\to \vn{21}                           \\
+  24 &\to \vn{22}                           \\
+  25 &\to \vn{21}                           \\
+  26 &\to \vn{22}                           \\
+  27 &\to \vn{21}                           \\
+  29 &\to \vn{21}                           \\
+  30 &\to \vn{21}                           \\
+  31 &\to \vn{31} \quad (\text{\factor|t|}) \\
+  32 &\to \vn{31}                           \\
+  33 &\to \vn{22}                           \\
+  34 &\to \vn{31}
+\end{align*}
+
+Block $3$ of iteration $1$ gives the \factor|##load-integer|s' destinations the
+same value number, corresponding to the integer $1$.  Because optimism makes
+the algorithm think that \factor|29| and \factor|30| correspond to the integer
+$0$, the \factor|##add|s are constant-folded.  This leaves us with:
 %
-%Notice that value graphs just codify def-use information that we already have.
-%Their purpose here is conceptual; in actual implementations, it's not necessary
-%to build up a whole value graph.  \defn{Strongly connected components}
-%(\defn{SCC}s) of the value graph represent portions of code that have some
-%cyclic dependency---the parts that require iteration until reaching a fixed
-%point.  Using an algorithm due to \citeasnoun{Tarjan}, Simpson alters
-%Algorithm~\ref{alg:rpo} in his dissertation to form the \defn{SCC-Based
-%Algorithm}.  We refrain from further discussion of this algorithm, as it's
-%conceptually simple, but there's a deceptively large amount of pseudocode for
-%it.  Most of the code is for discovering the SCCs and iterating over them
-%individually.  It requires some tweaks, such as introducing two different types
-%of hash tables for values instead of the single \id{table} of
-%Algorithm~\ref{alg:rpo}.   SCC-based value numbering is preferred to the RPO
-%algorithm since it's more efficient in practice, but the principles are the
-%same.  This gives us a comparatively simple, easily-extended algorithm for
-%global value numbering with complexity $O(nd)$, where $n$ is the number of
-%vertices in the value graph (i.e., the number of values we're numbering) and
-%$d$ is the \defn{loop connectedness} (the maximum number of back edges on any
-%acyclic path) of the value graph.  Though $d$ can theoretically be $O(n)$, in
-%practice it seems to be bounded by a small constant.  In Simpson's experiments,
-%the maximum value of $d$ was $4$.
+\begin{align*}
+  21 &\to \vn{21} \quad (0)                 \\
+  22 &\to \vn{22} \quad (100)               \\
+  23 &\to \vn{21}                           \\
+  24 &\to \vn{22}                           \\
+  25 &\to \vn{21}                           \\
+  26 &\to \vn{22}                           \\
+  27 &\to \vn{21}                           \\
+  29 &\to \vn{21}                           \\
+  30 &\to \vn{21}                           \\
+  31 &\to \vn{31} \quad (\text{\factor|t|}) \\
+  32 &\to \vn{31}                           \\
+  33 &\to \vn{22}                           \\
+  34 &\to \vn{31}                           \\
+  35 &\to \vn{35} \quad (1)                 \\
+  36 &\to \vn{35}                           \\
+  37 &\to \vn{35}                           \\
+  38 &\to \vn{35}                           \\
+  39 &\to \vn{21}                           \\
+  40 &\to \vn{22}                           \\
+  41 &\to \vn{35}                           \\
+  42 &\to \vn{35}
+\end{align*}
+
+While block $4$ is visited in each iteration, it doesn't define any registers,
+so doesn't affect the state of value numbering.  Therefore, the above is the
+state left at the end of iteration $1$.
+
+Since \factor|vregs>vns| clearly changed, iteration $2$ commences by clearing
+the expressions, though the value numbers remain.  Block $1$ doesn't change
+from iteration $1$, giving us:
+%
+\begin{align*}
+  21 &\to \vn{21} \quad (0)                 \\
+  22 &\to \vn{22} \quad (100)               \\
+  23 &\to \vn{21}                           \\
+  24 &\to \vn{22}                           \\
+  25 &\to \vn{21}                           \\
+  26 &\to \vn{22}                           \\
+  27 &\to \vn{21}                           \\
+  29 &\to \vn{21}                           \\
+  30 &\to \vn{21}                           \\
+  31 &\to \vn{31}                           \\
+  32 &\to \vn{31}                           \\
+  33 &\to \vn{22}                           \\
+  34 &\to \vn{31}                           \\
+  35 &\to \vn{35}                           \\
+  36 &\to \vn{35}                           \\
+  37 &\to \vn{35}                           \\
+  38 &\to \vn{35}                           \\
+  39 &\to \vn{21}                           \\
+  40 &\to \vn{22}                           \\
+  41 &\to \vn{35}                           \\
+  42 &\to \vn{35}
+\end{align*}
+
+Now that we're in iteration $2$, the inputs to the \factor|##phi|s of block $2$
+have been processed once before.  For instance, we still believe that
+\factor|25| corresponds to the integer $0$ (which is incidentally correct), but
+now that \factor|41| has the value number \vn{35}, we think it corresponds to
+the integer $1$.  While this is incorrect, it does break the congruence between
+the inputs, making the first \factor|##phi| a useful instruction.  The second
+\factor|##phi|, however, still looks like a copy of the first.  Even so, this
+is sufficiently different that the following \factor|##compare-integer| cannot
+be constant-folded like before.  However, it can still be converted to a
+\factor|##compare-integer-imm|, as one of its operands corresponds to an
+integer.  The redundant \factor|##compare-imm-branch| gets rewritten to the
+same expression as the \factor|##compare-integer|, so winds up getting the same
+value number.  This gives us:
+%
+\begin{align*}
+  21 &\to \vn{21} \quad (0)                                                \\
+  22 &\to \vn{22} \quad (100)                                              \\
+  23 &\to \vn{21}                                                          \\
+  24 &\to \vn{22}                                                          \\
+  25 &\to \vn{21}                                                          \\
+  26 &\to \vn{22}                                                          \\
+  27 &\to \vn{21}                                                          \\
+  29 &\to \vn{29} \quad (\text{\factor|##phi 2 21 35|})                    \\
+  30 &\to \vn{29}                                                          \\
+  31 &\to \vn{31} \quad (\text{\factor|##compare-integer-imm 29 100 cc<|}) \\
+  32 &\to \vn{31}                                                          \\
+  33 &\to \vn{22}                                                          \\
+  34 &\to \vn{31}                                                          \\
+  35 &\to \vn{35}                                                          \\
+  36 &\to \vn{35}                                                          \\
+  37 &\to \vn{35}                                                          \\
+  38 &\to \vn{35}                                                          \\
+  39 &\to \vn{21}                                                          \\
+  40 &\to \vn{22}                                                          \\
+  41 &\to \vn{35}                                                          \\
+  42 &\to \vn{35}
+\end{align*}
+
+Block $3$ of iteration $2$ also changes, since the \factor|##add|s can't be
+constant-folded like before due to our new discovery about the \factor|##phi|s.
+However, the first one can still be converted to an \factor|##add-imm|, and the
+second is marked the same as the first.  This leaves the following value
+numbers:
+%
+\begin{align*}
+  21 &\to \vn{21} \quad (0)                                                \\
+  22 &\to \vn{22} \quad (100)                                              \\
+  23 &\to \vn{21}                                                          \\
+  24 &\to \vn{22}                                                          \\
+  25 &\to \vn{21}                                                          \\
+  26 &\to \vn{22}                                                          \\
+  27 &\to \vn{21}                                                          \\
+  29 &\to \vn{29} \quad (\text{\factor|##phi 2 21 35|})                    \\
+  30 &\to \vn{29}                                                          \\
+  31 &\to \vn{31} \quad (\text{\factor|##compare-integer-imm 29 100 cc<|}) \\
+  32 &\to \vn{31}                                                          \\
+  33 &\to \vn{22}                                                          \\
+  34 &\to \vn{31}                                                          \\
+  35 &\to \vn{35} \quad (1)                                                \\
+  36 &\to \vn{36} \quad (\text{\factor|##add-imm 29 1|})                   \\
+  37 &\to \vn{35}                                                          \\
+  38 &\to \vn{36}                                                          \\
+  39 &\to \vn{29}                                                          \\
+  40 &\to \vn{22}                                                          \\
+  41 &\to \vn{36}                                                          \\
+  42 &\to \vn{36}
+\end{align*}
+
+Since the value numbers changed, we start iteration $3$.  The expressions are
+cleared, and block $1$ once again does not change anything.  The first
+\factor|##phi| in block $2$ still gets classified as useful, so no value
+numbers change.  The major difference, though, is that the previous iteration's
+value numbers for registers in block $3$ update the expression we have for the
+\factor|##phi|.  Whereas before we thought it was choosing between \vn{21} (the
+integer $0$) and \vn{35} (the integer $1$), the \factor|##add| wasn't
+constant-folded in the previous iteration.  Therefore, the virtual register
+\factor|41| now corresponds to the result of the \factor|##add| with the value
+number \vn{36}.  We still can't disprove that the second \factor|##phi| is
+different (because it, in fact, isn't).  So, we're left with the following
+after iteration $3$ finishes with block $2$:
+%
+\begin{align*}
+  21 &\to \vn{21} \quad (0)                                                \\
+  22 &\to \vn{22} \quad (100)                                              \\
+  23 &\to \vn{21}                                                          \\
+  24 &\to \vn{22}                                                          \\
+  25 &\to \vn{21}                                                          \\
+  26 &\to \vn{22}                                                          \\
+  27 &\to \vn{21}                                                          \\
+  29 &\to \vn{29} \quad (\text{\factor|##phi 2 21 36|})                    \\
+  30 &\to \vn{29}                                                          \\
+  31 &\to \vn{31} \quad (\text{\factor|##compare-integer-imm 29 100 cc<|}) \\
+  32 &\to \vn{31}                                                          \\
+  33 &\to \vn{22}                                                          \\
+  34 &\to \vn{31}                                                          \\
+  35 &\to \vn{35}                                                          \\
+  36 &\to \vn{36}                                                          \\
+  37 &\to \vn{35}                                                          \\
+  38 &\to \vn{36}                                                          \\
+  39 &\to \vn{29}                                                          \\
+  40 &\to \vn{22}                                                          \\
+  41 &\to \vn{36}                                                          \\
+  42 &\to \vn{36}
+\end{align*}
+
+Blocks $3$ and $4$ do not produce any more changes, so \gls{GVN} has stabilized
+after $3$ iterations, with our final congruence classes being:
+%
+\begin{align*}
+  \vn{21} &= \{21, 23, 25, 27\}     \\
+  \vn{22} &= \{22, 24, 26, 33, 40\} \\
+  \vn{29} &= \{29, 30, 39\}         \\
+  \vn{31} &= \{31, 32, 34\}         \\
+  \vn{35} &= \{35, 37\}             \\
+  \vn{36} &= \{36, 38, 41, 42\}
+\end{align*}
+
+\todo[inline]{teletype the numbers in the align*s, I guess}
