@@ -170,4 +170,57 @@ iteration would begin, and (since it gets called on the same instructions as
 the previous iteration) \factor|rewrite| would generate new virtual registers
 all over again.  Therefore, the \factor|vregs>vns| table would never stop
 changing.  As a stop-gap, distribution had to be disabled altogether until the
-final iteration.
+final iteration\todo{make it so}.
+
+\inputlst{gcse}
+
+Armed with the correct rewrite rules, availability information, and global
+value numbers, we can perform \gls{GCSE}.  The logic in the \factor|gcse|
+generic in \vref{lst:gcse} is similar to \factor|process-instruction| from
+\vref{lst:process-instruction} and \factor|value-number| from
+\vref{lst:gvn-value-number}.  Unlike \factor|value-number|, we do return an
+instruction (or sequence thereof) representing the replacement.  Thus, the
+\factor|array| method uses \factor|map| instead of \factor|each|, to hold onto
+the resulting sequence when recursing into several instructions.
+
+\factor|defs-available| is similar to \factor|record-defs|, except that value
+numbers have already stabilized, so we don't call \factor|set-vn|.  Instead, we
+use the \factor|make-available| word, which was the last one defined in
+\vref{lst:avail}.  As we process the instructions of a block in order, we want
+to make sure that local rewrites can still be performed.  We have to ensure
+that after processing an instruction, any register it defines is available to
+future instructions in the same block.  Thus, we add the virtual register to
+that block's \factor|avail-in| (which acts like a set, even though it's
+implemented by a hash table by Factor's data flow analysis framework).
+\factor|alien-call-insn|s, \factor|##callback-inputs| instructions, and
+instances of \factor|##copy| don't get rewritten any further, so we simply note
+that their definitions are available and move on.
+
+The \factor|?eliminate| word transforms an instruction into a \factor|##copy|
+of the canonical value number that computes it.  If the value number isn't
+available, we don't do anything but post-process with \factor|defs-available|.
+If it is, a \factor|##copy| is produced and its destination is made available.
+Thus, \factor|eliminate-redundancy| works like \factor|check-redundancy| from
+\vref{lst:gvn-value-number}.  We look up the expression computed by the
+instruction in the \factor|exprs>vns| table.  If it's there, we call
+\factor|?eliminate|, but otherwise we leave the instruction alone and make its
+definitions available.
+
+If the inputs to a \factor|##phi| are all congruent, we'll call
+\factor|?eliminate| to transform it into a \factor|##copy| of its first input
+(without loss of generality).  Otherwise, we check for equivalent
+\factor|##phi|s with \factor|eliminate-redundancy|.
+
+Finally, the \factor|insn| method will default to calling
+\factor|eliminate-redundancy| on instructions that define only one value, much
+like how \factor|value-number| worked.
+
+The main loop works similarly to \factor|determine-value-numbers|.
+\factor|final-iteration?| is turned on (set to \factor|t|), and we make sure to
+compute the \factor|avail-in| sets needed to make \factor|available?| work.
+Then, using \factor|simple-optimization|, we iterate over each basic block.
+For each instruction, we first use \factor|simplify| (refer to
+\vref{lst:gvn-simplify}), then call \factor|gcse| on the rewritten instruction.
+Thus, \factor|rewrite| does the work of propagating available subexpressions
+and simplifying instructions, then \factor|gcse| cleans up redundant
+instructions by converting them into \factor|##copy| instructions if possible.

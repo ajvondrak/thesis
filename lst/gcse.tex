@@ -1,0 +1,42 @@
+\centering
+
+  \begin{factorcode}
+    GENERIC: gcse ( insn -- insn' )
+
+    M: array gcse [ gcse ] map ;
+
+    : defs-available ( insn -- insn )
+        dup defs-vregs [ make-available ] each ;
+
+    M: alien-call-insn gcse defs-available ;
+    M: ##callback-inputs gcse defs-available ;
+    M: ##copy gcse defs-available ;
+
+    : ?eliminate ( insn vn -- insn' )
+        dup available? [
+            [ dst>> dup make-available ] dip <copy>
+        ] [ drop defs-available ] if ;
+
+    : eliminate-redundancy ( insn -- insn' )
+        dup >expr exprs>vns get at
+        [ ?eliminate ] [ defs-available ] if* ;
+
+    M: ##phi gcse
+        dup inputs>> values [ vreg>vn ] map sift
+        dup all-equal? [
+            [ first ?eliminate ] unless-empty
+        ] [ drop eliminate-redundancy ] if ;
+
+    M: insn gcse
+        dup defs-vregs length 1 = [ eliminate-redundancy ] when ;
+
+    : gcse-step ( insns -- insns' )
+        [ simplify gcse ] map flatten ;
+
+    : eliminate-common-subexpressions ( cfg -- )
+        final-iteration? on
+        dup compute-avail-sets
+        [ gcse-step ] simple-optimization ;
+  \end{factorcode}
+
+\caption{Global common subexpression elimination in \factor|compiler.cfg.gvn|}
