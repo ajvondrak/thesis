@@ -1,0 +1,12 @@
+\centering
+
+  \begin{factorcode}
+    : value-numbering ( cfg -- cfg )
+        needs-predecessors
+        dup determine-value-numbers
+        dup eliminate-common-subexpressions
+
+        cfg-changed predecessors-changed ;
+  \end{factorcode}
+
+\caption{New global \factor|value-numbering| word in \factor|compiler.cfg.gvn|}

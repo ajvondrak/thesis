@@ -215,6 +215,8 @@ Finally, the \factor|insn| method will default to calling
 \factor|eliminate-redundancy| on instructions that define only one value, much
 like how \factor|value-number| worked.
 
+\inputlst{new-value-numbering}
+
 The main loop works similarly to \factor|determine-value-numbers|.
 \factor|final-iteration?| is turned on (set to \factor|t|), and we make sure to
 compute the \factor|avail-in| sets needed to make \factor|available?| work.
@@ -224,3 +226,47 @@ For each instruction, we first use \factor|simplify| (refer to
 Thus, \factor|rewrite| does the work of propagating available subexpressions
 and simplifying instructions, then \factor|gcse| cleans up redundant
 instructions by converting them into \factor|##copy| instructions if possible.
+The new \factor|value-numbering| word can be seen in
+\vref{lst:new-value-numbering}.
+
+\inputfig{gcse-before}
+\inputfig{gcse-after}
+
+Consider for the last time\todo{oh no! relative time stamps}~the example
+%
+\factor|0 100 [ 1 fixnum+fast ] times|.
+%
+Before, we had the \gls{CFG} in \vref{fig:gcse-before}.  Making a final pass
+with \factor|eliminate-common-subexpressions| gives us the \gls{CFG} in
+\vref{fig:gcse-after}.  Compared to the \gls{CFG} after the old
+\factor|value-numbering| word was called (see \vref{fig:value-numbering}), we
+have identified several more redundancies:
+\begin{itemize}
+  \item The second \Verb|##phi| in block $2$ has been turned into a
+  \Verb|##copy| of the first.
+%
+  \item The \Verb|##compare-integer| of block $2$ has been simplified to
+  a \Verb|##compare-integer-imm|, since its operand \factor|26| is both
+  available and known to correspond to the integer value \factor|100|.
+%
+  \item Instead of a \Verb|##compare-integer-branch|, we similarly have a
+  \Verb|##compare-integer-imm-branch| at the end of block $2$.
+%
+  \item Because the \Verb|##phi|s have been recognized as copies (i.e., the
+  induction variables are congruent), the second \Verb|##add-imm| resulting
+  from the old version of \factor|value-numbering| is turned into a
+  \Verb|##copy| of the first.
+\end{itemize}
+
+\inputfig{gcse-copy-prop}
+\inputfig{gcse-dce}
+\inputfig{gcse-finalize}
+
+Afterwards, the \factor|copy-propagation| pass cleans up all of these newly
+identified copies, as seen in \vref{fig:gcse-copy-prop}.
+\factor|eliminate-dead-code| now gets rid of more instructions than before,
+such as the second \Verb|##load-integer| in block $1$, since it has been
+propagated to the \Verb|-imm| instructions in block $2$.  See
+\vref{fig:gcse-dce}.  At last, after \factor|finalize-cfg| in
+\vref{fig:gcse-finalize}, we see a loop that uses a single register---down from
+the three in \vref{fig:finalize-cfg}.
