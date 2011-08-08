@@ -1,1 +1,72 @@
 \subsection{Redundancy Elimination}\label{sec:vn:avail}
+
+Now that we've identified congruences across the entire \gls{CFG}, we must
+eliminate any redundancies found.  Since value numbering is now offline, this
+entails another pass.  However, replacing instructions is more subtle with
+global value numbers than it is with local ones.  Because values come from all
+over the \gls{CFG}, we must consider if a definition is \term{available} at the
+point where we want to use it.  
+
+\inputfig{not-avail}
+\inputfig{is-avail}
+
+\Vref{fig:not-avail,fig:is-avail} show the difference.  In the former, we can
+see the \gls{CFG} before value numbering for the code
+%
+\factor|[ 10 ] [ 20 ] if 10 20 30|.
+%
+The two extra integers being pushed at the end are there to avoid branch
+splitting (see \vref{sec:compiler:cfg}).  In block $4$, there's a
+%
+\Verb|##load-integer 27 10|,
+%
+which loads the value \factor|10|.  In globally numbering values, we associate
+the
+%
+\Verb|##load-integer 22 10|
+%
+in block $2$ with the value \factor|10| first, making it the canonical
+representative.  However, we can't replace the instruction in block $4$ with
+%
+\Verb|##copy 27 22|,
+%
+because control flow doesn't necessarily go through block $2$, so the virtual
+register \factor|22| might not even be defined.  However, in
+\vref{fig:is-avail}, we see the \gls{CFG} for the code
+%
+\factor|10 swap [ 10 ] [ 20 ] if 10 20 30|.
+%
+In this case, the first definition of the value \factor|10| comes from block
+$1$, which dominates block $4$.  So, the definition is available, and we can
+replace the \Verb|##load-integer| in block $4$ with a \Verb|##copy|.
+
+There are several ways to decide if we can use a definition at a certain point.
+For instance, we could use dominator information, so that if a definition in a
+basic block $B$ can be used by any basic block dominated by $B$\todo{cite
+Simpson}.  However, here we'll use a data flow analysis called \term{available
+expression analysis}, since it was readily implemented.  Mercifully, Factor has
+a vocabulary that automatically defines data flow analyses with little more
+than a single line of code.
+
+\inputlst{avail}
+
+\Vref{lst:avail} shows the vocabulary that defines the available expression
+analysis.  It is a forward analysis\todo{cite?}~ based on the flow equations
+below:
+\begin{align*}
+  \text{\factor|avail-in|}_i &=
+    \begin{cases}
+      \varnothing
+        & \text{if $i=0$} \\
+      \bigcap_{j\in\mathrm{pred}(i)}\text{\factor|avail-out|}_j
+        & \text{if $i>0$}
+    \end{cases} \\
+  \text{\factor|avail-out|}_i &= \text{\factor|avail-in|}_i
+                                 \cup 
+                                 \text{\factor|defined|}_i
+\end{align*}
+%
+\noindent Here, the subscripts indicate the basic block number.
+$\text{\factor|defined|}_i$ denotes the result of the \factor|defined| word
+from \vref{lst:avail}.  This returns the set of virtual registers defined in a
+basic block.

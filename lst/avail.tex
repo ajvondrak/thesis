@@ -1,0 +1,39 @@
+\centering
+
+  \begin{factorcode}
+    ! Copyright (C) 2011 Alex Vondrak.
+    ! See http://factorcode.org/license.txt for BSD license.
+    USING: accessors assocs hashtables kernel namespaces sequences
+    sets
+    compiler.cfg
+    compiler.cfg.dataflow-analysis
+    compiler.cfg.def-use
+    compiler.cfg.gvn.graph
+    compiler.cfg.predecessors
+    compiler.cfg.rpo ;
+    FROM: namespaces => set ;
+    IN: compiler.cfg.gvn.avail
+
+    : defined ( bb -- vregs )
+        instructions>> [ defs-vregs ] map concat unique ;
+
+    FORWARD-ANALYSIS: avail
+
+    M: avail-analysis transfer-set drop defined assoc-union ;
+
+    : available? ( vn -- ? )
+        final-iteration? get [
+            basic-block get avail-in key?
+        ] [ drop t ] if ;
+
+    : available-uses? ( insn -- ? )
+        uses-vregs [ available? ] all? ;
+
+    : with-available-uses? ( quot -- ? )
+        keep swap [ available-uses? ] [ drop f ] if ; inline
+
+    : make-available ( vreg -- )
+        basic-block get avail-ins get [ dupd clone ?set-at ] change-at ;
+  \end{factorcode}
+
+\caption{The \factor|compiler.cfg.gvn.avail| vocabulary}
