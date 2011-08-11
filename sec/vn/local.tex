@@ -11,8 +11,7 @@ The algorithm considers a single basic block.  For each instruction (from top
 to bottom) in the block, we essentially let the value number of the assignment
 target be a hash of the operator and the value numbers of the operands.  That
 is, we hash the \term{expression} being computed by an instruction.  Thus,
-assuming a proper hash function, two expressions are \term{congruent} (denoted
-$\texttt{x} \cong \texttt{y}$) if
+assuming a proper hash function, two expressions are \term{congruent} if
 %
 \begin{itemize}
 %

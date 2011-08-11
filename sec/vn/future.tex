@@ -8,491 +8,204 @@ options for possible directions that Factor's compiler can take from here.
 
 As it stands, the new pass could be smarter.  For instance, it does not
 consider the commutativity of certain operations.  This would be
-straightforward to solve by sorting the operands of commutative instructions
-within their \factor|>expr| methods, thereby placing them in a canonical order.
-This would increase the number of congruences discovered between \Verb|##add|s,
-\Verb|##mul|s, and even \Verb|##phi|s.
+straightforward to solve by making \factor|>expr| sort the operands of
+commutative instructions' expressions, thereby placing arguments in a canonical
+order.  This would increase the number of congruences discovered between
+\Verb|##add|s, \Verb|##mul|s, and even \Verb|##phi|s.  Also, the
+\factor|copy-propagation| pass is remarkably similar to the new
+\factor|value-numbering|---in fact, it could be removed altogether.  All it
+does is collect global information about congruences as established by
+\Verb|##copy| instructions (by a similar fixed-point iteration), then replace
+the virtual registers of instructions with the original value (i.e., the one
+not established by a \Verb|##copy|).  This allows \factor|copy-propagation| to
+remove all \Verb|##copy| instructions.  But the information calculated by
+\factor|value-numbering| is a superset of this copy-equivalence data, so it
+should be easy to do global copy propagation in the \gls{GVN} phase and save
+time on the redundant fixed-point iteration.
 
-% giving up on avail vns vs. searching for avail vn
-% subsume copy-prop
-% GC map issue?
+There remains an open question about the \gls{GVN} implementation's use of
+availability, too.  As it stands, it's rather strict: if the canonical value
+number for an expression is not directly available, \factor|rewrite| gives up
+on reusing that value.  However, the virtual registers which map to a single
+value number form a congruence class.  We need not look just at the canonical
+leader (the first virtual register in the whole program to compute the
+particular expression).  \factor|rewrite| could change an instruction to reuse
+any member of the congruence class that was available.  It remains to be seen
+when and if such a rewrite would be useful or desirable.
 
-%We can also make it more efficient in
-%practice by observing that the only times we \emph{need} to iterate are where
-%there are cyclic dependencies between values in the CFG.  For instance, in the
-%previous example \code{i$_1$} and \code{i$_2$} are cyclically dependent:
-%\code{i$_1$} is defined by a use of \code{i$_2$} and vice versa.  RPO-based
-%value numbering degenerates into hash-based value numbering on code without
-%cyclic dependencies.  Thus, a more efficient algorithm will only iterate over
-%the cycles between definitions instead of over the whole graph.  To represent
-%dependencies between values, we can use a new sort of graph called the
-%\defn{value graph} (or sometimes \defn{SSA graph}).
-%
-%\begin{figure}
-%\begin{center}
-%\begin{minipage}{0.4\linewidth}
-%\begin{tikzpicture}[node distance=1.0in,>=latex]
-%  \node[draw,label=right:$B_1$] (0) at (0,-1.25) {
-%\begin{lstlisting}
-%i$_0$ := 0
-%j$_0$ := 0
-%\end{lstlisting}
-%};
-%  \node[draw,label=right:$B_2$] (1) [below of=0] {
-%\begin{lstlisting}
-%i$_1$ := $\phi($i$_0$,i$_2)$
-%j$_1$ := $\phi($j$_0$,j$_2)$
-%i$_2$ := i$_1$ + 1
-%j$_2$ := j$_1$ + 1
-%if $P$ goto $B_2$
-%\end{lstlisting}
-%};
-%
-%  \draw[->] (0,0) -- (0);
-%  \draw[->] (0) -- (1);
-%  \draw (1.south)
-%        edge[->,out=180,in=270,controls=+(35:-4) and +(-35:-4)]
-%        (1.north);
-%\end{tikzpicture}
-%\end{minipage}
-%\vrule
-%\begin{minipage}{0.4\linewidth}
-%\begin{tikzpicture}[node distance=0.5in,>=latex,->]
-%\node[circle,draw,label=above:\code{i$_1$}] (i1) at (0,0) {$\phi$};
-%\node[circle,draw,label=left:\code{i$_0$}]  (i0) [below left of=i1] {\code{0}};
-%\node[circle,draw,label=right:\code{i$_2$}] (i2) [below right of=i1]{\code{+}};
-%\node[circle,draw,minimum size=2em] (1) [below right of=i2] {\code{1}};
-%
-%\draw (i1) edge (i0) edge (i2)
-%      (i2) edge (1) edge[->,curve to,in=0] (i1.east);
-%
-%\node[circle,draw,label=above:\code{j$_1$}] (j1) at (4,0) {$\phi$};
-%\node[circle,draw,label=left:\code{j$_0$}]  (j0) [below left of=j1] {\code{0}};
-%\node[circle,draw,label=right:\code{j$_2$}] (j2) [below right of=j1]{\code{+}};
-%
-%\draw (j1) edge (j0) edge (j2)
-%      (j2) edge (1) edge[->,curve to,in=0] (j1.east);
-%
-%\end{tikzpicture}
-%\end{minipage}
-%\end{center}
-%\caption{Value Graph Construction}
-%\label{fig:value-graph}
-%\end{figure}
-%
-%Given three-address code in SSA form, the value graph is constructed by
-%converting each definition of a variable (the \emph{only} definition, by SSA
-%form) into a vertex labeled by that variable (usually drawn on the outside of
-%the vertex).  Each such vertex is also labeled on the inside by the operation
-%of the definition (\code{+}, \code{-}, $\phi$, etc.) and has a directed edge to
-%vertices representing the other SSA values that the definition uses.  Edges are
-%\emph{ordered} in the same way that operands are for the definition.  Constants
-%are converted into single vertices whose inside labels are just the constants,
-%and have no outside labels.  Constant assignments/moves of the form
-%\lstinline|x := y| are typically written with just a single vertex whose inside
-%label is \lstinline|y| and whose outside label is \lstinline|x|, though in
-%principle you could just use an inner label of, say, ``\lstinline|:=|''.  An
-%example is given in Figure~\vref{fig:value-graph}.
-%
-%Notice that value graphs just codify def-use information that we already have.
-%Their purpose here is conceptual; in actual implementations, it's not necessary
-%to build up a whole value graph.  \defn{Strongly connected components}
-%(\defn{SCC}s) of the value graph represent portions of code that have some
-%cyclic dependency---the parts that require iteration until reaching a fixed
-%point.  Using an algorithm due to \citeasnoun{Tarjan}, Simpson alters
-%Algorithm~\ref{alg:rpo} in his dissertation to form the \defn{SCC-Based
-%Algorithm}.  We refrain from further discussion of this algorithm, as it's
-%conceptually simple, but there's a deceptively large amount of pseudocode for
-%it.  Most of the code is for discovering the SCCs and iterating over them
-%individually.  It requires some tweaks, such as introducing two different types
-%of hash tables for values instead of the single \id{table} of
-%Algorithm~\ref{alg:rpo}.   SCC-based value numbering is preferred to the RPO
-%algorithm since it's more efficient in practice, but the principles are the
-%same.  This gives us a comparatively simple, easily-extended algorithm for
-%global value numbering with complexity $O(nd)$, where $n$ is the number of
-%vertices in the value graph (i.e., the number of values we're numbering) and
-%$d$ is the \defn{loop connectedness} (the maximum number of back edges on any
-%acyclic path) of the value graph.  Though $d$ can theoretically be $O(n)$, in
-%practice it seems to be bounded by a small constant.  In Simpson's experiments,
-%the maximum value of $d$ was $4$.
-%
-%\subsubsection{Predicated Global Value Numbering}
-%
-%The latest work I've found in this line of GVN research comes from
-%\citeasnoun{Gargi}, who proposes an ``everything but the kitchen sink''
-%algorithm that surpasses those we've studied so far.  The pseudocode is a bit
-%lengthy to cover here, since it stretches over the several different
-%optimizations that his algorithm incorporates.  At a high level, Gargi combines
-%\begin{itemize}
-%  \item optimistic value numbering, thus emulating \possessivecite{Simpson} RPO
-%        and SCC algorithms; 
-%  \item constant folding, algebraic simplification, and unreachable code
-%        elimination, thus emulating \possessivecite{Click} strongest
-%        combination;
-%  \item global reassociation, which replaces an expression's operands with
-%        their defining statements and applies commutative, associative, and
-%        distributive laws to rewrite them into a canonical form that can be
-%        used to identify more congruences; 
-%  \item predicate inference, which can infer the values of relational
-%        expressions dominated by some related predicate (i.e., in blocks
-%        dominated by a conditional \lstinline|goto|);
-%  \item value inference, which can infer the values of variables dominated by
-%        some related predicate (i.e., infer actual equality of values, unlike
-%        predicate inference); and
-%  \item $\phi$-predication, which (if possible) associates each argument of a
-%        $\phi$ with the predicate that controls the path that leads to the
-%        selection of that argument, thus letting us find conditional
-%        congruences.
-%\end{itemize}
-%This combination is given in a \defn{sparse} formulation, which makes it
-%efficient enough to apply all of these optimizations.  Essentially, when
-%optimistic assumptions are invalidated (which, of course, happens as we iterate
-%until reaching the fixed point), instead of recalculating every result (as in
-%the RPO algorithm), we only recalculate the values that may yet change from
-%this new information (as in the SCC algorithm).
-%
-%\begin{figure}
-%  \begin{center}
-%    \begin{codebox}
-%      \Procname{$\proc{r}(x, y, z)$}
-%      \li $i \gets 1$
-%      \li $j \gets 1$
-%      \li \While \const{True} \Do \label{li:gargi-while}
-%      \li   \If $j > 9$ \label{li:gargi-j>9}
-%      \li   \Then \kw{break}
-%            \End
-%      \li   $j \gets j + 1$ \label{li:gargi-j++}
-%      \li   \If $i \ne 1$ \label{li:gargi-i!=1}
-%      \li   \Then $i \gets 2$
-%            \End
-%      \li   \If $y \isequal x$ \label{li:gargi-y==x}
-%      \li   \Then $p \gets 0$
-%      \li         \If $x \ge 1$ \label{li:gargi-x>=1}
-%      \li         \Then \If $i \ne 1$ \label{li:gargi-inner-i!=1}
-%      \li               \Then $p \gets 2$
-%      \li               \ElseIf $x \le 9$ \label{li:gargi-x<=9}
-%      \li               \Then $p \gets i$ \label{li:gargi-p=i}
-%                        \End
-%                  \End
-%      \li         $q \gets 0$
-%      \li         \If $i \le y$ \label{li:gargi-i<=y}
-%      \li         \Then \If $9 \ge y$ \label{li:gargi-9>=y}
-%      \li               \Then $q \gets 1$
-%                        \End
-%                  \End
-%      \li         \If $z > i$ \label{li:gargi-z>i}
-%      \li         \Then $i \gets p + (x + 2) + (z < 1) - (i + y) - q$
-%                  \label{li:gargi-nasty}
-%                  \End
-%            \End
-%          \End
-%      \li \Return{$i$}
-%    \end{codebox}
-%  \end{center}
-%  \caption{Gargi's Predicated GVN Example}
-%  \label{fig:predicated-gvn-ex}
-%\end{figure}
-%
-%Any portion of Gargi's algorithm may be selectively disabled, thus letting us
-%tweak it for specific compile time vs. code quality trade-offs we might have.
-%It promotes a fairly good separation of concerns in the algorithm, too, letting
-%the pseudocode be presented piecemeal for each optimization.\footnote{In all,
-%the paper is quite readable and to-the-point.  In particular, it gives a very
-%lucid treatment of all the history covered by this proposal so far, and how the
-%presented algorithm compares to existing ones.}
-%Figure~\vref{fig:predicated-gvn-ex} presents pseudocode for a procedure that
-%will always return $1$ \cite{Gargi}---a compelling example of the strength of
-%predicated value numbering.  The code is not in SSA form (which the algorithm
-%uses), but the inferences go roughly as follows.
-%
-%\begin{itemize}
-%  \item Optimistic value numbering assumes $i$ and $j$ are $1$ upon entering
-%        the \kw{while} loop on line~\ref{li:gargi-while}, though this may be
-%        disproved later.
-%
-%  \item Unreachable code elimination ignores the redefinition of $i$ controlled
-%        by line~\ref{li:gargi-i!=1} since we assumed $i$ was $1$ and, as it
-%        turns out, we won't disprove it.  However, we can't make the same
-%        inference for the conditional on line~\ref{li:gargi-j>9}, since we
-%        disprove that $j$ is always $1$: it gets incremented on
-%        line~\ref{li:gargi-j++}.
-%
-%  \item At line~\ref{li:gargi-y==x}, notice that we have no actual information
-%        about $y$ and $x$.  However, value inference tells us that $x$ and $y$
-%        have the same value within the ``then'' branch, since that code is
-%        dominated by the predicate $y \isequal x$.
-%
-%  \item $p$ is assigned $0$, then since the predicate of
-%        line~\ref{li:gargi-x>=1} dominates the ``then'' code, predicate
-%        inference tells us that $x \ge 1$ within it.
-%
-%  \item Unreachable code elimination winds up ruling out the conditional on
-%        line~\ref{li:gargi-inner-i!=1}, since by the end of this we fail to
-%        disprove the optimistic assumption that $i$ is $1$.  Thus, $p$ isn't
-%        redefined, leaving the conditional of line~\ref{li:gargi-x<=9}.
-%
-%  \item $\phi$-predication lets us find the congruence between $q$ and $p$.  If
-%        $x \ge 1$ at line~\ref{li:gargi-x>=1}, then $i \le y$ at
-%        line~\ref{li:gargi-i<=y} because $x$ and $y$ were equal and $i$ is $1$.
-%        Then, if $x \le 9$ at line~\ref{li:gargi-x<=9}, $9 \ge y$ is also true
-%        at line~\ref{li:gargi-9>=y} because $x$ and $y$ have the same value.
-%        Thus, if the $x$ branches are taken, the $y$ ones are taken, too.  So
-%        either $p$ and $q$ are both assigned $0$, or they're both assigned $1$
-%        ($i$ is still $1$ at line~\ref{li:gargi-p=i}).
-%
-%  \item At line~\ref{li:gargi-z>i}, predicate inference tells us that $z < 1$
-%        is false in the following line.  Presumably in this programming
-%        language, falsity is represented by $0$.
-%
-%  \item Global reassociation, constant folding, and algebraic simplication can
-%        simplify the nasty expression in line~\ref{li:gargi-nasty}.  It
-%        accomplishes the same thing as simplification by hand:
-%        \begin{align*}
-%          i &\gets p + (x + 2) + (z < 1) - (i + y) - q \\
-%            &\gets (p - q) + (z < 1) + (x + 2) - (i + y) \\
-%            &\gets (p - q) + (z < 1) + (x - y) + (2 - i) \\
-%            &\gets \cancelto{0}{(p - q)} + (z < 1) + (x - y) + (2 - i)
-%                   \tag{since $p \isequal q$} \\
-%            &\gets \cancelto{0}{(z < 1)} + (x - y) + (2 - i)
-%                   \tag{since $z > 1$} \\
-%            &\gets \cancelto{0}{(x - y)} + (2 - i)
-%                   \tag{since $x \isequal y$} \\
-%            &\gets 2 - 1
-%                   \tag{since $i \isequal 1$} \\
-%            &\gets 1
-%        \end{align*}
-%        Thus, $i$ is still $1$.  Since we can't disprove it, optimistic value
-%        numbering asserts $i$'s value is $1$, which is what \proc{r} returns.
-%\end{itemize}
-%
-%This shows the usefulness not just of predication, but of the \emph{unified}
-%approach, as performing any of these analyses separately will fail to find the
-%desired result \cite{Gargi}.  Further, another property of the algorithm that
-%can be enabled makes it \defn{balanced}.  This strikes a middle ground between
-%optimism and pessimism by making separate assumptions: optimistically that
-%basic blocks of the CFG are unreachable\footnote{Though it might seem weird
-%that \emph{un}reachability is optimistic, we would prefer that most blocks are
-%unreachable.  There'd be less code to worry about.} and pessimistically that
-%values are all distinct.  The balanced assumptions make the algorithm weaker
-%than optimistic assumptions would, but they also make the algorithm faster.
-%
-%\subsubsection{Abstract Interpretation and Global Value Numbering}
-%\label{sec:abstract-interpretation}
-%
-%As promised, we now turn to another important GVN bloodline that developed
-%alongside the methods we've seen.  These approaches are more formal and less
-%implementation-driven than the previous ones.  For those acquainted with
-%Chapter~9 of The Dragon Book \cite{DragonBook}, this work will seem familiar,
-%as it's rooted in the results of \citeasnoun{Kildall} and \citeasnoun{Cousot},
-%upon which the chapter is based.  The former was a precursor to GVN, in that it
-%described an algorithm for common subexpression elimination that partitioned
-%expressions into congruence classes.  However, its method was phrased in terms
-%of \defn{lattices}, which are algebraic structures that we can reason about
-%formally.  This is as in The Dragon Book: a lattice is a partially-ordered set
-%for which any two elements have a unique \defn{least upper bound} (or
-%\defn{join}) and \defn{greatest lower bound} (or \defn{meet}).  By defining
-%meet and join operators on a partially-ordered set of abstract values, we can
-%represent many sorts of analyses on our programs.
-%
-%\begin{figure}
-%\begin{center}
-%  \begin{tikzpicture}[level 1/.style={sibling distance=2in},
-%                      level 2/.style={sibling distance=0.5in}]
-%    \node{$\pm$}
-%      child {node {$-$}
-%             child {node (-inf) {\ldots}}
-%             child foreach \x in {-3,...,-1} {node (\x) {$\x$}}
-%             child {node (0) {$0$}
-%                    child {node (bot) {$\bot$}}}}
-%      child {node (+) {$+$}
-%             child[missing]
-%             child foreach \x in {1,...,3} {node (\x) {$\x$}}
-%             child {node (+inf) {\ldots}}};
-%      \draw (+) -- (0);
-%      \draw (bot) -- (-inf);
-%      \foreach \x in {-3,...,3} \draw (bot) -- (\x);
-%      \draw (bot) -- (+inf);
-%  \end{tikzpicture}
-%\end{center}
-%\caption{Abstract Interpretation Over Signs}
-%\label{fig:lattice-ex}
-%\end{figure}
-%
-%\citeasnoun{Cousot} formalize the salient properties of such interpretation
-%over lattices in a framework dubbed \defn{abstract interpretation}.  To
-%understand it intuitively, consider some arithmetic expression like $(-5 \times
-%14)$.  Our first inclination is probably to interpret it with respect to
-%numeric values, but we can understand it in several different contexts.  Let's
-%use signs ($+$, $-$, and $\pm$) as our abstract domain and consider the
-%operators to be defined by the rules of signs.  Figure~\vref{fig:lattice-ex}
-%shows a lattice we can use for this.  Using a version of $\times$ cast in the
-%context of this lattice, we can interpret $(-5 \times 14)$ as $$-5 \times 14
-%\quad\to\quad (-) \times (+) \quad\to\quad (-)$$ proving that $(-5 \times 14)$
-%is negative.  Using this framework, the results are correct, but only useful
-%within the confines of what we define.  For instance, we can interpret $(-5 +
-%14)$ as $$-5 + 14 \quad\to\quad (-) + (+) \quad\to\quad (\pm)$$ proving very
-%little---the result is either positive or negative.
-%
-%Despite the inherent limitations, we find the results useful as approximations
-%of more complex properties.  For example, we used congruence to approximate
-%runtime equivalence.  Only a year before AWZ was published,
-%\citeasnoun{Steffen} showed that Kildall's approach could be framed as abstract
-%interpretation over \defn{Herbrand equivalences}---that is, equivalences where
-%operators are \emph{uninterpreted}.  This is actually the same notion of
-%congruence we had from before: expressions are equivalent if their operators
-%and operands are equivalent, irrespective of the result of applying the
-%operator.
-%
-%The primary strength of the abstract interpretation approaches are that they
-%are \defn{complete}; intuitively, there is no loss of information at each step
-%of abstract interpretation.  However, this ``loss of information'' is relative
-%to the information encompassed by the abstract domains \cite{Completeness}.
-%While we can find all Herbrand equivalences, we aren't guaranteed to find
-%equivalences induced by interpreting operators, which was effectively the work
-%done by combining optimizations in Section~\ref{sec:combining} (e.g., constant
-%folding is the interpretation of certain operators upon constant operands).
-%So, while complete, these approaches vary in \defn{preciseness}.  Most of the
-%work I found in the abstract interpretation of GVN did little to study the
-%results of interpreting the same operators we saw before, but note it's a
-%promising direction for future research.
-%
-%The cost of this completeness has traditionally been exponential time
-%complexities.  There have been several attempts to remedy this.
-%\citeasnoun{RKS} note AWZ is incomplete, since it treats $\phi$ functions as
-%uninterpreted, so fails to discover congruences between $\phi$s and ordinary
-%expressions.  Their attempt to improve upon it alternately applies AWZ and the
-%normalization rules
-%\begin{align*}
-%  \phi(a \mathbin{\id{op}} b, c \mathbin{\id{op}} d) &\quad\to\quad
-%  \phi(a, c) \mathbin{\id{op}} \phi(b, d) \\
-%  \phi(x, x) &\quad\to\quad x
-%\end{align*}
-%until the partitioning reaches a fixed point.  However, this is $O(n^2 \log n)$
-%in the expected case---$O(n^4 \log n)$ in the worst case---and it turned out to
-%be incomplete not just in the presence of cycles \cite{RKS} but also in certain
-%acyclic code \cite{Gulwani07}.
-%
-%Later, \citeasnoun{Gulwani04} furthered the quest for an efficient, complete
-%GVN algorithm in a novel way by using \defn{randomized interpretation} (which
-%is what it sounds like).  The paper even explored various
-%interpretations---specifically of linear combinations, bitwise operators,
-%memory loads/stores, and integer division---that could make results more
-%precise.  But it was still $O(n^4)$ and ran a small chance of making incorrect
-%inferences due to its randomized nature.  For compilers, this isn't really
-%acceptable, though such a scheme could be used in things like program
-%verification tools \cite{Nie}.
-%
-%From their trip back to the drawing board, \citeasnoun{Gulwani07} returned with
-%a polynomial time algorithm for GVN that is complete for all Herbrand
-%equivalences among terms of a limited size.  Choosing a size bound equal to the
-%size of the entire program is clearly sufficient.  Note, however, that this is
-%only for \emph{Herbrand} equivalences; they do not show their results for any
-%interpreted operators, but note it's an important area for exploration.  Adding
-%to this, \citeasnoun{Nie} present a similar algorithm, except based on SSA
-%form.  Both wind up using the same size restrictions to guarantee complexity.
-%Both also use an additional special-purpose data structure to represent the set
-%of Herbrand equivalences and to perform abstract evaluations over them, which
-%adds a conceptual load to the algorithms and might make them more difficult to
-%implement.  However, unlike most other abstract interpretation-based
-%algorithms, \possessivecite{Nie} is demonstrably practical, as the authors
-%implemented it for GCC.  In their experiments, the size restriction turned out
-%to be unnecessary for avoiding the exponential case, showing that the main
-%bottleneck in complete GVN algorithms is typically their poor data structure
-%choices.
+Existing literature also gives plenty of material for a better implementation.
+We can make the existing \gls{RPO} algorithm more efficient in practice by
+observing that the only times we need to iterate are where there are cyclic
+dependencies between values in the \gls{CFG}.  For instance, the example from
+\cref{sec:vn:avail} only has cyclic dependencies in the induction variables:
+the \Verb|##phi|s are defined by uses of virtual registers that are themselves
+defined by uses of the \Verb|##phi| targets in \Verb|##add|s.  The \gls{RPO}
+algorithm degenerates into the hash-based local algorithm of
+\cref{sec:vn:local} on straight-line code.  Thus, a more efficient algorithm
+will only iterate over the cycles between definitions instead of over the whole
+\gls{CFG}.  
 
-%---PRE-------------------------------------------------------------------------
+Conceptually, we build a \term{value graph} (also known as \term{\gls{SSA}
+graph}\todo{cite}) whose nodes represent definitions and directed edges
+represent uses.  Since it just codifies def-use information, we needn't build
+an actual graph data structure.  Using an algorithm due to
+Tarjan\todo{cite-like}, \glsplural{SCC} of the value graph are iterated upon,
+while single nodes are processed only once.  The \gls{SCC} algorithm is more
+efficient than the \gls{RPO} algorithm in practice, but the principles are the
+same.  This gives us a comparatively simple, easily-extended \gls{GVN}
+algorithm with complexity $O(nd)$, where $n$ is the number of vertices in the
+value graph (i.e., the number of values we're numbering) and $d$ is the
+\term{loop connectedness} (the maximum number of back edges on any acyclic
+path) of the value graph.  Though $d$ can theoretically be $O(n)$, in practice
+it seems to be bounded by a small constant.  In Simpson's\todo{cite-like}
+experiments, the maximum value of $d$ was $4$.
 
-%\begin{figure}
-%  \begin{center}
-%    \begin{minipage}{0.4\linewidth}
-%      \begin{tikzpicture}[node distance=1.0in,>=latex]
-%        \node[draw,label=right:$B_1$] (1) at (0,-1.25)
-%          {\lstinline|if $P$ goto $B_3$|};
-%        \node[draw,label=left:$B_2$] (2) [below left of=1]
-%          {\lstinline|x := a + b|};
-%        \node[draw,label=right:$B_3$] (3) [below right of=1]
-%          {\lstinline|z := 10|};
-%        \node[draw,label=right:$B_4$] (4) [below right of=2]
-%          {\lstinline|y := a + b|};
+A more thorough overhaul could incorporate further rewriting of the
+instructions.  Gargi\todo{cite-like}~proposes a \term{predicated} value
+numbering algorithm that combines
+\begin{itemize}
+  \item optimistic value numbering, thus emulating Simpson's\todo{cite}
+        \gls{RPO} and \gls{SCC} algorithms; 
+  \item constant folding, algebraic simplification, and unreachable code
+        elimination, thus emulating Click's\todo{cite} strongest combination;
+  \item global reassociation, thus performing the work already done in Factor;
+  \item predicate inference, which can infer the values of comparisons
+        dominated by some related predicate (i.e., comparisons in a block that
+        is only reached via a particular conditional);
+  \item value inference, which can infer the values of variables dominated by
+        some related predicate (similar to range propagation, as seen in
+        \cref{sec:compiler:tree}); and
+  \item $\phi$-predication, which (if possible) associates each input of a
+        $\phi$ with the predicate that controls the path that leads to the
+        selection of that argument, thus letting us find flow-sensitive
+        congruences.
+\end{itemize}
+
+This combination is given in a \term{sparse} formulation, which makes it
+efficient enough to apply all of these optimizations.  Essentially, when
+optimistic assumptions are invalidated (which, of course, happens as we iterate
+until reaching the fixed point), instead of recalculating every result (as in
+the \gls{RPO} algorithm), we only recalculate the values that may yet change
+from this new information (as in the \gls{SCC} algorithm).
+
+Any portion of Gargi's\todo{cite-like}~algorithm may be selectively disabled,
+thus letting us tweak it for specific compile time vs.~code quality trade-offs
+we might have.  It promotes a fairly good separation of concerns in the
+algorithm, too, letting the pseudocode be presented piecemeal for each
+optimization.  Gargi\todo{cite-like}~presents compelling examples of predicated
+value numbering's strength, and its addition to Factor could prove very
+worthwhile.
+
+Historically, the development of \gls{GVN} algorithms has forked along two
+concurrent bloodlines.  Those we've studied thus far reflect the more
+``practical'' line, which was largely implementation-driven and less formal
+than the other algorithms.  But those focused on formal reasoning have recently
+become much more viable, and the wealth of ideas from them are worthwhile.
+
+For those acquainted with Chapter~$9$ of The Dragon Book\todo{cite}, this work
+will seem familiar, as it's rooted in the results of Kildall\todo{cite}~and
+Cousot\todo{cite}, upon which the chapter is based.  The former was a precursor
+to \gls{GVN}, in that it described an algorithm for common subexpression
+elimination that partitioned expressions into congruence classes.  However, its
+method was phrased in terms of \term{lattices}, which are algebraic structures
+that we can reason about formally.  This is as in The Dragon
+Book\todo{cite-like}: a lattice is a partially-ordered set for which any two
+elements have a unique \term{least upper bound} (or \term{join}) and
+\term{greatest lower bound} (or \term{meet}).  By defining meet and join
+operators on a partially-ordered set of abstract values, we can represent many
+sorts of analyses on our programs.
+
+\inputfig{lattice}
+
+Cousot\todo{cite}~formalize the salient properties of such interpretation over
+lattices in a framework dubbed \term{abstract interpretation}.  To understand
+it intuitively, consider some arithmetic expression like $(-5 \times 14)$.  Our
+first inclination is probably to interpret it with respect to numeric values,
+but we can understand it in several different contexts.  Let's use signs ($+$,
+$-$, and $\pm$) as our abstract domain and consider the operators to be defined
+by the rules of signs.  \Vref{fig:lattice} shows a lattice we can use for this.
+Using a version of $\times$ cast in the context of this lattice, we can
+interpret $(-5 \times 14)$ as
 %
-%        \draw[->] (0,0) -- (1);
-%        \draw (1) edge[->] (2)
-%                  edge[->] (3)
-%              (2) edge[->] (4)
-%              (3) edge[->] (4);
-%      \end{tikzpicture}
-%    \end{minipage}
-%    \quad
-%    \vrule
-%    \quad
-%    \begin{minipage}{0.4\linewidth}
-%      \begin{tikzpicture}[node distance=1.0in,>=latex]
-%        \node[draw,label=right:$B_1$] (1) at (0,-1.25)
-%          {\lstinline|if $P$ goto $B_3$|};
-%        \node[draw,label=left:$B_2$] (2) [below left of=1]
-%          {\begin{lstlisting}
-%t := a + b
-%x := t
-%           \end{lstlisting}};
-%        \node[draw,label=right:$B_3$] (3) [below right of=1]
-%          {\begin{lstlisting}
-%t := a + b
-%z := 10
-%           \end{lstlisting}};
-%        \node[draw,label=right:$B_4$] (4) [below right of=2]
-%          {\lstinline|y := t|};
+$$-5 \times 14 \quad\to\quad (-) \times (+) \quad\to\quad (-)$$
 %
-%        \draw[->] (0,0) -- (1);
-%        \draw (1) edge[->] (2)
-%                  edge[->] (3)
-%              (2) edge[->] (4)
-%              (3) edge[->] (4);
-%      \end{tikzpicture}
-%    \end{minipage}
-%  \end{center}
-%  \caption{Partial Redundancy Elimination Example}
-%  \label{fig:pre-ex}
-%\end{figure}
+proving that $(-5 \times 14)$ is negative.  Using this framework, the results
+are correct, but only useful within the confines of what we define.  For
+instance, we can interpret $(-5 + 14)$ as
 %
-%\defn{Code motion} is a general term for several algorithms that all
-%essentially move code to more opportune places.  \citeasnoun{Simpson} discusses
-%some well-known ones, the most important of which is \defn{partial redundancy
-%elimination} (\defn{PRE}).  This is a combination of redundancy elimination and
-%loop-invariant code motion.  Intuitively, Figure~\vref{fig:pre-ex} illustrates
-%the process of PRE on the left CFG, transforming it into the right CFG (they're
-%not actually in SSA form, but it's not important for this example).  On the
-%left side, the expression \lstinline|a + b| is partially redundant: if control
-%flow goes $B_1 \to B_2 \to B_4$, it's computed twice, but if flow goes $B_1 \to
-%B_3 \to B_4$, it's computed only once.  Because of the control flow, common
-%subexpression elimination isn't an option: \lstinline|x| isn't computed along
-%one of the paths, so we couldn't just replace \lstinline|y := a + b| with
-%\lstinline|y := x|.  PRE's job is thus to make the expression \defn{fully
-%redundant} by making both $B_2$ and $B_3$ compute it.  Then we can perform a
-%form of common subexpression elimination so \lstinline|a + b| is computed only
-%once, as seen in the CFG on the right.
+$$-5 + 14 \quad\to\quad (-) + (+) \quad\to\quad (\pm)$$
 %
-%As originally described \cite{PRE}, PRE is a complex, lexically-based analysis
-%involving several dataflow analyses.  \citeasnoun{Simpson} devotes a good chunk
-%of his PhD to improving PRE results with value numbers; \citeasnoun{VanDrunen}
-%dedicates an entire dissertation to it.  Similarly to \textsc{Avail} analysis,
-%we can improve PRE using the congruences we discovered with value numbering.
-%The results are well worth it, as PRE is a very strong optimization that
-%subsumes classic algorithms for global common subexpression elimination and
-%loop-invariant code motion.
-%
-%Notice that the PRE example in Figure~\vref{fig:pre-ex} actually enlarged the
-%code.  Indeed, it's generally accepted that redundancy elimination often
-%increases \defn{register pressure}.  Modern CPU architectures tend have a
-%limited set of very fast \defn{registers} for data storage, and we'd like to
-%allocate values in a running program to registers so that we can do as much
-%work as possible without accessing other, slower memory.  Thus, register
-%pressure is the burden of allocating registers to these values: if there are
-%more values than registers, we start having to spend time swapping values in
-%and out of registers, slowing the whole program down.  \citeasnoun{Simpson}
-%spends a chapter looking at ways of relieving register pressure by introducing
-%certain redundancies according to different heuristics.\footnote{As a bonus, he
-%also includes an algorithm for operator strength reduction that uses the same
-%SCC-based techniques of the value numbering.}  The moral here is that
-%overaggressive redundancy elimination may or may not improve a program's
-%efficiency; the only way to really see improvements is to implement these
-%algorithms and observe their behavior, modifying when necessary.
+proving very little---the result is either positive or negative.
+
+Despite the inherent limitations, we find the results useful as approximations
+of more complex properties.  For example, we used congruence to approximate
+runtime equivalence.  Only a year before AWZ\todo{gls?}~was published,
+Steffen\todo{cite}~showed that Kildall's\todo{cite-like}~approach could be
+framed as abstract interpretation over \term{Herbrand equivalences}---that is,
+equivalences where operators are uninterpreted.  This is actually the same
+notion of congruence we had from before: expressions are equivalent if their
+operators and operands are equivalent, irrespective of the result of applying
+the operator.
+
+The primary strength of the abstract interpretation approaches are that they
+are \term{complete}; intuitively, there is no loss of information at each step
+of abstract interpretation.  However, this ``loss of information'' is relative
+to the information encompassed by the abstract domains\todo{cite}.  While we
+can find all Herbrand equivalences, we aren't guaranteed to find equivalences
+induced by interpreting operators, which was effectively the work done by
+combining optimizations (e.g., constant folding is the interpretation of
+certain operators upon constant operands).  So, while complete, these
+approaches vary in \term{preciseness}.  Most of the work in the abstract
+interpretation of \gls{GVN} did little to study the results of interpreting the
+same operators we saw before, but note it's a promising direction for future
+research.
+
+The cost of this completeness has traditionally been exponential time
+complexities.  There have been several attempts to remedy this.
+RKS\todo{cite}~note AWZ\todo{gls?}~is incomplete, since it treats $\phi$
+functions as uninterpreted, so fails to discover congruences between $\phi$s
+and ordinary expressions.  Their attempt to improve upon it alternately applies
+AWZ\todo{gls?}~and the normalization rules
+\begin{align*}
+  \phi(a\otimes b, c\otimes d) &\quad\to\quad \phi(a,c) \otimes \phi(b,d) \\
+  \phi(x, x) &\quad\to\quad x
+\end{align*}
+until the partitioning reaches a fixed point.  However, this is $O(n^2 \log n)$
+in the expected case---$O(n^4 \log n)$ in the worst case---and it turned out to
+be incomplete not just in the presence of cycles\todo{cite RKS} but also in
+certain acyclic code\todo{cite Gulwani07}.
+
+Later, Gulwani04\todo{cite}~furthered the quest for an efficient, complete
+\gls{GVN} algorithm in a novel way by using \term{randomized interpretation}
+(which is what it sounds like).  The paper even explored various
+interpretations---specifically of linear combinations, bitwise operators,
+memory loads/stores, and integer division---that could make results more
+precise.  But it was still $O(n^4)$ and ran a small chance of making incorrect
+inferences due to its randomized nature.  For compilers, this isn't really
+acceptable, though such a scheme could be used in things like program
+verification tools\todo{cite Nie}.
+
+From their trip back to the drawing board, Gulwani07\todo{cite}~returned with a
+polynomial time algorithm for \gls{GVN} that is complete for all Herbrand
+equivalences among terms of a limited size.  Choosing a size bound equal to the
+size of the entire program is clearly sufficient.  Note, however, that this is
+specifically for Herbrand equivalences; they do not show their results for any
+interpreted operators, but note it's an important area for exploration.  Adding
+to this, Nie\todo{cite}~present a similar algorithm, except based on \gls{SSA}
+form.  Both wind up using the same size restrictions to guarantee complexity.
+Both also use an additional special-purpose data structure to represent the set
+of Herbrand equivalences and to perform abstract evaluations over them, which
+adds a conceptual load to the algorithms and might make them more difficult to
+implement.  However, unlike most other abstract interpretation-based
+algorithms, Nie's\todo{cite}~is demonstrably practical, as the authors
+implemented it for GCC\todo{gls?}.  In their experiments, the size restriction
+turned out to be unnecessary for avoiding the exponential case, showing that
+the main bottleneck in complete \gls{GVN} algorithms is typically their poor
+data structure choices.
+
+Clearly, there is much room for future exploration.  Even without crossing the
+boundaries of \gls{GVN} into the scope of other compiler optimizations, we can
+eliminate all sorts of redundancies.  The literature has a wealth of algorithms
+that all warrant experimentation.  With varying degrees of aggressiveness,
+there are several opportunities to make Factor a more efficient high-level
+language.
