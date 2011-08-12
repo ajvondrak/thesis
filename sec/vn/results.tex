@@ -19,15 +19,16 @@ average running time of programs, and to do so without changing their
 semantics.  Short of formal verification, the latter requirement makes it
 necessary to thoroughly test any code that gets compiled with the new pass
 enabled.  To this end, we'll employ Factor's extensive unit test coverage.
-Because Factor is self-hosting, its standard vocabularies are written in Factor
-code, typically coupled with tests.  While some vocabularies will have more
-test coverage than others, the total amount of tests is quite large.  By
-compiling each vocabulary and running their tests, we're indirectly testing the
-compiler: if tests that used to pass no longer do, then the new pass is
-changing the semantics of the code somehow.  Though all tests passing does not
+Because Factor is (largely) self-hosting, its standard vocabularies are written
+in Factor code, typically coupled with tests.  While some vocabularies will
+have more test coverage than others, the total amount of tests is quite large.
+By compiling each vocabulary and running their tests, we're indirectly testing
+the compiler: if tests that used to pass no longer do, then the new pass is
+changing the semantics of the code somehow.  Though passing all tests does not
 guarantee the algorithm is correct, it does let us know that no known
 regressions have been introduced.  Happily, with the new
-\factor|value-numbering| phase enabled, all the old unit tests still pass.
+\factor|value-numbering| phase enabled, all the same tests pass as before in a
+call to \factor|test-all| from a freshly bootstrapped image.
 
 The efficacy of the changes, on the other hand, must be measured relative to
 old benchmarks.  Again, Factor has its bases covered, with a suite of $80$
@@ -164,6 +165,6 @@ Benchmark & Before (seconds) & After (seconds) & Change (\%) \\
 
 Overall, even transitioning to a relatively simple \gls{GVN} algorithm amounts
 to a positive change in Factor's compiler.  More redundancies are eliminated,
-resulting in speedier programs.  The implementation is at least as sound as the
-previous local value numbering pass, according to the unit tests, as all the
-same ones have passed.
+resulting in speedier programs.  Judging by unit tests, the implementation is
+at least as sound as the previous local value numbering,  as all the same tests
+have passed.
