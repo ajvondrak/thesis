@@ -1,6 +1,6 @@
 \subsection{Low-level Optimizations}\label{sec:compiler:cfg}
 
-The low-level \gls{IR} in \factor|compiler.cfg| takes the more conventional
+The low-level \gls{IR} in \Verb|compiler.cfg| takes the more conventional
 form of a \gls{CFG}.  A \gls{CFG} (not to be confused with ``context-free
 grammar'') is an arrangement of instructions into \term{basic blocks}: maximal
 sequences of ``straight-line'' code, where control does not transfer out of or
@@ -14,11 +14,11 @@ code.  There are over a hundred of these instructions, but many are simply
 different versions of the same operation.  For instance, while instructions are
 generally called on \term{virtual registers} (represented in Factor simply by
 integers), there are \term{immediate} versions of instructions.  The
-\factor|##add| instruction, as an example, represents the sum of the contents
-of two registers, but \factor|##add-imm| sums the contents of one register and
+\Verb|##add| instruction, as an example, represents the sum of the contents
+of two registers, but \Verb|##add-imm| sums the contents of one register and
 an integer literal.  Other instructions are inserted to make stack reads and
 writes explicit, as well as to balance the height.  Below is a categorized list
-of all the instruction objects (each one is a subclass of the \factor|insn|
+of all the instruction objects (each one is a subclass of the \Verb|insn|
 tuple).
 
 \todo[inline]{Is the complete list really necessary?}
@@ -30,8 +30,8 @@ tuple).
 
 By translating the high-level \gls{IR} into instructions that manipulate
 registers directly, we reveal further redundancies that can be optimized away.
-The \factor|optimize-cfg| word in \vref{lst:optimize-cfg} shows the passes
-performed in doing this.  The first word, \factor|optimize-tail-calls|,
+The \Verb|optimize-cfg| word in \vref{lst:optimize-cfg} shows the passes
+performed in doing this.  The first word, \Verb|optimize-tail-calls|,
 performs tail call elimination on the \gls{CFG}.
 %
 \term{Tail calls}~\todo{used in \cref{sec:compiler:tree}, not defined} are those
@@ -42,7 +42,7 @@ frame isn't really needed.  In the case of recursive tail calls, we can convert
 special cases of recursion into loops in the \gls{CFG}, so that we won't
 trigger call stack overflows.  For instance, consider
 \vref{fig:optimize-tail-calls}, which shows the effect of
-\factor|optimize-tail-calls| on the following definition:
+\Verb|optimize-tail-calls| on the following definition:
 %
 \begin{center}
 %
@@ -52,18 +52,18 @@ trigger call stack overflows.  For instance, consider
 %
 \noindent Note the recursive call (trivially) occurs at the end of the
 definition, just before the return point.  When translated to a \gls{CFG}, this
-is a \factor|##call| instruction, as seen in block $4$ to the left of
+is a \Verb|##call| instruction, as seen in block $4$ to the left of
 \vref{fig:optimize-tail-calls}.  This is also just before the final
-\factor|##epilogue| and \factor|##return| instructions in block $8$, as blocks
-$5$--$7$ are effectively empty (these excessive \factor|##branch|es will be
+\Verb|##epilogue| and \Verb|##return| instructions in block $8$, as blocks
+$5$--$7$ are effectively empty (these excessive \Verb|##branch|es will be
 eliminated in a later pass).  Because of this, rather than make a whole new
-subroutine call, we can convert it into a \factor|##branch| back to the
+subroutine call, we can convert it into a \Verb|##branch| back to the
 beginning of the word, as in the \gls{CFG} to the right.
 
 \inputfig{delete-useless-conditionals}
 
 The next pass in \vref{lst:optimize-cfg} is
-\factor|delete-useless-conditionals|, which removes branches that go to the
+\Verb|delete-useless-conditionals|, which removes branches that go to the
 same basic block.  This situation might occur as a result of optimizations
 performed in the high-level \gls{IR}.  To see it in action,
 \vref{fig:delete-useless-conditionals} shows the transformation on a
@@ -71,28 +71,28 @@ purposefully useless conditional,
 %
 \factor|[ ] [ ] if|.
 %
-Before removing the useless conditional, the \gls{CFG} \factor|##peek|s at the
+Before removing the useless conditional, the \gls{CFG} \Verb|##peek|s at the
 top of the data stack
 %
-(\factor|D 0|),
+(\Verb|D 0|),
 %
-storing the result in the virtual register \factor|1|.  This value is popped,
+storing the result in the virtual register \Verb|1|.  This value is popped,
 so we decrement the stack height
 %
-(\factor|##inc-d -1|).
+(\Verb|##inc-d -1|).
 %
-Then, \factor|##compare-imm-branch| in block $2$ compares the value in the
-virtual register \factor|2| (which is a copy of \factor|1|, the top of the
+Then, \Verb|##compare-imm-branch| in block $2$ compares the value in the
+virtual register \Verb|2| (which is a copy of \Verb|1|, the top of the
 stack) to the immediate value \factor|f| to see if it's not equal (signified by
-\factor|cc/=|).  However, both branches jump through several empty blocks and
+\Verb|cc/=|).  However, both branches jump through several empty blocks and
 merge at the same destination.  Thus, we can remove both branches and replace
-\factor|##compare-imm-branch| with an unconditional \factor|##branch| to the
+\Verb|##compare-imm-branch| with an unconditional \Verb|##branch| to the
 eventual destination.  We see this on the right of
 \vref{fig:delete-useless-conditionals}.
 
 \inputfig{split-branches}
 
-In order to expose more opportunities for optimization, \factor|split-branches|
+In order to expose more opportunities for optimization, \Verb|split-branches|
 will actually duplicate code.  We use the fact that code immediately following
 a conditional will be executed along either branch.  If it's sufficiently
 short, we copy it up into the branches individually.  That is, we change
@@ -103,7 +103,7 @@ into
 %
 \factor|[ A C ] [ B C ] if|,
 %
-as long as \factor|C| is small enough.  Later analyses may then, for example,
+as long as \Verb|C| is small enough.  Later analyses may then, for example,
 more readily eliminate one of the branches if it's never taken.
 \vref{fig:split-branches} shows what such a transformation looks like on a
 \gls{CFG}.  The example
@@ -118,10 +118,10 @@ thus splitting the block with two predecessors (block $9$) on the left.
 
 \inputfig{join-blocks}
 
-The next pass, \factor|join-blocks|, compacts the \gls{CFG} by joining together
+The next pass, \Verb|join-blocks|, compacts the \gls{CFG} by joining together
 blocks involved in only a single control flow edge.  Mostly, this is to clean
 up the myriad of empty or short blocks introduced during construction, like
-sequences of a bunch of \factor|##branch|es.  \Vref{fig:join-blocks} shows this
+sequences of a bunch of \Verb|##branch|es.  \Vref{fig:join-blocks} shows this
 pass on the \gls{CFG} of
 %
 \factor|0 100 [ 1 fixnum+fast ] times|.
@@ -130,29 +130,29 @@ pass on the \gls{CFG} of
 overflow and type checks.  We use it here to keep the \gls{CFG} simple.  We'll
 be using this particular code to illustrate all but one of the remaining
 optimization passes in \vref{lst:optimize-cfg}, as it's a motivating example
-for the work in this thesis.  The passes before \factor|join-blocks| don't
+for the work in this thesis.  The passes before \Verb|join-blocks| don't
 change the \gls{CFG} seen on the left in \vref{fig:join-blocks}, but we get rid
-of the useless \factor|##branch| blocks in the \gls{CFG} on the right.
+of the useless \Verb|##branch| blocks in the \gls{CFG} on the right.
 
 \inputfig{normalize-height}
 
 \Vref{fig:normalize-height} shows the result of applying
-\factor|normalize-height| to the result of \factor|join-blocks|.  This phase
+\Verb|normalize-height| to the result of \Verb|join-blocks|.  This phase
 combines and canonicalizes the instructions that track the stack height, like
-\factor|##inc-d|.  While the shuffling in this example isn't complex enough to
+\Verb|##inc-d|.  While the shuffling in this example isn't complex enough to
 be interesting, neither is this phase.  It amounts to more cleanup: multiple
 height changes are combined into single ones at the beginnings of the basic
-blocks.  In \vref{fig:normalize-height}, this means that \factor|##inc-d| is
+blocks.  In \vref{fig:normalize-height}, this means that \Verb|##inc-d| is
 moved to the top of block $1$, as compared to the right of
 \vref{fig:join-blocks}.
 
 \inputfig{construct-ssa}
 
 In converting the high-level \gls{IR} to the low-level, we actually lose the
-\gls{SSA} form of \factor|compiler.tree|.  Not only does the construction do
-this, but \factor|split-branches| also copies basic blocks verbatim, so any
+\gls{SSA} form of \Verb|compiler.tree|.  Not only does the construction do
+this, but \Verb|split-branches| also copies basic blocks verbatim, so any
 value defined will have a duplicate definition site, violating the \gls{SSA}
-property.  \factor|construct-ssa| recomputes a so-called \term{pruned}
+property.  \Verb|construct-ssa| recomputes a so-called \term{pruned}
 \gls{SSA} form, wherein $\phi$ functions are inserted only if the variables are
 live after the insertion point.  This cuts down on useless $\phi$ 
 %
@@ -161,59 +161,59 @@ functions\todo{cite TDMSC and construction algorithm}.
 \Vref{fig:construct-ssa} shows the reconstructed \gls{SSA} form of the
 \gls{CFG} from \vref{fig:normalize-height}.
 
-The next pass, \factor|alias-analysis|, doesn't change the \gls{CFG} of
+The next pass, \Verb|alias-analysis|, doesn't change the \gls{CFG} of
 %
 \factor|0 100 [ 1 fixnum+fast ] times|,
 %
 so we won't have an accompanying \lcnamecref{fig:construct-ssa}.  At a high
-level, \factor|alias-analysis| is easy to understand: it eliminates redundant
+level, \Verb|alias-analysis| is easy to understand: it eliminates redundant
 memory loads and stores by rewriting certain patterns of memory access.  If the
 same location is loaded after being stored, we convert the latter load into a
-\factor|##copy| of the value we stored.  Two reads of the same location with no
-intermittent write gets the second read turned into a \factor|##copy|.
+\Verb|##copy| of the value we stored.  Two reads of the same location with no
+intermittent write gets the second read turned into a \Verb|##copy|.
 Similarly, if we see two writes without a read in the middle, the first write
 can be removed.
 
 \inputfig{value-numbering}
 
-\factor|value-numbering| is the key focus of this thesis.  It will be detailed
+\Verb|value-numbering| is the key focus of this thesis.  It will be detailed
 in \vref{sec:vn}.  For now, it does to think of it as a combination of common
 subexpression elimination and constant folding.  In \vref{fig:value-numbering}, 
 we see several changes:
 %
 \begin{itemize}
 %
-  \item \factor|##load-integer 23 0| in block $1$ of \vref{fig:construct-ssa}
-  (which assigns the value \factor|0| to the virtual register \factor|23|) is
-  redundant, so is replaced by \factor|##copy 23 21|.
+  \item \Verb|##load-integer 23 0| in block $1$ of \vref{fig:construct-ssa}
+  (which assigns the value \Verb|0| to the virtual register \Verb|23|) is
+  redundant, so is replaced by \Verb|##copy 23 21|.
 %
   \item \begin{flushleft}
   In block $2$, the last instruction
   %
-  \factor|##compare-imm-branch 32 f cc/=|
+  \Verb|##compare-imm-branch 32 f cc/=|
   %
   is the same as
   %
-  \factor|##compare-integer-branch 30 26 cc<|.
+  \Verb|##compare-integer-branch 30 26 cc<|.
   %
-  The source register (\factor|32|) of the original is a \factor|##copy| of
-  \factor|31|, which itself is computed by
+  The source register (\Verb|32|) of the original is a \Verb|##copy| of
+  \Verb|31|, which itself is computed by
   %
-  \factor|##compare-integer 31 30 26 cc< 9|.
+  \Verb|##compare-integer 31 30 26 cc< 9|.
   %
-  So, the \factor|##compare-imm-branch| is equivalent to a simple
-  \factor|##compare-integer-branch|, which doesn't use the temporary virtual
-  register \factor|9| and doesn't waste time comparing against the \factor|f|
+  So, the \Verb|##compare-imm-branch| is equivalent to a simple
+  \Verb|##compare-integer-branch|, which doesn't use the temporary virtual
+  register \Verb|9| and doesn't waste time comparing against the \factor|f|
   object.
   \end{flushleft}
 %
-  \item The second operands in both \factor|##add|s of block $3$ are just
-  constants stored by \factor|##load-integer|s.  So, these are turned into
-  \factor|##add-imm|s.
+  \item The second operands in both \Verb|##add|s of block $3$ are just
+  constants stored by \Verb|##load-integer|s.  So, these are turned into
+  \Verb|##add-imm|s.
 %
-  \item Also, the second \factor|##load-integer| in block $3$ just loads
-  \factor|1| like the first instruction.  Therefore, it's replaced by a
-  \factor|##copy|.
+  \item Also, the second \Verb|##load-integer| in block $3$ just loads
+  \Verb|1| like the first instruction.  Therefore, it's replaced by a
+  \Verb|##copy|.
 \end{itemize}
 %
 \noindent In \cref{sec:vn}, we'll see how and why this pass fails to identify
@@ -221,23 +221,23 @@ other equivalences.
 
 \inputfig{copy-propagation}
 
-Following \factor|value-numbering|, \factor|copy-propagation| performs a global
-pass that eliminates \factor|##copy| instructions.  Uses of the copies are
+Following \Verb|value-numbering|, \Verb|copy-propagation| performs a global
+pass that eliminates \Verb|##copy| instructions.  Uses of the copies are
 replaced by the originals.  So, in \vref{fig:copy-propagation}, we can see that
-all of the \factor|##copy| instructions have been removed and, for instance,
-the use of the virtual register \factor|25| in block $2$ has been replaced by
-\factor|21|, since \factor|25| was a copy of it.
+all of the \Verb|##copy| instructions have been removed and, for instance,
+the use of the virtual register \Verb|25| in block $2$ has been replaced by
+\Verb|21|, since \Verb|25| was a copy of it.
 
 \inputfig{eliminate-dead-code}
 
-Next, dead code is removed by \factor|eliminate-dead-code|.
-\Vref{fig:eliminate-dead-code} shows that the \factor|##compare-integer| in
-block $2$ and the \factor|##load-integer| in block $3$ were removed, since they
+Next, dead code is removed by \Verb|eliminate-dead-code|.
+\Vref{fig:eliminate-dead-code} shows that the \Verb|##compare-integer| in
+block $2$ and the \Verb|##load-integer| in block $3$ were removed, since they
 defined values that were never used.
 
 \inputfig{finalize-cfg}
 
-The final pass in \vref{lst:optimize-cfg}, \factor|finalize-cfg|, itself
+The final pass in \vref{lst:optimize-cfg}, \Verb|finalize-cfg|, itself
 consists of several more passes.  We will not get into many details here, but
 at a high level, the most important passes figure out how virtual registers
 should map to machine registers.  We first figure out when certain values can
@@ -247,6 +247,6 @@ we don't need to store more values than we have machine registers.  That way,
 we avoid \term{spilling} registers onto the heap, which wastes time.  After
 leaving \gls{SSA} form, we perform a \term{linear scan} register allocation,
 which replaces virtual registers with machine registers and inserts
-\factor|##spill| and \factor|##reload| instructions for the cases we can't
+\Verb|##spill| and \Verb|##reload| instructions for the cases we can't
 avoid.  \Vref{fig:finalize-cfg} shows an example on an Intel x86 machine, which
 has enough registers that we needn't spill anything.

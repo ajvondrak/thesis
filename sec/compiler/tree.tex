@@ -5,44 +5,44 @@ data structure representing the instructions.  It's common to convert between
 several \glsplural{IR} during compilation, as each form offers different
 properties that facilitate particular analyses.  The Factor compiler optimizes
 code in passes across two different \glsplural{IR}: first at a high-level using
-the \factor|compiler.tree| vocabulary, then at a low-level with the
-\factor|compiler.cfg| vocabulary.
+the \Verb|compiler.tree| vocabulary, then at a low-level with the
+\Verb|compiler.cfg| vocabulary.
 
 \inputlst{tree}
 
-The high-level \gls{IR} arranges code into a vector of \factor|node| objects,
+The high-level \gls{IR} arranges code into a vector of \Verb|node| objects,
 which may themselves have children consisting of vectors of node---a tree
-structure that lends to the name \factor|compiler.tree|.  This ordered sequence
+structure that lends to the name \Verb|compiler.tree|.  This ordered sequence
 of nodes represents control flow in a way that's effectively simple, annotated
 stack code.  \Vref{lst:tree} shows the definitions of the tuples that represent
 the ``instruction set'' of this stack code.  Each object inherits (directly or
-indirectly) from the \factor|node| class, which itself inherits from
+indirectly) from the \Verb|node| class, which itself inherits from
 \factor|identity-tuple|.  This is a tuple whose \factor|equal?| method is
 defined to always return \factor|f| so that no two instances are equivalent
 unless they are the same instance.
 
-Notice that most nodes define some sort of \factor|in-d| and \factor|out-d|
+Notice that most nodes define some sort of \Verb|in-d| and \Verb|out-d|
 slots, which mark each of them with the input and output data stacks.  This
 represents the flow of data through the program.  Here, stack values are
 denoted simply by integers, giving each value a unique identifier.  An
-\factor|#introduce| instance is inserted wherever the next node requires stack
-values that have not yet been named.  Thus, while \factor|#introduce| has no
-\factor|in-d|, its \factor|out-d| introduces the necessary stack values.
-Similarly, \factor|#return| is inserted at the end of the sequence to indicate
-the final state of the data stack with its \factor|in-d| slot.
+\Verb|#introduce| instance is inserted wherever the next node requires stack
+values that have not yet been named.  Thus, while \Verb|#introduce| has no
+\Verb|in-d|, its \Verb|out-d| introduces the necessary stack values.
+Similarly, \Verb|#return| is inserted at the end of the sequence to indicate
+the final state of the data stack with its \Verb|in-d| slot.
 
 The most basic operations of a stack language are, of course, pushing literals
-and calling functions.  The \factor|#push| node thus has a \factor|literal|
-slot and an \factor|out-d| slot, giving a name to the single element it pushes
-to the data stack.  \factor|#call|, of course, is used for normal word
-invocations.  The \factor|in-d| and \factor|out-d| slots effectively serve as
+and calling functions.  The \Verb|#push| node thus has a \Verb|literal|
+slot and an \Verb|out-d| slot, giving a name to the single element it pushes
+to the data stack.  \Verb|#call|, of course, is used for normal word
+invocations.  The \Verb|in-d| and \Verb|out-d| slots effectively serve as
 the stack effect declaration.  In later analyses, data about the word's
-definition may be stored across the \factor|body|, \factor|method|,
-\factor|class|, and \factor|info| slots.
+definition may be stored across the \Verb|body|, \Verb|method|,
+\Verb|class|, and \Verb|info| slots.
 
 \inputlst{build-tree-1}
 
-The word \factor|build-tree| takes a Factor quotation and constructs the
+The word \Verb|build-tree| takes a Factor quotation and constructs the
 equivalent high-level \gls{IR} form.  In \vref{lst:build-tree-1}, we see the
 output of the simple example
 %
@@ -52,88 +52,88 @@ Note that
 %
 \factor|T{ class { slot1 value1 } { slot2 value2 } ... }|
 %
-is the syntax for tuple literals.  The first node is a \factor|#push| for the
-\factor|1| literal.  Since \factor|+| needs two input values, an
-\factor|#introduce| pushes a new ``phantom'' value.  \factor|+| gets turned
-into a \factor|#call| instance.  Notice the \factor|in-d| slot refers to the
+is the syntax for tuple literals.  The first node is a \Verb|#push| for the
+\Verb|1| literal.  Since \factor|+| needs two input values, an
+\Verb|#introduce| pushes a new ``phantom'' value.  \factor|+| gets turned
+into a \Verb|#call| instance.  Notice the \Verb|in-d| slot refers to the
 values in the order that they're passed to the word, not necessarily the order
 they've been introduced in the \gls{IR}.  The sum is pushed to the data stack,
-so the \factor|out-d| slot is a singleton that names this value.  Finally,
-\factor|#return| indicates the end of the routine, its \factor|in-d| containing
-the value left on the stack (the sum pushed by \factor|#call|).
+so the \Verb|out-d| slot is a singleton that names this value.  Finally,
+\Verb|#return| indicates the end of the routine, its \Verb|in-d| containing
+the value left on the stack (the sum pushed by \Verb|#call|).
 
 \inputlst{build-tree-2}
 
 The next tuples in \vref{lst:tree} reassign existing values on the stack to
-fresh identifiers.  The \factor|#renaming| superclass has the two subclasses
-\factor|#copy| and \factor|#shuffle|.  The former represents the bijection from
-elements of \factor|in-d| to elements of \factor|out-d| in the same position;
+fresh identifiers.  The \Verb|#renaming| superclass has the two subclasses
+\Verb|#copy| and \Verb|#shuffle|.  The former represents the bijection from
+elements of \Verb|in-d| to elements of \Verb|out-d| in the same position;
 corresponding values are copies of each other.  The latter represents a more
-general mapping.  Stack shufflers are translated to \factor|#shuffle| nodes
-with \factor|mapping| slots that dictate how the fresh values in \factor|out-d|
-correspond to the input values in \factor|in-d|.  For instance,
+general mapping.  Stack shufflers are translated to \Verb|#shuffle| nodes
+with \Verb|mapping| slots that dictate how the fresh values in \Verb|out-d|
+correspond to the input values in \Verb|in-d|.  For instance,
 \vref{lst:build-tree-2} shows how \factor|swap| takes in the values
-\factor|6256132| and \factor|6256133| and outputs \factor|6256134| and
-\factor|6256135|, where the former is mapped to the second element
-(\factor|6256133|) and the latter to the first (\factor|6256132|).  Thus,
-\factor|out-d| swaps the two elements of \factor|in-d|, mapping them to fresh
-identifiers.  The \factor|in-r| and \factor|out-r| slots of \factor|#shuffle|
+\Verb|6256132| and \Verb|6256133| and outputs \Verb|6256134| and
+\Verb|6256135|, where the former is mapped to the second element
+(\Verb|6256133|) and the latter to the first (\Verb|6256132|).  Thus,
+\Verb|out-d| swaps the two elements of \Verb|in-d|, mapping them to fresh
+identifiers.  The \Verb|in-r| and \Verb|out-r| slots of \Verb|#shuffle|
 correspond to the \term{retain} stack, which is an implementation detail beyond
 the scope of this discussion.
 
 \inputlst{build-tree-3}
 \inputlst{build-tree-4}
 
-\factor|#declare| is a miscellaneous node used for the \factor|declare|
+\Verb|#declare| is a miscellaneous node used for the \factor|declare|
 primitive.  It simply annotates type information to stack values, as in
-\vref{lst:build-tree-3}.  \factor|#terminate| is another one-off node, but a
+\vref{lst:build-tree-3}.  \Verb|#terminate| is another one-off node, but a
 much more interesting one.  While Factor normally requires a balanced stack,
-sometimes we purposefully want to throw an error.  \factor|#terminate| is
+sometimes we purposefully want to throw an error.  \Verb|#terminate| is
 introduced where the program halts prematurely.  When checking the stack
 height, it gets to be treated specially so that \term{terminated} stack effects
 unify with any other effect.  That way, branches will still be balanced even if
 one of them unconditionally throws an error.  \vref{lst:build-tree-4} shows
-\factor|#terminate| being introduced by the \factor|throw| word.
+\Verb|#terminate| being introduced by the \factor|throw| word.
 
 Next, \vref{lst:tree} defines nodes for branching based off the superclass
-\factor|#branch|.  The \factor|children| slot contains vectors of nodes
-representing different branches.  \factor|live-branches| is filled in during
+\Verb|#branch|.  The \Verb|children| slot contains vectors of nodes
+representing different branches.  \Verb|live-branches| is filled in during
 later analyses to indicate which branches are alive so that dead ones may be
-removed.  For instance, \factor|#if| will have two elements in its
-\factor|children| slot representing the true and false branches.  On the other
-hand, \factor|#dispatch| has an arbitrary number of children.  It corresponds
+removed.  For instance, \Verb|#if| will have two elements in its
+\Verb|children| slot representing the true and false branches.  On the other
+hand, \Verb|#dispatch| has an arbitrary number of children.  It corresponds
 to the \factor|dispatch| primitive, which is an implementation detail of the
 generic word system used to speed up method dispatch.
 
 You may have noted the emphasis on introducing new values, instead of
-reassigning old ones.  Even \factor|#shuffle|s output fresh identifiers,
-letting their values be determined by the \factor|mapping|.  The reason for
-this is that \factor|compiler.tree| uses \gls{SSA} form, wherein every variable
+reassigning old ones.  Even \Verb|#shuffle|s output fresh identifiers,
+letting their values be determined by the \Verb|mapping|.  The reason for
+this is that \Verb|compiler.tree| uses \gls{SSA} form, wherein every variable
 is defined by exactly one statement.  This simplifies the properties of
 variables, which helps optimizations perform faster and with better
 results\todo{cite?}.  By giving unique names to the targets of each assignment,
-the \gls{SSA} property is guaranteed.  However, \factor|#branch|es introduce
-ambiguity: after, say, an \factor|#if|, what will the \factor|out-d| be?  It
+the \gls{SSA} property is guaranteed.  However, \Verb|#branch|es introduce
+ambiguity: after, say, an \Verb|#if|, what will the \Verb|out-d| be?  It
 depends on which branch is taken.  To remedy this problem, after any
-\factor|#branch| node, Factor will place a \factor|#phi| node---the classical
+\Verb|#branch| node, Factor will place a \Verb|#phi| node---the classical
 \gls{SSA} ``phony function'', $\phi$.  While it doesn't perform any literal
 computation, conceptually $\phi$ selects between its inputs, choosing the
 ``correct'' argument depending on control flow.  This can then be assigned to a
 unique value, preserving the \gls{SSA} property.  In Factor, this is
-represented by a \factor|phi-in-d| slot, which is a sequence of sequences.
-Each element corresponds to the \factor|out-d| of the child at the same
-position in the \factor|children| of the preceding \factor|#branch| node.  The
-\factor|#phi|'s \factor|out-d| gives unique names to the output values.
+represented by a \Verb|phi-in-d| slot, which is a sequence of sequences.
+Each element corresponds to the \Verb|out-d| of the child at the same
+position in the \Verb|children| of the preceding \Verb|#branch| node.  The
+\Verb|#phi|'s \Verb|out-d| gives unique names to the output values.
 
 \inputlst{build-tree-5}
 
-For example, the \factor|#phi| in \vref{lst:build-tree-5} will select between
-the \factor|6256248| return value of the first child or the \factor|6256249|
+For example, the \Verb|#phi| in \vref{lst:build-tree-5} will select between
+the \Verb|6256248| return value of the first child or the \Verb|6256249|
 output of the second.  Either way, we can refer to the result as
-\factor|6256250| afterwards.  The \factor|terminated| slot of the \factor|#phi|
-tells us if there was a \factor|#terminate| in any of the branches.
+\Verb|6256250| afterwards.  The \Verb|terminated| slot of the \Verb|#phi|
+tells us if there was a \Verb|#terminate| in any of the branches.
 
-The \factor|#recursive| node encapsulates \term{inline recursive} words.  In
+The \Verb|#recursive| node encapsulates \term{inline recursive} words.  In
 Factor, words may be annotated with simple compiler declarations, which guide
 optimizations.  If we follow a standard colon definition with the
 \factor|inline| word, we're saying that its definition can be spliced into the
@@ -143,15 +143,15 @@ example, we could write
 %
 \factor|: foo ( -- ) foo ; inline recursive|.
 %
-The nodes \factor|#enter-recursive|, \factor|#call-recursive|, and
-\factor|#return-recursive| denote different stages of the recursion---the
+The nodes \Verb|#enter-recursive|, \Verb|#call-recursive|, and
+\Verb|#return-recursive| denote different stages of the recursion---the
 beginning, recursive call, and end, respectively.  They carry around a lot of
 metadata about the nature of the recursion, but it doesn't serve our purposes
 to get into the details.  Similarly, we gloss over the final nodes of
 \vref{lst:tree} correspond to Factor's \gls{FFI} vocabulary, called
-\factor|alien|.  At a high level, \factor|#alien-node|, \factor|#alien-invoke|,
-\factor|#alien-indirect|, \factor|#alien-assembly|, and
-\factor|#alien-callback| are used to make calls to C libraries from within
+\Verb|alien|.  At a high level, \Verb|#alien-node|, \Verb|#alien-invoke|,
+\Verb|#alien-indirect|, \Verb|#alien-assembly|, and
+\Verb|#alien-callback| are used to make calls to C libraries from within
 Factor.
 
 \inputlst{optimize-tree}
@@ -159,36 +159,36 @@ Factor.
 
 Now that we're familiar with the structure of the high-level \gls{IR}, we can
 turn our attention to optimization.  \Vref{lst:optimize-tree} shows the passes
-performed on a sequence of nodes by the word \factor|optimize-tree|.  Before
+performed on a sequence of nodes by the word \Verb|optimize-tree|.  Before
 optimization can begin, we must gather some information and clean up some
-oddities in the output of \factor|build-tree|.  \factor|analyze-recursive| is
+oddities in the output of \Verb|build-tree|.  \Verb|analyze-recursive| is
 called first to identify and mark loops in the tree.  Effectively, this means
-we detect tail-recursion introduced by \factor|#recursive| nodes.  Future
+we detect tail-recursion introduced by \Verb|#recursive| nodes.  Future
 passes can then use this information for data flow analysis.  Then,
-\factor|normalize| makes the tree more consistent by doing two things:
+\Verb|normalize| makes the tree more consistent by doing two things:
 %
 \begin{itemize}
 %
-  \item All \factor|#introduce| nodes are removed and replaced by a single
-        \factor|#introduce| at the beginning of the whole program.  This way,
-        further passes needn't handle \factor|#introduce| nodes.
+  \item All \Verb|#introduce| nodes are removed and replaced by a single
+        \Verb|#introduce| at the beginning of the whole program.  This way,
+        further passes needn't handle \Verb|#introduce| nodes.
 %
-  \item As constructed, the \factor|in-d| of a \factor|#call-recursive| will be
+  \item As constructed, the \Verb|in-d| of a \Verb|#call-recursive| will be
         the entire stack at the time of the call.  This assumption happens
         because we don't know how many inputs it needs until the
-        \factor|#return-recursive| is processed, because of row polymorphism.
+        \Verb|#return-recursive| is processed, because of row polymorphism.
         So, here we figure out exactly what stack entries are needed, and trim
-        the \factor|in-d| and \factor|out-d| of each \factor|#call-recursive|
+        the \Verb|in-d| and \Verb|out-d| of each \Verb|#call-recursive|
         accordingly.
 %
 \end{itemize}
 
-Once these passes have cleaned up the tree, \factor|propagate| performs
+Once these passes have cleaned up the tree, \Verb|propagate| performs
 probably the most extensive analysis of all the phases.  In short, it performs
 an extended version of \gls{SCCP}\todo{cite}.  The traditional data flow
 analysis combines global copy propagation, constant propagation, and constant
 folding in a \term{flow-sensitive} way.  That is, it will propagate information
-from branches that it knows are definitely taken (e.g., because \factor|#if| is
+from branches that it knows are definitely taken (e.g., because \Verb|#if| is
 always given a true input).  Instead of using the typical single-level
 (numeric) constant value lattice, Factor uses a lattice augmented by
 information about classes, numeric value ranges, array lengths, and tuple
@@ -214,7 +214,7 @@ overflow checks performed by numeric words.  And if the interval has zero
 length, we may replace the value with a constant.  This then continues getting
 propagated, contributing to constant folding and so forth.
 
-\factor|propagate| iterates through the nodes collecting all of this data until
+\Verb|propagate| iterates through the nodes collecting all of this data until
 reaching a stable point where inferences can no longer be drawn.  Technically,
 this information doesn't alter the tree at all; we merely store it so that
 speculative decisions may be realized later.  The next word in
@@ -225,40 +225,40 @@ themselves (e.g., because the calls got constant-folded).
 
 \inputlst{escaping}
 
-The next major pass is \factor|escape-analysis|, whose information is used for
-the actual transformation \factor|unbox-tuples|.  This discovers tuples that
+The next major pass is \Verb|escape-analysis|, whose information is used for
+the actual transformation \Verb|unbox-tuples|.  This discovers tuples that
 \term{escape} by getting passed outside of a word.  For instance, the inputs to
-\factor|#return| obviously escape, as they are passed to the world outside of
-the word in question.  Similarly, inputs to the \factor|#call| of another word
-escape.  So, though the tuples in \factor|escaping-via-#return| and
-\factor|escaping-via-#call| in \vref{lst:escaping} both escape, we can see the
-one in \factor|non-escaping| does not.  In fact, the last allocation is
-unnecessary.  By identifying this, \factor|unbox-tuples| can then rewrite the
-code to avoid allocating a \factor|data-struct| altogether, instead
+\Verb|#return| obviously escape, as they are passed to the world outside of
+the word in question.  Similarly, inputs to the \Verb|#call| of another word
+escape.  So, though the tuples in \Verb|escaping-via-#return| and
+\Verb|escaping-via-#call| in \vref{lst:escaping} both escape, we can see the
+one in \Verb|non-escaping| does not.  In fact, the last allocation is
+unnecessary.  By identifying this, \Verb|unbox-tuples| can then rewrite the
+code to avoid allocating a \Verb|data-struct| altogether, instead
 manipulating the slots' values directly.  Note that this only happens for
 immutable tuples, all of whose slots are \factor|read-only|.  Otherwise, we
 would need to perform more advanced pointer analyses to discover aliases.
 
-\factor|apply-identities| follows to simplify words with known identity
-elements.  If, say, an argument to \factor|+| is \factor|0|, we can simply
-return the other argument.  This converts the \factor|#call| to \factor|+| into
-a simple \factor|#shuffle|.  These identities are defined for most arithmetic
+\Verb|apply-identities| follows to simplify words with known identity
+elements.  If, say, an argument to \factor|+| is \Verb|0|, we can simply
+return the other argument.  This converts the \Verb|#call| to \factor|+| into
+a simple \Verb|#shuffle|.  These identities are defined for most arithmetic
 words.
 
 Another simple few passes come next in \vref{lst:optimize-tree}.  True to its
-name, \factor|compute-def-use| computes where \gls{SSA} values are defined and
-used.  Values that are never used are eliminated by \factor|remove-dead-code|.
-\factor|?check| conditionally performs some consistency checks on the tree,
+name, \Verb|compute-def-use| computes where \gls{SSA} values are defined and
+used.  Values that are never used are eliminated by \Verb|remove-dead-code|.
+\Verb|?check| conditionally performs some consistency checks on the tree,
 mostly to make sure that no errors were introduced in the stack flow.  If a
 global variable isn't toggled on, this part is skipped.  We run
-\factor|compute-def-use| again to update the information after altering the
+\Verb|compute-def-use| again to update the information after altering the
 tree with dead code elimination.
 
-Finally, \factor|optimize-modular-arithmetic| performs a form of
+Finally, \Verb|optimize-modular-arithmetic| performs a form of
 strength-reduction on artihmetic words that only use the low-order bits of
 their inputs/results, which may also remove more unnecessary overflow checks.
-\factor|finalize| cleans up a few random miscellaneous bits of the tree
-(removing empty shufflers, deleting \factor|#copy| nodes, etc.) in preparation
+\Verb|finalize| cleans up a few random miscellaneous bits of the tree
+(removing empty shufflers, deleting \Verb|#copy| nodes, etc.) in preparation
 for lower-level optimizations.
 
 \todo[inline]{Double-check zealous syntax-highlighting}
