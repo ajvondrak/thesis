@@ -13,17 +13,17 @@ the compiler: if tests that used to pass no longer do, then the new pass is
 changing the semantics of the code somehow.  Though passing all tests does not
 guarantee the algorithm is correct, it does let us know that no known
 regressions have been introduced.  Happily, with the new
-\factor|value-numbering| phase enabled, all the same tests pass as before in a
+\Verb|value-numbering| phase enabled, all the same tests pass as before in a
 call to \factor|test-all| from a freshly bootstrapped image.
 
 The efficacy of the changes, on the other hand, must be measured relative to
 old benchmarks.  Again, Factor has its bases covered, with a suite of $80$
-benchmarks run by the \factor|benchmark| vocabulary.  Each benchmark is run $5$
+benchmarks run by the \Verb|benchmark| vocabulary.  Each benchmark is run $5$
 times, where the garbage collector is run before each iteration.  The minimum
 time from these runs is then used as the benchmark result.  The data below
 comes from two separate runs of the \factor|benchmarks| word, which invokes all
 the benchmark sub-vocabularies.  The ``before'' time used the local value
-numbering, while ``after'' times had \factor|value-numbering| replaced with the
+numbering, while ``after'' times had \Verb|value-numbering| replaced with the
 \gls{GVN} pass.  The ``change'' is measured by the formula
 %
 $$\frac{\text{before} - \text{after}}{\text{before}} \times 100$$
@@ -126,7 +126,7 @@ Duplicated below for convenience are the benchmarks that ran slower, sorted in
 decreasing order of the percent difference between running times.  We can see
 the last five or six benchmarks exhibited negligible differences---not only is
 the relative change tiny, but the absolute difference in running times is less
-than $0.1$ seconds.  (The \factor|benchmark.tuple-arrays| results also show a
+than $0.1$ seconds.  (The \Verb|benchmark.tuple-arrays| results also show a
 similar absolute change, but it is relatively much larger.)
 
 \begin{longtable}{llll}

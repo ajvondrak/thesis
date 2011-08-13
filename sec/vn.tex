@@ -19,7 +19,7 @@ program a number such that two values have the same value number if and only if
 the compiler can prove they will be equal at runtime.
 
 Value numbering has a long history in literature and practice, spanning many
-techniques.  In \cref{sec:compiler:cfg} we saw the \factor|value-numbering|
+techniques.  In \cref{sec:compiler:cfg} we saw the \Verb|value-numbering|
 word, which is actually based on some of the earliest---and least
 effective---methods of value numbering.  \Cref{sec:vn:local} describes the way
 Factor's current algorithm works, and highlights its shortcomings to motivate
@@ -28,8 +28,8 @@ the main work of this thesis, which is covered in
 analyzing the results of these changes and reviewing the literature for further
 enhancements that can be made to this optimization pass.
 
-%\input{sec/vn/local}
-%\input{sec/vn/global}
-%\input{sec/vn/avail}
+\input{sec/vn/local}
+\input{sec/vn/global}
+\input{sec/vn/avail}
 \input{sec/vn/results}
-%\input{sec/vn/future}
+\input{sec/vn/future}

@@ -8,28 +8,28 @@ options for possible directions that Factor's compiler can take from here.
 
 As it stands, the new pass could be smarter.  For instance, it does not
 consider the commutativity of certain operations.  This would be
-straightforward to solve by making \factor|>expr| sort the operands of
+straightforward to solve by making \Verb|>expr| sort the operands of
 commutative instructions' expressions, thereby placing arguments in a canonical
 order.  This would increase the number of congruences discovered between
 \Verb|##add|s, \Verb|##mul|s, and even \Verb|##phi|s.  Also, the
-\factor|copy-propagation| pass is remarkably similar to the new
-\factor|value-numbering|---in fact, it could be removed altogether.  All it
+\Verb|copy-propagation| pass is remarkably similar to the new
+\Verb|value-numbering|---in fact, it could be removed altogether.  All it
 does is collect global information about congruences as established by
 \Verb|##copy| instructions (by a similar fixed-point iteration), then replace
 the virtual registers of instructions with the original value (i.e., the one
-not established by a \Verb|##copy|).  This allows \factor|copy-propagation| to
+not established by a \Verb|##copy|).  This allows \Verb|copy-propagation| to
 remove all \Verb|##copy| instructions.  But the information calculated by
-\factor|value-numbering| is a superset of this copy-equivalence data, so it
+\Verb|value-numbering| is a superset of this copy-equivalence data, so it
 should be easy to do global copy propagation in the \gls{GVN} phase and save
 time on the redundant fixed-point iteration.
 
 There remains an open question about the \gls{GVN} implementation's use of
 availability, too.  As it stands, it's rather strict: if the canonical value
-number for an expression is not directly available, \factor|rewrite| gives up
+number for an expression is not directly available, \Verb|rewrite| gives up
 on reusing that value.  However, the virtual registers which map to a single
 value number form a congruence class.  We need not look just at the canonical
 leader (the first virtual register in the whole program to compute the
-particular expression).  \factor|rewrite| could change an instruction to reuse
+particular expression).  \Verb|rewrite| could change an instruction to reuse
 any member of the congruence class that was available.  It remains to be seen
 when and if such a rewrite would be useful or desirable.
 
