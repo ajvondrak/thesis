@@ -33,45 +33,45 @@ which we will cover after some examples.
 \inputlst{colors}
 
 Consider the two tuples defined in \vref{lst:colors}.  The first,
-\factor|color|, has no slots.  With every tuple, a class predicate is defined
+\Verb|color|, has no slots.  With every tuple, a class predicate is defined
 with the stack effect
 %
 \verb|( object -- ? )|
 %
 whose name is the class suffixed by a question mark.  Here, the word
-\factor|color?| is defined, which pushes a boolean (in Factor, either
+\Verb|color?| is defined, which pushes a boolean (in Factor, either
 \factor|t| or \factor|f|) indicating whether the top element of the stack is an
-instance of the \factor|color| class.  The second tuple, \factor|rgb|, inherits
-from the \factor|color| class.  While this doesn't give \factor|rgb| any
-different slots, it does mean that an instance of \factor|rgb| will return
-\factor|t| for \factor|color?| due to the ``is-a'' relationship between
-subclass and superclass.  The word \factor|rgb?| is similarly defined.
+instance of the \Verb|color| class.  The second tuple, \Verb|rgb|, inherits
+from the \Verb|color| class.  While this doesn't give \Verb|rgb| any
+different slots, it does mean that an instance of \Verb|rgb| will return
+\factor|t| for \Verb|color?| due to the ``is-a'' relationship between
+subclass and superclass.  The word \Verb|rgb?| is similarly defined.
 
-Notice that the \factor|rgb| tuple declares three slots named \factor|red|,
-\factor|green|, and \factor|blue|.  Since the slots' classes aren't declared,
+Notice that the \Verb|rgb| tuple declares three slots named \Verb|red|,
+\Verb|green|, and \Verb|blue|.  Since the slots' classes aren't declared,
 any sort of object can be stored in them.  A set of methods are defined to
-manipulate an \factor|rgb| instance's slots.  Three \term{reader} words are
+manipulate an \Verb|rgb| instance's slots.  Three \term{reader} words are
 defined (one for each slot), analogous to ``getter'' methods in other
 languages.  Following the template for naming reader words, this example
-defines \factor|red>>|, \factor|green>>|, and \factor|blue>>|.  Each word has
+defines \Verb|red>>|, \Verb|green>>|, and \Verb|blue>>|.  Each word has
 the stack effect
 %
-\factor|( object -- value )|,
+\Verb|( object -- value )|,
 %
 and extracts the value corresponding to the eponymous slot.  Similarly, the
-\term{writer} words \factor|red<<|, \factor|green<<|, and \factor|blue<<| each
+\term{writer} words \Verb|red<<|, \Verb|green<<|, and \Verb|blue<<| each
 have the stack effect
 %
-\factor|( value object -- )|,
+\Verb|( value object -- )|,
 %
-and store values in the corresponding \factor|rgb| slots destructively.  To
-leave the modified \factor|rgb| instance on the stack while setting slots, the
-\term{setter} words \factor|>>red|, \factor|>>green|, and \factor|>>blue| are
+and store values in the corresponding \Verb|rgb| slots destructively.  To
+leave the modified \Verb|rgb| instance on the stack while setting slots, the
+\term{setter} words \Verb|>>red|, \Verb|>>green|, and \Verb|>>blue| are
 also defined, each with the stack effect
 %
-\factor|( object value -- object' )|.
+\Verb|( object value -- object' )|.
 %
-These words are defined in terms of writers.  For instance, \factor|>>red| is
+These words are defined in terms of writers.  For instance, \Verb|>>red| is
 the same as \factor|over red<<|, since \factor|over| copies a reference to the
 tuple (i.e., it doesn't make a ``deep'' copy).
 
@@ -79,8 +79,8 @@ To construct an instance of a tuple, we can use either \factor|new| or
 \factor|boa|.  \factor|new| will not initialize any of the slots to a
 particular input value---all slots will default to Factor's canonical false
 value, \factor|f|.  \factor|new| is used in \vref{lst:colors} to define
-\factor|<color>| (by convention, the constructor for \factor|foo| is named
-\factor|<foo>|).  First, we push the class \factor|color| onto the stack (this
+\Verb|<color>| (by convention, the constructor for \Verb|foo| is named
+\Verb|<foo>|).  First, we push the class \Verb|color| onto the stack (this
 word is also automatically defined by \factor|TUPLE:|), then just call
 \factor|new|, leaving a new instance on the stack.  Since this particular tuple
 has no slots, using \factor|new| makes sense.  We might also use it to
@@ -89,13 +89,13 @@ slots' values.
 
 However, we often want to initialize a tuple with values for each of its slots.
 For this, we have \factor|boa|, which works similarly to \factor|new|.  This is
-used in the definition of \factor|<rgb>| in \vref{lst:colors}.  The difference
+used in the definition of \Verb|<rgb>| in \vref{lst:colors}.  The difference
 here is the additional inputs on the stack---one for each slot, in the order
 they're declared.  That is, we're constructing the tuple \textbf{b}y
 \textbf{o}rder of \textbf{a}rguments, giving us the fun pun ``\factor|boa|
-constructor''.  So, \factor|1 2 3 <rgb>| will construct an \factor|rgb|
-instance with the \factor|red| slot set to \factor|1|, the \factor|green| slot
-set to \factor|2|, and the \factor|blue| slot set to \factor|3|.
+constructor''.  So, \Verb|1 2 3 <rgb>| will construct an \Verb|rgb|
+instance with the \Verb|red| slot set to \Verb|1|, the \Verb|green| slot
+set to \Verb|2|, and the \Verb|blue| slot set to \Verb|3|.
 
 \inputlst{email}
 
@@ -117,14 +117,14 @@ value using the syntax \factor|initial: some-literal|.  This will be the slot's
 value when instantiated with \factor|new|. 
 
 For example, \vref{lst:email} shows a tuple definition from Factor's
-\factor|smtp| vocabulary that defines an \factor|email| object.  The
-\factor|from| address, \factor|subject|, and \factor|body| must be instances of
-\factor|string|, while \factor|to|, \factor|cc|, and \factor|bcc| are
-\factor|array|s of destination addresses.  The \factor|content-type| slot must
+\Verb|smtp| vocabulary that defines an \Verb|email| object.  The
+\Verb|from| address, \Verb|subject|, and \Verb|body| must be instances of
+\Verb|string|, while \Verb|to|, \Verb|cc|, and \Verb|bcc| are
+\factor|array|s of destination addresses.  The \Verb|content-type| slot must
 also be a \factor|string|, but if unspecified, it defaults to
-\factor|"text/plain"|.  The \factor|encoding| must be a \factor|word| (in
-Factor, even words are first-class objects), which by default is \factor|utf8|,
-a word from the \factor|io.encodings.utf8| vocabulary for a Unicode format.
+\factor|"text/plain"|.  The \Verb|encoding| must be a \Verb|word| (in
+Factor, even words are first-class objects), which by default is \Verb|utf8|,
+a word from the \Verb|io.encodings.utf8| vocabulary for a Unicode format.
 
 \subsubsection{Generics and Methods}
 
@@ -146,7 +146,7 @@ new method with which to control this dispatch, we use the syntax
 
 \inputlst{sets}
 
-An accessible example of a generic word is in Factor's \factor|sets|
+An accessible example of a generic word is in Factor's \Verb|sets|
 vocabulary.  \factor|set| is a \term{mixin} class---a union of other classes
 whose members may be extended by the user.  We can see the standard definition
 in \vref{lst:sets}.  Note that the \factor|USING:| form specifies vocabularies
@@ -154,34 +154,34 @@ being used (like Java's \mint{java}|import|), and \factor|IN:| specifies the
 vocabulary in which the definitions appear (like Java's \mint{java}|package|).
 We can see here that instances of the \factor|sequence|, \factor|hash-set|, and
 \factor|bit-set| classes are all instances of \factor|set|, so will respond
-\factor|t| to the predicate \factor|set?|.  Similarly, \factor|sequence| is a
+\factor|t| to the predicate \Verb|set?|.  Similarly, \factor|sequence| is a
 mixin class with many more members, including \factor|array|, \factor|vector|,
 and \factor|string|.
 
 \inputlst{cardinality}
 
-\vref{lst:cardinality} shows the \factor|cardinality| generic from Factor's
-\factor|sets| vocabulary, along with its methods.  This generic word takes a
+\vref{lst:cardinality} shows the \Verb|cardinality| generic from Factor's
+\Verb|sets| vocabulary, along with its methods.  This generic word takes a
 \factor|set| instance from the top of the stack and pushes the number of
 elements it contains.  For instance, if the top element is a \factor|bit-set|,
-we extract its \factor|table| slot and invoke another word, \factor|bit-count|,
+we extract its \Verb|table| slot and invoke another word, \Verb|bit-count|,
 on that.  But if the top element is \factor|f| (the canonical false/empty
 value), we know the cardinality is $0$.  For any \factor|sequence|, we may
 offshore the work to a different generic, \factor|length|, defined in the
-\factor|sequences| vocabulary.  The final method gives a default behavior for
-any other \factor|set| instance, which simply uses \factor|members| to obtain
+\Verb|sequences| vocabulary.  The final method gives a default behavior for
+any other \factor|set| instance, which simply uses \Verb|members| to obtain
 an equivalent \factor|sequence| of set members, then calls \factor|length|.
 
 By viewing a class as a set of all objects that respond positively to the class
 predicate, we may partially order classes with the subset relationship.  Method
-dispatch will use this ordering when \factor|cardinality| is called to select
+dispatch will use this ordering when \Verb|cardinality| is called to select
 the most specific method for the object being dispatched upon.  For instance,
 while no explicit method for \factor|array| is defined, any instance of
 \factor|array| is also an instance of \factor|sequence|.  In turn, every
 instance of \factor|sequence| is also an instance of \factor|set|.  We have
 methods that dispatch on both \factor|set| and \factor|sequence|, but the
 latter is more specific, so that is the method invoked.  If we define our own
-class, \factor|foo|, and declare it as an instance of \factor|set| but not as
+class, \Verb|foo|, and declare it as an instance of \factor|set| but not as
 an instance of \factor|sequence|, then the \factor|set| method of
-\factor|cardinality| will be invoked.  Sometimes resolving the precedence gets
+\Verb|cardinality| will be invoked.  Sometimes resolving the precedence gets
 more complicated, but these edge-cases are beyond the scope of our discussion.
