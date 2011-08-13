@@ -15,7 +15,7 @@
       \\
       \\
       \\ \hline
-      \factor|1| \\ \hline
+      \Verb|1| \\ \hline
     \end{tabular}
   };
 
@@ -23,8 +23,8 @@
     \begin{tabular}{k{3em}}
       \\
       \\ \hline
-      \factor|2| \\ \hline
-      \factor|1| \\ \hline
+      \Verb|2| \\ \hline
+      \Verb|1| \\ \hline
     \end{tabular}
   };
 
@@ -32,8 +32,8 @@
     \begin{tabular}{k{3em}}
       \\ \hline
       \factor|[ + ]| \\ \hline
-      \factor|2| \\ \hline
-      \factor|1| \\ \hline
+      \Verb|2| \\ \hline
+      \Verb|1| \\ \hline
     \end{tabular}
   };
 
@@ -42,13 +42,13 @@
       \\
       \\
       \\ \hline
-      \factor|3| \\ \hline
+      \Verb|3| \\ \hline
     \end{tabular}
   };
 
 
-  \path[->] (a) edge node [above] {\factor|1|}     (b)
-            (b) edge node [above] {\factor|2|}     (c)
+  \path[->] (a) edge node [above] {\Verb|1|}       (b)
+            (b) edge node [above] {\Verb|2|}       (c)
             (c) edge node [above] {\factor|[ + ]|} (d)
             (d) edge node [above] {\factor|call|}  (e);
 \end{tikzpicture}
