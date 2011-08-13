@@ -32,13 +32,13 @@ Similarly, \factor|#return| is inserted at the end of the sequence to indicate
 the final state of the data stack with its \factor|in-d| slot.
 
 The most basic operations of a stack language are, of course, pushing literals
-and calling functions that pop inputs and push outputs.  The \factor|#push|
-node thus has a \factor|literal| slot and an \factor|out-d| slot, giving a name
-to the single element it pushes to the data stack.  \factor|#call|, of course,
-is used for normal word invocations.  The \factor|in-d| and \factor|out-d|
-slots effectively serve as the stack effect declaration.  In later analyses,
-data about the word's definition may be stored across the \factor|body|,
-\factor|method|, \factor|class|, and \factor|info| slots.
+and calling functions.  The \factor|#push| node thus has a \factor|literal|
+slot and an \factor|out-d| slot, giving a name to the single element it pushes
+to the data stack.  \factor|#call|, of course, is used for normal word
+invocations.  The \factor|in-d| and \factor|out-d| slots effectively serve as
+the stack effect declaration.  In later analyses, data about the word's
+definition may be stored across the \factor|body|, \factor|method|,
+\factor|class|, and \factor|info| slots.
 
 \inputlst{build-tree-1}
 
@@ -105,37 +105,30 @@ hand, \factor|#dispatch| has an arbitrary number of children.  It corresponds
 to the \factor|dispatch| primitive, which is an implementation detail of the
 generic word system used to speed up method dispatch.
 
-\todo[inline]{Should extract the SSA junk into the general intro of the thesis}
-
-You may have noted the emphasis on introducing new values in \factor|out-d|
-slots.  Even \factor|#shuffle|s output fresh identifiers, letting their values
-be determined by its \factor|mapping|.  The reason for this is that
-\factor|compiler.tree| uses \gls{SSA} form, wherein every variable is defined
-by exactly one statement.  This simplifies the properties of variables, which
-helps optimizations perform faster and with better results.  By giving unique
-names to the targets of each assignment, the \gls{SSA} property is guaranteed.
-However, \factor|#branch|es introduce ambiguity: after, say, an \factor|#if|,
-what will the identifiers in \factor|out-d| be?  It depends on which branch is
-taken.  To remedy this problem, after any \factor|#branch| node, Factor will
-place a \factor|#phi| node---the classical \gls{SSA} ``phony function''.  The
-\factor|phi-in-d| slot seen in \vref{lst:tree} is a sequence of sequences; each
-one corresponds to the \factor|out-d| of the child at the same position in the
-\factor|children| of the preceding node.  The \factor|#phi|'s \factor|out-d|
-gives unique names to the output values, thus ensuring the \gls{SSA} property.
-Though it doesn't perform any literal computation, conceptually it select the
-``correct'' \factor|out-d| depending on the control flow.
+You may have noted the emphasis on introducing new values, instead of
+reassigning old ones.  Even \factor|#shuffle|s output fresh identifiers,
+letting their values be determined by the \factor|mapping|.  The reason for
+this is that \factor|compiler.tree| uses \gls{SSA} form, wherein every variable
+is defined by exactly one statement.  This simplifies the properties of
+variables, which helps optimizations perform faster and with better
+results\todo{cite?}.  By giving unique names to the targets of each assignment,
+the \gls{SSA} property is guaranteed.  However, \factor|#branch|es introduce
+ambiguity: after, say, an \factor|#if|, what will the \factor|out-d| be?  It
+depends on which branch is taken.  To remedy this problem, after any
+\factor|#branch| node, Factor will place a \factor|#phi| node---the classical
+\gls{SSA} ``phony function'', $\phi$.  While it doesn't perform any literal
+computation, conceptually $\phi$ selects between its inputs, choosing the
+``correct'' argument depending on control flow.  This can then be assigned to a
+unique value, preserving the \gls{SSA} property.  In Factor, this is
+represented by a \factor|phi-in-d| slot, which is a sequence of sequences.
+Each element corresponds to the \factor|out-d| of the child at the same
+position in the \factor|children| of the preceding \factor|#branch| node.  The
+\factor|#phi|'s \factor|out-d| gives unique names to the output values.
 
 \inputlst{build-tree-5}
 
 For example, the \factor|#phi| in \vref{lst:build-tree-5} will select between
-the
-%
-\factor|6256248|
-%
-return value of the first child or the 
-%
-\factor|6256249|
-%
+the \factor|6256248| return value of the first child or the \factor|6256249|
 output of the second.  Either way, we can refer to the result as
 \factor|6256250| afterwards.  The \factor|terminated| slot of the \factor|#phi|
 tells us if there was a \factor|#terminate| in any of the branches.
