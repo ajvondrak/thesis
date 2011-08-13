@@ -36,15 +36,13 @@ improvements it can get.  In particular, while Factor currently has a
 significant ways.
 
 In this thesis, we explore the implementation and use of \gls{GVN} in improving
-the strength of optimizations in Factor.  After establishing some preliminary
-terminology and concepts in \cref{sec:intro:prelim}, we turn our attention to
-the details.  Because Factor is a young and relatively unknown language,
-\cref{sec:primer} provides a short tutorial, laying a foundation for
-understanding the changes.  \Cref{sec:compiler} describes the overall
-architecture of the Factor compiler, highlighting where the exact contributions
-of this thesis fit in.  Finally, \cref{sec:vn} goes into detail about the
-existing and new value numbering passes, closing with a look at the results
-achieved and directions for future work. 
+the strength of optimizations in Factor.  Because Factor is a young and
+relatively unknown language, \cref{sec:primer} provides a short tutorial,
+laying a foundation for understanding the changes.  \Cref{sec:compiler}
+describes the overall architecture of the Factor compiler, highlighting where
+the exact contributions of this thesis fit in.  Finally, \cref{sec:vn} goes
+into detail about the existing and new value numbering passes, closing with a
+look at the results achieved and directions for future work. 
 
 All the code for the \gls{GVN} phase was written atop Factor version $0.94$,
 and a copy of it can be found in the appendix\todo{ref}.  In the unlikely event
@@ -59,5 +57,3 @@ that you want to cite this thesis, you may use the following
     year   = {2011},
   }
 \end{Verbatim}
-
-\input{sec/intro/prelim}
