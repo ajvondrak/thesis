@@ -1,7 +1,5 @@
 \section{Introduction}\label{sec:intro}
 
-% CFGs, SSA form
-
 Compilers translate programs written in a source language (e.g., Java) into
 semantically equivalent programs in some target language (e.g., assembly code).
 They let us make our source language arbitrarily abstract so we can write
@@ -46,24 +44,12 @@ understanding the changes.  \Cref{sec:compiler} describes the overall
 architecture of the Factor compiler, highlighting where the exact contributions
 of this thesis fit in.  Finally, \cref{sec:vn} goes into detail about the
 existing and new value numbering passes, closing with a look at the results
-achieved and directions for future work.  In total, the following Factor
-libraries were written for this thesis:
-\begin{itemize}
-  \item A \factor|graphviz| library, which provides bindings to create and
-        manipulate graphs in Factor and output them using Graphviz
-        (\url{http://graphviz.org}).
-  \item The \factor|compiler.cfg.graphviz| library, which sues the Graphviz
-        bindings to output images of Factor's low-level \acrlong{IR}.  This is
-        responsible for the illustrations of optimization passes seen in
-        \cref{sec:vn}.
-  \item The \factor|compiler.cfg.gvn| module, which was created by copying the
-        existing value numbering code (from
-        \factor|compiler.cfg.value-numbering|) to make the pass global.
-\end{itemize}
+achieved and directions for future work. 
 
-All code was written atop Factor version $0.94$, and copies of it can be found
-in the appendices.  In the unlikely event that you want to cite this thesis,
-you may use the following \textsc{Bib}\TeX~entry:
+All the code for the \gls{GVN} phase was written atop Factor version $0.94$,
+and a copy of it can be found in the appendix\todo{ref}.  In the unlikely event
+that you want to cite this thesis, you may use the following
+\textsc{Bib}\TeX~entry\todo{make sure it's single-page}:
 \begin{Verbatim}[gobble=2,frame=single]
   @mastersthesis{vondrak:11,
     author = {Alex Vondrak},
