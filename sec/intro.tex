@@ -1,62 +1,87 @@
 \section{Introduction}\label{sec:intro}
 
-%Global value numbering is an analysis performed by many highly-optimizing
-%compilers.  Its roots run deep, and there have been many developments along the
-%way, both theoretical and practical.  Using the results of this analysis, the
-%compiler can identify expressions in the source code that produce the same
-%value---not just by lexical comparison, but by proving equivalences between
-%what's actually computed by the code.  These expressions can then be simplified
-%by further algorithms for redundancy elimination.  This is the very essence of
-%most compiler optimizations: avoid redundant computation, giving us code that
-%runs as quickly as possible while still following what the programmer
-%originally wrote.  Of course, we want this all to be done quickly by the
-%compiler, so we're still concerned about the efficiency of the optimizations
-%themselves.
-%
-%High-level, dynamic languages tend to suffer from efficiency issues: they're
-%often interpreted rather than compiled, and perform no heavy optimization of
-%the source code.  However, the Factor language fills an intriguing design
-%niche, as it's very high-level yet still fully compiled.  It's still young,
-%though, so its compiler craves all the improvements it can get---among them, a
-%global value numbering (and subsequent redundancy elimination) pass.
-%
-%The bulk of this proposal focuses on the history of value numbering as told
-%through the volume of work done on designing and implementing various
-%algorithms.  Exploring these gives us a solid understanding of the work that
-%needs to be done, what methods currently exist, and the considerations that go
-%into writing a global value numbering pass for a compiler.  After this, we turn
-%to the main deliverable of the thesis, which is the implementation of such
-%algorithms in Factor.  The proposed research will thus produce data about
-%performing aggressive, state-of-the-art optimizations in a high-level language.
-%
-%\section{Literature Survey}
-%
+% CFGs, SSA form
+
+Compilers translate programs written in a source language (e.g., Java) into
+semantically equivalent programs in some target language (e.g., assembly code).
+They let us make our source language arbitrarily abstract so we can write
+programs in ways that humans understand while letting the computer execute
+programs in ways that machines understand.  In a perfect world, such
+translation would be straightforward.  Reality, however, is unforgiving.
+Straightforward compilation results in clunky target code that performs a lot
+of redundant computations.  To produce efficient code, we must rely on
+less-than-straightforward methods.  Typical compilers go through a stage of
+\term{optimization}, whereby a number of semantics-preserving transformations
+are applied to an \term{intermediate representation} of the source code.  These
+then (hopefully) produce a more efficient version of said representation.
+Optimizers tend to work in \term{phases}, applying specific transformations
+during any given phase.
+
+\Gls{GVN} is such an analysis performed by many highly-optimizing compilers.
+Its roots run deep through both the theoretical and the practical.  Using the
+results of this analysis, the compiler can identify expressions in the source
+code that produce the same value---not just by lexical comparison (i.e.,
+variables having the same name), but by proving equivalences between what's
+actually computed at runtime.  These expressions can then be simplified by
+further algorithms for redundancy elimination.  This is the very essence of
+most compiler optimizations: avoid redundant computation, giving us code that
+runs as quickly as possible while still following what the programmer
+originally wrote.
+
+High-level, dynamic languages tend to suffer from efficiency issues: they're
+often interpreted rather than compiled, and perform no heavy optimization of
+the source code.  However, the Factor language (\url{http://factorcode.org})
+fills an intriguing design niche, as it's very high-level yet still fully
+compiled.  It's still young, though, so its compiler craves all the
+improvements it can get.  In particular, while Factor currently has a
+\term{local} value numbering analysis, it is inferior to \gls{GVN} in several
+significant ways.
+
+In this thesis, we explore the implementation and use of \gls{GVN} in improving
+the strength of optimizations in Factor.  After establishing some preliminary
+terminology and concepts in \cref{sec:intro:prelim}, we turn our attention to
+the details.  Because Factor is a young and relatively unknown language,
+\cref{sec:primer} provides an short tutorial, laying a foundation for
+understanding the changes.  \Cref{sec:compiler} describes the overall
+architecture of the Factor compiler, highlighting where the exact contributions
+of this thesis fit in.  Finally, \cref{sec:vn} goes into detail about the
+existing and new value numbering passes, closing with a look at the results
+achieved and directions for future work.  In total, the following Factor
+libraries were written for this thesis:
+\begin{itemize}
+  \item A \factor|graphviz| library, which provides bindings to create and
+        manipulate graphs in Factor and output them using Graphviz
+        (\url{http://graphviz.org}).
+  \item The \factor|compiler.cfg.graphviz| library, which sues the Graphviz
+        bindings to output images of Factor's low-level intermediate
+        representation.  This is responsible for the illustrations of
+        optimization passes seen in \cref{sec:vn}.
+  \item The \factor|compiler.cfg.gvn| module, which was created by copying the
+        existing value numbering code (from
+        \factor|compiler.cfg.value-numbering|) to make the pass global.
+\end{itemize}
+
+All code was written atop Factor version $0.94$, and copies of it can be found
+in the appendices.  In the unlikely event that you want to cite this thesis,
+you may use the following \textsc{Bib}\TeX~entry:
+\begin{center}
+  \begin{Verbatim}[gobble=4,frame=single]
+    @mastersthesis{vondrak:11,
+      author = {Alex Vondrak},
+      title  = {Global Value Numbering in Factor},
+      school = {California Polytechnic State University, Pomona},
+      month  = sep,
+      year   = {2011},
+    }
+  \end{Verbatim}
+\end{center}
+
 %\subsection{Preliminaries}
-%
-%Compilers translate programs written in a source language (e.g., Java) into
-%semantically equivalent programs in some target language (e.g., assembly code).
-%They let us make our source language arbitrarily abstract so we can
-%\emph{write} programs in ways that humans can understand while letting the
-%computer \emph{execute} programs in ways that machines can understand.  In a
-%perfect world, such translation would be straightforward.  In
-%%this miserable existence we call ``
-%reality%
-%%''
-%, straightforward compilation results in clunky target code that performs a lot
-%of redundant computations.  We certainly want programs to be fast---not just
-%the compiled result, but also the compiler itself.  A compiler thus has three
-%duties: preserve semantics, produce efficient code, and do it quickly.
-%
-%To this end, typical compilers go through a stage of \defn{optimization},
-%whereby a number of semantics-preserving transformations are applied to an
-%\defn{intermediate representation} of the source code that (hopefully) produce
-%a more efficient version.  Optimizers tend to work in \defn{phases}, applying
-%specific transformations during any given phase.  The order of these phases is
-%important, since one transformation may open up opportunities for another.  The
-%most common intermediate representation (or at least the one we'll use here) is
-%the \defn{control-flow graph} (or \defn{CFG}, not to be confused with the
-%abbreviation for ``context-free grammar'').  
-%
+
+%The most common intermediate representation (or at least the one we'll use
+%here) is the \defn{control flow graph} (or \defn{CFG}, not to be confused with
+%the abbreviation for ``context-free grammar'').  
+
 %\begin{figure}
 %  \begin{center}
 %    \begin{minipage}{0.3\linewidth}

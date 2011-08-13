@@ -1,19 +1,5 @@
 \subsection{Results}\label{sec:vn:results}
 
-\todo[inline]{Move the ``list of shit I did'' to the intro?}
-
-In total, the following code was produced for this thesis:
-\begin{itemize}
-  \item A \factor|graphviz| vocabulary, which provides bindings to create and
-        manipulate graphs in Factor and output them using Graphviz\todo{cite?}.
-  \item The \factor|compiler.cfg.graphviz| vocabulary, which uses the Graphviz
-        bindings to output illustrations of Factor's low-level \glsplural{CFG}.
-        This was responsible for the illustrations seen throughout the thesis.
-  \item The \factor|compiler.cfg.gvn| vocabulary, which was created by copying
-        then modifying \factor|compiler.cfg.value-numbering| to make the pass
-        global.
-\end{itemize}
-
 The goal of improving the optimization in Factor is, of course, to reduce the
 average running time of programs, and to do so without changing their
 semantics.  Short of formal verification, the latter requirement makes it
