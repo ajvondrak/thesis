@@ -127,8 +127,15 @@
   \date{}
   \setcounter{page}{1}
   \begin{titlingpage}
-   %\changepage{-1in}{}{}{}{}{1in}{}{}{}
-    \changepage{-1in}{}{}{}{}{   }{}{}{}
+    \changepage{-1in} % text height
+               {}     % text width
+               {}     % even side margin
+               {}     % odd side margin
+               {}     % column sep
+               {   }  % top margin
+               {}     % head height
+               {}     % head sep
+               {}     % foot skip
     \maketitle
   \end{titlingpage}
   \addtocounter{page}{1}
