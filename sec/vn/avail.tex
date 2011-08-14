@@ -177,7 +177,8 @@ final iteration\todo{make it so}.
 Armed with the correct rewrite rules, availability information, and global
 value numbers, we can perform \gls{GCSE}.  The logic in the \Verb|gcse|
 generic in \vref{lst:gcse} is similar to \Verb|process-instruction| from
-\vref{lst:process-instruction} and \Verb|value-number| from
+%XXX
+\cref{lst:process-instruction} and \Verb|value-number| from
 \vref{lst:gvn-value-number}.  Unlike \Verb|value-number|, we do return an
 instruction (or sequence thereof) representing the replacement.  Thus, the
 \factor|array| method uses \factor|map| instead of \factor|each|, to hold onto
