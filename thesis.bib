@@ -1,0 +1,355 @@
+% AWZ based on Hopcroft's DFA minimization algorithm
+@techreport{Hopcroft,
+  author      = {John E. Hopcroft},
+  title       = {An $n \log n$ Algorithm for Minimizing States in a Finite
+                 Automaton},
+  year        = {1971},
+  institution = {Stanford University},
+  address     = {Stanford, CA, USA},
+}
+
+% GVN -- intro SSA
+@inproceedings{AWZ,
+  author    = {Bowen Alpern and Mark N. Wegman and F. Kenneth Zadeck},
+  title     = {Detecting Equality of Variables in Programs},
+  booktitle = {Proceedings of the 15th ACM SIGPLAN-SIGACT Symposium on
+               Principles of Programming Languages},
+  series    = {POPL '88},
+  year      = {1988},
+  isbn      = {0-89791-252-7},
+  location  = {San Diego, California, United States},
+  pages     = {1--11},
+  numpages  = {11},
+  url       = {http://doi.acm.org/10.1145/73560.73561},
+  doi       = {http://doi.acm.org/10.1145/73560.73561},
+  acmid     = {73561},
+  publisher = {ACM},
+  address   = {New York, NY, USA},
+}
+
+%Using AWZ for limited Redundancy Elimination -- intro SSA
+@inproceedings{RWZ,
+  author    = {Barry K. Rosen and Mark N. Wegman and F. Kenneth Zadeck},
+  title     = {Global Value Numbers and Redundant Computations},
+  booktitle = {Proceedings of the 15th ACM SIGPLAN-SIGACT symposium on
+               Principles of Programming Languages},
+  series    = {POPL '88},
+  year      = {1988},
+  isbn      = {0-89791-252-7},
+  location  = {San Diego, California, United States},
+  pages     = {12--27},
+  numpages  = {16},
+  url       = {http://doi.acm.org/10.1145/73560.73562},
+  doi       = {http://doi.acm.org/10.1145/73560.73562},
+  acmid     = {73562},
+  publisher = {ACM},
+  address   = {New York, NY, USA},
+}
+
+% Hash-based (not-so-G)VN
+@techreport{Cocke,
+  author      = {John Cocke and Jacob T. Schwartz},
+  title       = {Programming Languages and Their Compilers: Preliminary Notes},
+  institution = {Courant Institute of Mathematical Sciences, New York
+                 Univeristy},
+  year        = {1970}
+}
+
+% Hash-based (moreso-but-not-quite-G)VN
+@unpublished{ch7,
+  author    = {Bowen Alpern and F. Kenneth Zadeck},
+  title     = {Value Numbering},
+  year      = {1992},
+  note      = {Chapter 7 from an unpublished book, \textit{Optimization in
+               Compilers}.  Last accessed December 13, 2010},
+  publisher = {ACM Press and Addison-Wesley},
+  url       = {http://www.cs.ucr.edu/~gupta/teaching/553-07/Papers/value.pdf},
+}
+
+% SSC-based GVN
+@phdthesis{Simpson,
+  author  = {Loren Taylor Simpson},
+  title   = {Value-Driven Redundancy Elimination},
+  month   = apr,
+  year    = {1996},
+  school  = {Rice University},
+  address = {Houston, TX, USA}
+}
+
+% Incorporate more optimizations than SCC-GVN; balanced vs. global vs. local
+@inproceedings{Gargi,
+  author    = {Karthik Gargi},
+  title     = {A Sparse Algorithm for Predicated Global Value Numbering},
+  booktitle = {Proceedings of the ACM SIGPLAN 2002 Conference on Programming
+               Language Design and Implementation},
+  series    = {PLDI '02},
+  year      = {2002},
+  isbn      = {1-58113-463-0},
+  location  = {Berlin, Germany},
+  pages     = {45--56},
+  numpages  = {12},
+  url       = {http://doi.acm.org/10.1145/512529.512536},
+  doi       = {http://doi.acm.org/10.1145/512529.512536},
+  acmid     = {512536},
+  publisher = {ACM},
+  address   = {New York, NY, USA},
+}
+
+% PRE invention
+@article{PRE,
+  author    = {E. Morel and C. Renvoise},
+  title     = {Global Optimization by Suppression of Partial Redundancies},
+  journal   = {Communications of the ACM},
+  volume    = {22},
+  issue     = 2,
+  month     = feb,
+  year      = {1979},
+  issn      = {0001-0782},
+  pages     = {96--103},
+  numpages  = 8,
+  url       = {http://doi.acm.org/10.1145/359060.359069},
+  doi       = {http://doi.acm.org/10.1145/359060.359069},
+  acmid     = {359069},
+  publisher = {ACM},
+  address   = {New York, NY, USA},
+} 
+
+% PRE; see also Bodik, if start going into PRE more deeply
+@phdthesis{VanDrunen,
+  author  = {Thomas John VanDrunen},
+  title   = {Partial Redundancy Elimination for Global Value Numbering},
+  month   = aug,
+  year    = {2004},
+  isbn    = {0-496-15310-2},
+  school  = {Purdue University},
+  address = {West Lafayette, IN, USA},
+}
+
+% Combining GVN with other optimizations
+@phdthesis{Click,
+  author  = {Clifford Noel Click},
+  title   = {Combining Analyses, Combining Optimizations},
+  school  = {Rice University},
+  month   = feb,
+  year    = {1995},
+  address = {Houston, TX, USA}
+}
+
+% Precursor to Abstract Interpretation GVN
+@inproceedings{Kildall,
+  author    = {Gary A. Kildall},
+  title     = {A Unified Approach to Global Program Optimization},
+  booktitle = {Proceedings of the 1st ACM SIGACT-SIGPLAN Symposium on
+               Principles of Programming Languages},
+  series    = {POPL '73},
+  year      = {1973},
+  location  = {Boston, Massachusetts},
+  pages     = {194--206},
+  numpages  = {13},
+  url       = {http://doi.acm.org/10.1145/512927.512945},
+  doi       = {http://doi.acm.org/10.1145/512927.512945},
+  acmid     = {512945},
+  publisher = {ACM},
+  address   = {New York, NY, USA},
+}
+
+% Definition of Abstract Interpretation
+@inproceedings{Cousot,
+  author    = {Patrick Cousot and Radhia Cousot},
+  title     = {Abstract Interpretation: A Unified Lattice Model for Static
+               Analysis of Programs by Construction or Approximation of
+               Fixpoints},
+  booktitle = {Proceedings of the 4th ACM SIGACT-SIGPLAN symposium on
+               Principles of Programming Languages},
+  series    = {POPL '77},
+  year      = {1977},
+  location  = {Los Angeles, California},
+  pages     = {238--252},
+  numpages  = {15},
+  url       = {http://doi.acm.org/10.1145/512950.512973},
+  doi       = {http://doi.acm.org/10.1145/512950.512973},
+  acmid     = {512973},
+  publisher = {ACM},
+  address   = {New York, NY, USA},
+}
+
+% Start of ``theoretical'' line
+@inproceedings{Steffen,
+  author    = {Bernhard Steffen},
+  title     = {Optimal Run Time Optimization Proved By A New Look at Abstract
+               Interpretations},
+  booktitle = {The International Joint Conference on Theory and Practice of
+               Software Development on TAPSOFT '87},
+  year      = {1987},
+  isbn      = {0-387-17660-8},
+  location  = {Pisa, Italy},
+  pages     = {52--68},
+  numpages  = {17},
+  url       = {http://portal.acm.org/citation.cfm?id=29580.29585},
+  acmid     = {29585},
+  publisher = {Springer-Verlag},
+  address   = {London, UK},
+}
+
+% Value Flow Graphs vs. SSA; using Abstract Interpretation for GVN
+% RKS vs. SKR?
+@inproceedings{RKS,
+  author    = {Oliver R\"uthing and Jens Knoop and Bernhard Steffen},
+  title     = {Detecting Equalities of Variables: Combining Efficiency with
+               Precision},
+  booktitle = {Proceedings of the 6th International Symposium on Static
+               Analysis},
+  series    = {SAS '99},
+  year      = {1999},
+  isbn      = {3-540-66459-9},
+  pages     = {232--247},
+  numpages  = {16},
+  url       = {http://portal.acm.org/citation.cfm?id = 647168.718137},
+  acmid     = {718137},
+  publisher = {Springer-Verlag},
+  address   = {London, UK},
+}
+
+% Novel Approaches: Random Interpretation GVN
+@inproceedings{Gulwani04,
+  author    = {Sumit Gulwani and George C. Necula},
+  title     = {Global Value Numbering Using Random Interpretation},
+  booktitle = {Proceedings of the 31st ACM SIGPLAN-SIGACT Symposium on
+               Principles of Programming Languages},
+  series    = {POPL '04},
+  year      = {2004},
+  isbn      = {1-58113-729-X},
+  location  = {Venice, Italy},
+  pages     = {342--352},
+  numpages  = {11},
+  url       = {http://doi.acm.org/10.1145/964001.964030},
+  doi       = {http://doi.acm.org/10.1145/964001.964030},
+  acmid     = {964030},
+  publisher = {ACM},
+  address   = {New York, NY, USA},
+}
+
+% Novel Approaches: O(n) Complete GVN
+% Note: Criticisms of other algorithms
+%  AWZ incomplete; treats phi as uninterpreted
+%  RKS incomplete; introduces a degree of pessimism
+@article{Gulwani07,
+  author    = {Sumit Gulwani and George C. Necula},
+  title     = {A Polynomial-Time Algorithm for Global Value Numbering},
+  journal   = {Science of Computer Programming},
+  volume    = {64},
+  issue     = 1,
+  month     =  jan,
+  year      = {2007},
+  issn      = {0167-6423},
+  pages     = {97--114},
+  numpages  = {18},
+  url       = {http://portal.acm.org/citation.cfm?id = 1222241.1222599},
+  doi       = {10.1016/j.scico.2006.03.005},
+  acmid     = {1222599},
+  publisher = {Elsevier North-Holland, Inc.},
+  address   = {Amsterdam, The Netherlands, The Netherlands},
+}
+
+% Latest
+@inproceedings{Nie,
+  author    = {Jiu-Tao Nie and Xu Cheng},
+  title     = {An Efficient SSA-Based Algorithm for Complete Global Value
+               Numbering},
+  booktitle = {Proceedings of the 5th Asian Conference on Programming Languages
+               and Systems},
+  series    = {APLAS '07},
+  year      = {2007},
+  isbn      = {3-540-76636-7, 978-3-540-76636-0},
+  location  = {Singapore},
+  pages     = {319--334},
+  numpages  = {16},
+  url       = {http://portal.acm.org/citation.cfm?id = 1784774.1784806},
+  acmid     = {1784806},
+  publisher = {Springer-Verlag},
+  address   = {Berlin, Heidelberg},
+}
+
+%%% Auxiliary citations
+
+@book{DragonBook,
+  title     = {Compilers: Principles, Techniques, \& Tools},
+  author    = {Alfred V. Aho and Monica S. Lam and Ravi Sethi and Jeffrey D.
+               Ullman},
+  publisher = {Addison-Wesley},
+  year      = {2007},
+  edition   = {Second}
+}
+
+@article{Tarjan,
+  author    = {Robert Tarjan},
+  journal   = {SIAM Journal on Computing},
+  number    = 2,
+  pages     = {146--160},
+  publisher = {SIAM},
+  title     = {{Depth-First Search and Linear Graph Algorithms}},
+  volume    = 1,
+  year      = {1972}
+}
+
+@article{SSAConstruction,
+  author = {Gianfranco Bilardi and Keshav Pingali},
+  title = {Algorithms for Computing the Static Single Assignment Form},
+  journal = {Journal of the ACM},
+  volume = {50},
+  issue = 3,
+  month  =  may,
+  year = {2003},
+  issn = {0004-5411},
+  pages = {375--425},
+  numpages = {51},
+  url = {http://doi.acm.org/10.1145/765568.765573},
+  doi = {http://doi.acm.org/10.1145/765568.765573},
+  acmid = {765573},
+  publisher = {ACM},
+  address = {New York, NY, USA}
+}
+
+@article{Completeness,
+  author = {Roberto Giacobazzi and Francesco Ranzato and Francesca Scozzari},
+  title = {Making Abstract Interpretations Complete},
+  journal = {Journal of the ACM},
+  volume = {47},
+  issue = 2,
+  month  =  mar,
+  year = {2000},
+  issn = {0004-5411},
+  pages = {361--416},
+  numpages = {56},
+  url = {http://doi.acm.org/10.1145/333979.333989},
+  doi = {http://doi.acm.org/10.1145/333979.333989},
+  acmid = {333989},
+  publisher = {ACM},
+  address = {New York, NY, USA},
+}
+
+@misc{gcc,
+  title = {GCC Command Options---Options That Control Optimization},
+  month = dec,
+  year  = {2010},
+  url   = {http://gcc.gnu.org/onlinedocs/gcc/Optimize-Options.html},
+  note  = {From the GNU Compiler Collection's version 4.6.0 online
+           documentation, \textcopyright 2010 Free Software Foundation, Inc.}
+}
+
+@phdthesis{Biggar,
+  author = {Paul Biggar},
+  title  = {Design and Implementation of an Ahead-of-Time Compiler for PHP},
+  school = {Trinity College, Dublin},
+  year   = {2009},
+  month  = oct,
+  url    = {http://www.paulbiggar.com/research/wip-thesis.pdf}
+}
+
+@misc{young-factor,
+  title = {Factor},
+  url   = {http://concatenative.org/wiki/view/Factor},
+  note  = {From Factor's documentation wiki.  Last accessed \today.},
+  year  = {2010},
+  month = sep
+}
