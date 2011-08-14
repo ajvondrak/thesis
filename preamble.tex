@@ -8,18 +8,11 @@
 \usepackage{indentfirst}
 
 \usepackage{tikz}
-%\usetikzlibrary{external}
-%\tikzexternalize
 
 \usepackage{lib/minted}
 \usemintedstyle{bw}
 \newminted{factor}{gobble=4,frame=single}
 \newmint{factor}{}
-
-\usepackage{float}
-\floatstyle{ruled}
-\newfloat{algorithm}{tbp}{alg}
-\floatname{algorithm}{Algorithm}
 
 %TODO figure out the "right" way to do terminology typesetting
 \newcommand{\term}[1]{\emph{#1}}
@@ -31,18 +24,12 @@
   \end{figure}
 }
 
+% XXX might s/listing/figure/
 \newcommand{\inputlst}[2][tbph]{
   \begin{listing}[#1]
     \input{lst/#2}
     \label{lst:#2}
   \end{listing}
-}
-
-\newcommand{\inputalg}[1]{
-  \begin{algorithm}
-    \input{alg/#1}
-    \label{alg:#1}
-  \end{algorithm}
 }
 
 \usepackage{array}
