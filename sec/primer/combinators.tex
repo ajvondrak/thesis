@@ -1,4 +1,4 @@
-\subsection{Combinators}\label{sec:primer:combinators}
+\section{Combinators}\label{sec:primer:combinators}
 
 Quotations, introduced in \cref{sec:primer:stack-based}, form the basis of both
 control flow and data flow in Factor.  Not only are they the equivalent of
@@ -12,7 +12,7 @@ arise that can be abstracted away.  \cref{sec:primer:data-flow} explores how we
 can use combinators to express otherwise convoluted stack-shuffling logic more
 succinctly.
 
-\subsubsection{Control Flow}\label{sec:primer:control-flow}
+\subsection{Control Flow}\label{sec:primer:control-flow}
 
 \inputlst{if}
 
@@ -234,7 +234,7 @@ the scope of our discussion, but the ones we've studied should give a solid
 view of what standard conditional execution, iteration, and looping looks like
 in a stack-based language.
 
-\subsubsection{Data Flow}\label{sec:primer:data-flow}
+\subsection{Data Flow}\label{sec:primer:data-flow}
 
 While avoiding variables and additional syntax makes it easier to refactor
 code, keeping mental track of the stack can be taxing.  If we need to
@@ -313,8 +313,9 @@ is the same as
 %
 \factor|{ [ a ] [ b ] [ c ] } cleave|,
 %
+%XXX fuck this dumb-shit fucking cunt what the fuck does it fucking want
 which is more readable.  We can see this in action in the difference between
-\Verb|without-tri| and \Verb|with-tri| in \vref{lst:cleave}.  In cases
+\Verb|without-tri| and \Verb|with-tri| in \cref{lst:cleave}.  In cases
 where we need to apply multiple quotations to a set of values instead of just a
 single one, there are also the variants \factor|2cleave| and \factor|3cleave|
 (and the corresponding \factor|2bi|, \factor|2tri|, \factor|3bi|, and

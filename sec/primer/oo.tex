@@ -1,4 +1,4 @@
-\subsection{Object Orientation}\label{sec:primer:oo}
+\section{Object Orientation}\label{sec:primer:oo}
 
 You may have noticed that the examples in \cref{sec:primer:colon-defs} did not
 use type declarations.  While Factor is dynamically typed for the sake of
@@ -8,7 +8,7 @@ particular methods, as is common.  Instead, it uses \term{generic words} with
 methods implemented for particular classes.  To start, though, we must see how
 classes are defined.
 
-\subsubsection{Tuples}
+\subsection{Tuples}
 
 \inputlst{tuples}
 
@@ -126,7 +126,7 @@ also be a \factor|string|, but if unspecified, it defaults to
 Factor, even words are first-class objects), which by default is \Verb|utf8|,
 a word from the \Verb|io.encodings.utf8| vocabulary for a Unicode format.
 
-\subsubsection{Generics and Methods}
+\subsection{Generics and Methods}
 
 Unlike more common object systems, we do not define individual methods that
 ``belong'' to particular tuples.  In Factor, you define a method that

@@ -1,0 +1,176 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesClass{cpp-thesis}[2010/11/11 Cal Poly Pomona Thesis Format]
+\RequirePackage{bold-extra}
+
+\makeatletter
+
+%--- memoir --------------------------------------------------------------------
+
+\PassOptionsToClass{letterpaper,oneside}{memoir}
+\DeclareOption*{\PassOptionsToClass{\CurrentOption}{memoir}}
+\ProcessOptions\relax
+
+\LoadClass{memoir}
+
+\DoubleSpacing
+\pagestyle{plain}
+
+%--- Variables -----------------------------------------------------------------
+
+\newcommand{\thefield}{}
+\newcommand{\field}[1]{\renewcommand{\thefield}{#1}}
+
+\newcommand{\thedegree}{}
+\newcommand{\degree}[1]{\renewcommand{\thedegree}{#1}}
+
+\newcommand{\thechair}{}
+\newcommand{\thechairdept}{}
+\newcommand{\chair}[2]{\renewcommand{\thechair}{#1}
+                       \renewcommand{\thechairdept}{#2}}
+
+\newcommand{\thememberA}{}
+\newcommand{\thememberAdept}{}
+\newcommand{\memberA}[2]{\renewcommand{\thememberA}{#1}
+                         \renewcommand{\thememberAdept}{#2}}
+
+\newcommand{\thememberB}{}
+\newcommand{\thememberBdept}{}
+\newcommand{\memberB}[2]{\renewcommand{\thememberB}{#1}
+                         \renewcommand{\thememberBdept}{#2}}
+
+\newcommand{\thedepartment}{\thefield}
+\newcommand{\department}[1]{\renewcommand{\thedepartment}{#1}}
+
+\newcommand{\thequarter}{}
+\newcommand{\quarter}[1]{\renewcommand{\thequarter}{#1}}
+
+%--- Margins -------------------------------------------------------------------
+
+\setlrmarginsandblock{1.5in}{1in}{*}
+\setulmarginsandblock{1in}{1in}{*}
+\setlength{\marginparwidth}{64pt}
+\checkandfixthelayout
+
+% XXX the library didn't give two shits about this
+
+%\setlrmarginsandblock{1.5in}{1in}{*}
+%
+%% Adjust upper / lower margins based on the header & footer spaces, so that the
+%% headers & footers fall within the 1in boundary
+%
+%\setlength{\textheight}{\paperheight}
+%
+%\setlength{\headheight}{\onelineskip}
+%\setlength{\headsep}{\onelineskip}
+%\addtolength{\headsep}{-\topskip}
+%
+%\setlength{\footskip}{\onelineskip}
+%\addtolength{\footskip}{\topskip}
+%\setlength{\footnotesep}{\onelineskip}
+%
+%\addtolength{\marginparwidth}{-\marginparsep}
+%
+%\setlength{\uppermargin}{1in}
+%\addtolength{\uppermargin}{\headheight}
+%\addtolength{\uppermargin}{\headsep}
+%\addtolength{\textheight}{-\uppermargin}
+%
+%\setlength{\lowermargin}{1in}
+%\addtolength{\lowermargin}{\footskip}
+%\addtolength{\lowermargin}{\footnotesep}
+%\addtolength{\textheight}{-\lowermargin}
+%
+%\checkandfixthelayout
+
+%--- Pages ---------------------------------------------------------------------
+
+% Options for signature lines
+
+\newlength{\siglinewidth}
+\newlength{\sigcaptionwidth}
+
+% Cover sheet is blank
+
+\newcommand{\coversheet}{\newpage\null\thispagestyle{empty}}
+
+% \maketitle customization for thesis
+
+\setlength{\sigcaptionwidth}{0.3\textwidth}
+\setlength{\siglinewidth}{0.6\textwidth}
+
+\pretitle{\begin{center}\Huge\scshape\bfseries}
+\posttitle{\par\end{center}\par\vfill}
+\preauthor{\begin{center} \large By \par}
+\postauthor{\par\the\year\par\end{center}}
+%\predate{\begin{phantom}}
+%\postdate{\end{phantom}}
+
+\renewcommand{\maketitlehookb}{
+  \begin{center}
+    A Thesis\\ % class is called ``cpp-thesis'', not ``cpp-project''
+    Presented to the\\
+    Faculty of\\
+    California State Polytechnic University, Pomona
+
+    \vfill
+
+    In Partial Fulfillment\\
+    Of the Requirements for the Degree\\
+    \thedegree\\
+    In\\
+    \thefield
+  \end{center}
+  \vfill
+}
+
+\newcommand{\titlepage}{
+  \date{}
+  \setcounter{page}{1}
+  \begin{titlingpage}
+   %\changepage{-1in}{}{}{}{}{1in}{}{}{}
+    \changepage{-1in}{}{}{}{}{   }{}{}{}
+    \maketitle
+  \end{titlingpage}
+  \addtocounter{page}{1}
+  %\changepage{1in}{}{}{}{}{-1in}{}{}{}
+}
+
+\newcommand{\signaturepage}{
+  %\newpage
+  % breaks in \titlepage, but not here; what the fuck?
+  \changepage{-1in}{}{}{}{}{1in}{}{}{}
+  \begin{center}
+    \textbf{\textsc{\Huge Signature Page}}
+    \vfill
+    \begin{tabular}{p{\sigcaptionwidth}p{\siglinewidth}}
+      \textbf{Thesis:}         & \textsc{\thetitle} \\
+      \textbf{Author:}         & \theauthor         \\
+      \textbf{Date Submitted:} & \thequarter        \\
+                               & \thedepartment
+    \end{tabular}
+  \end{center}
+  \vfill
+  \begin{SingleSpace}
+    \begin{tabular}{p{\sigcaptionwidth}p{\siglinewidth}}
+      \thechair              & \hrulefill \\
+      Thesis Committee Chair &            \\
+      \thechairdept          &            \\ \\[2\onelineskip]
+      \thememberA            & \hrulefill \\
+      \thememberAdept        &            \\ \\[2\onelineskip]
+      \thememberB            & \hrulefill \\
+      \thememberBdept        &
+    \end{tabular}
+  \end{SingleSpace}
+
+  \newpage
+  \changepage{1in}{}{}{}{}{-1in}{}{}{}
+}
+
+%--- Environments --------------------------------------------------------------
+
+\newenvironment{acknowledgments}{\newpage}{\newpage}
+\newenvironment{ack}{\begin{acknowledgments}}{\end{acknowledgments}}
+
+\abstractnum
+
+\makeatother

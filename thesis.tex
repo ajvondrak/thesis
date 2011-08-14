@@ -1,11 +1,44 @@
-\documentclass[11pt]{article} % TODO change this
+\documentclass[11pt,article,oldfontcommands]{cpp-thesis}
+%\counterwithout{section}{chapter}
 
-\setlength{\parskip}{\medskipamount} % XXX
+\setlength{\parskip}{\medskipamount}
+
+\title{Global Value Numbering in Factor}
+\author{Alex Vondrak}
+\degree{Master of Science}
+\field{Computer Science}
+\chair{Dr. Craig Rich}{Computer Science}
+\memberA{Dr. Daisy Sang}{Computer Science}
+\memberB{Dr. Amar Raheja}{Computer Science}
+\quarter{Summer 2011}
 
 \input{preamble}
 \input{gls/acronyms}
 
 \begin{document}
+
+\frontmatter
+\coversheet
+\titlepage
+\signaturepage
+
+\begin{ack}
+  \null
+  \begin{vplace}
+    \begin{center}
+      \textit{\Large To Lindsay---he is my rock}
+    \end{center}
+  \end{vplace}
+\end{ack}
+
+\begin{abstract}
+  TODO
+  \newpage
+\end{abstract}
+
+\tableofcontents
+
+\mainmatter
 
 \input{sec/intro}
 \input{sec/primer}
