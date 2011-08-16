@@ -143,6 +143,7 @@
 }
 
 \newcommand{\signaturepage}{
+  \addcontentsline{toc}{chapter}{Signature Page}
   %\newpage
   % breaks in \titlepage, but not here; what the fuck?
   \changepage{-1in}{}{}{}{}{1in}{}{}{}
@@ -151,7 +152,10 @@
     \vfill
     \begin{tabular}{p{\sigcaptionwidth}p{\siglinewidth}}
       \textbf{Thesis:}         & \textsc{\thetitle} \\
-      \textbf{Author:}         & \theauthor         \\
+      \textbf{Author:}         & Alex Vondrak       \\
+                                %^^^^^^^^^^^^
+                                %well, something's making this 0 for some
+                                %fucking reason
       \textbf{Date Submitted:} & \thequarter        \\
                                & \thedepartment
     \end{tabular}
@@ -175,7 +179,9 @@
 
 %--- Environments --------------------------------------------------------------
 
-\newenvironment{acknowledgments}{\newpage}{\newpage}
+\newenvironment{acknowledgments}%
+  {\newpage\addcontentsline{toc}{chapter}{Acknowledgments}}%
+  {\newpage}
 \newenvironment{ack}{\begin{acknowledgments}}{\end{acknowledgments}}
 
 \abstractnum

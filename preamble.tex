@@ -83,4 +83,19 @@
    \addperiod\space\printfield{labelyear}%
    \printfield{extrayear}}}}
 
+\renewcommand*{\mkbibparens}[1]{%
+  {\ifcitation{\bibleftbracket#1\bibrightbracket}%
+              {\bibleftparen#1\bibrightparen}}%
+}
+
+\renewcommand*{\bibopenparen}[1]{%
+  {\ifcitation{\bibleftbracket#1}{\bibleftparen#1}}%
+}
+
+\renewcommand*{\bibcloseparen}{%
+  {\ifcitation{\bibrightbracket}{\bibrightparen}}%
+}
+
+\defbibheading{bibliography}{\bibsection}
+
 \addbibresource{thesis.bib}
