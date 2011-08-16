@@ -3,15 +3,15 @@
 If we could sort programming languages by the fuzzy notions we tend to have
 about how ``high-level'' they are, toward the high end we'd find
 dynamically-typed languages like Python, Ruby, and PHP---all of which are
-generally more interpreted than compiled\todo{Though there are projects for
-this}.  Despite being as high-level as these popular languages, Factor's
-implementation is driven by performance.  Factor source is always compiled to
-native machine code using either its simple, non-optimizing compiler or (more
-typically) the optimizing compiler that performs several sorts of data and
-control flow analyses.  In this \lcnamecref{sec:compiler}, we look at the
-general architecture of Factor's implementation, after which we place a
-particular emphasis on the transformations performed by the optimizing
-compiler.
+generally more interpreted than compiled (though there has been compelling work
+on this front \autocite[e.g.,][]{Biggar}).  Despite being as high-level as these
+popular languages, Factor's implementation is driven by performance.  Factor
+source is always compiled to native machine code using either its simple,
+non-optimizing compiler or (more typically) the optimizing compiler that
+performs several sorts of data and control flow analyses.  In this
+\lcnamecref{sec:compiler}, we look at the general architecture of Factor's
+implementation, after which we place a particular emphasis on the
+transformations performed by the optimizing compiler.
 
 \input{sec/compiler/vm}
 \input{sec/compiler/tree}

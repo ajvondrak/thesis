@@ -1,22 +1,22 @@
 \section{Global Value Numbering}\label{sec:vn:global}
 
-Answering the challenges of Cocke\todo{cite-like}, AWZ~\todo{cite-like}
-described what would be the de facto value numbering algorithm for several
-years, and rightly so.  It was a properly \term{global} value numbering
-algorithm, working across an entire \gls{CFG} instead of on single basic
-blocks.  Their paper was important in another very relevant way: it is the
-first published reference to SSA form\todo{cite VanDrunen}, including an
+Answering the challenges of \citeauthor{Cocke}, \citeauthor{AWZ}
+\autocite*{AWZ} described what would be the de facto value numbering algorithm
+for several years, and rightly so.  It was a properly \term{global} value
+numbering algorithm, working across an entire \gls{CFG} instead of on single
+basic blocks.  Their paper was important in another very relevant way: it is
+the first published reference to SSA form \autocite{VanDrunen}, including an
 algorithm for its construction.
 
 Though we could try to extend the scope of Factor's local value numbering, it
-is still inherently pessimistic.  The algorithm of AWZ\todo{cite-like}, which
-is commonly referred to simply as AWZ\todo{gls?}, uses a modification of
-Hopcroft's~\todo{cite-like} minimization algorithm for finite state automata.
-It works on an \term{optimistic} assumption by first assuming every value has
-the same value number, then trying to prove that values are actually different.
-It does this by treating value numbers as \term{congruence classes} that
-partition the set of virtual registers.  If two values are in the same class,
-then they are congruent, where congruence is defined as in \cref{sec:vn:local}.
+is still inherently pessimistic.  The algorithm of \citeauthor{AWZ}, which is
+commonly referred to simply as AWZ, uses a modification of a minimization
+algorithm for finite state automata \autocite{Hopcroft}.  It works on an
+\term{optimistic} assumption by first assuming every value has the same value
+number, then trying to prove that values are actually different.  It does this
+by treating value numbers as \term{congruence classes} that partition the set
+of virtual registers.  If two values are in the same class, then they are
+congruent, where congruence is defined as in \cref{sec:vn:local}.
 
 Such a partition is not unique, in general.  For instance, a trivial one places
 each value in its own congruence class.  So, we look for the \term{maximal
@@ -35,48 +35,48 @@ stabilizes.
 
 The optimistic assumption may seem dangerous.  Is it possible that we're
 ``overoptimistic''?  That two values assumed to be congruent and not proven
-incongruent might actually be inequivalent when the program is run?  The
-AWZ~\todo{gls?} paper dedicates a section to proving that two congruent
-variables are equivalent at a point $p$ in the program if their definitions
-dominate $p$.  The proof is a bit quirky, but reasonable.  They develop a
-dynamic notion of dominance in a running program which implies static dominance
-in the code, then show that congruence implies runtime equality (though
-equivalence does not imply congruence).
+incongruent might actually be inequivalent when the program is run?  The AWZ
+paper dedicates a section to proving that two congruent variables are
+equivalent at a point $p$ in the program if their definitions dominate $p$.
+The proof is a bit quirky, but reasonable.  They develop a dynamic notion of
+dominance in a running program which implies static dominance in the code, then
+show that congruence implies runtime equality (though equivalence does not
+imply congruence).
 
-AWZ\todo{gls?}~ made the need for \gls{GVN} algorithms apparent.  However,
-finite state automata minimization makes for a more complicated algorithm than
-hash-based value numbering.  A na\"{i}ve implementation can be quadratic,
-although careful data structure and procedure design can make it $O(n\log n)$.
-Furthermore, it's resistant to the same improvements we easily added to the
-local value numbering.  To even consider the commutativity of operations
-requires changes in operand position tracking and splitting---the heart of the
-algorithm.  It is generally limited by what the programmer writes down: deeper
-congruences due to, say, algebraic identities can't be discovered.
+AWZ made the need for \gls{GVN} algorithms apparent.  However, finite state
+automata minimization makes for a more complicated algorithm than hash-based
+value numbering.  A na\"{i}ve implementation can be quadratic, although careful
+data structure and procedure design can make it $O(n\log n)$.  Furthermore,
+it's resistant to the same improvements we easily added to the local value
+numbering.  To even consider the commutativity of operations requires changes
+in operand position tracking and splitting---the heart of the algorithm.  It is
+generally limited by what the programmer writes down: deeper congruences due
+to, say, algebraic identities can't be discovered.
 
 In fact, by performing an optimization that uses the \gls{GVN} information,
 more \gls{GVN} congruences may arise.  If we can somehow perform the two
 analyses simultaneously, they'll produce better results.  This generalizes to
 interdependent compiler optimizations at large, as elucidated in
-Click's\todo{cite-like}~ dissertation, which describes a method for formalizing
-and combining separate optimizations that make optimistic assumptions (whatever
-they happen to be for each particular analysis).  He uses this to merge
-\gls{GVN} with \term{conditional constant propagation}, which itself is a
-combination of constant propagation and unreachable code elimination (pretty
-much like the \Verb|propagate| pass from \cref{sec:compiler:tree}).
-Furthermore, \gls{GVN} is extended to handle algebraic identities, propagate
-constants, and fold redundant $\phi$s.  Unfortunately, the straightforward
-algorithm for this is $O(n^2)$, while the $O(n\log n)$ version presented is not
-just complicated, but can also miss some congruences between
-$\phi$-functions\todo{cite Click, Simpson}.
+\citeauthor{Click}'s dissertation \autocite*{Click}, which describes a method
+for formalizing and combining separate optimizations that make optimistic
+assumptions (whatever they happen to be for each particular analysis).  He uses
+this to merge \gls{GVN} with \term{conditional constant propagation}, which
+itself is a combination of constant propagation and unreachable code
+elimination (pretty much like the \Verb|propagate| pass from
+\cref{sec:compiler:tree}).  Furthermore, \gls{GVN} is extended to handle
+algebraic identities, propagate constants, and fold redundant $\phi$s.
+Unfortunately, the straightforward algorithm for this is $O(n^2)$, while the
+$O(n\log n)$ version presented is not just complicated, but can also miss some
+congruences between $\phi$-functions \autocites{Click,Simpson}.
 
-Hot on the heels of this work, Simpson's\todo{cite-like}~ dissertation provides
-probably the most exhaustive treatment of \gls{GVN} algorithms.  He presents
-several extensions, such as incorporating hash-based local value numbering into
-\gls{SSA} construction, handling commutativity in AWZ\todo{gls?}~ \gls{GVN},
-and performing redundant store elimination.  He builds off of the two classical
-algorithms independently, which underlines their inherent differences and
-limitations.  In general, hash-based value numbering is easy to extend without
-greatly impacting the runtime complexity, as is the case in Factor's
+Hot on the heels of this work, \citeauthor{Simpson}'s \autocite*{Simpson}
+dissertation provides probably the most exhaustive treatment of \gls{GVN}
+algorithms.  He presents several extensions, such as incorporating hash-based
+local value numbering into \gls{SSA} construction, handling commutativity in
+AWZ, and performing redundant store elimination.  He builds off of the two
+classical algorithms independently, which underlines their inherent differences
+and limitations.  In general, hash-based value numbering is easy to extend
+without greatly impacting the runtime complexity, as is the case in Factor's
 implementation.
 
 Drawing from this experience, Simpson's hallmark algorithm combines the best of
@@ -84,10 +84,10 @@ both worlds by taking the hash-based algorithm which is easy to understand,
 implement, and extend, and making it global, so it identifies more congruences.
 Dubbed the ``\gls{RPO} algorithm'', it simply applies hash-based value
 numbering iteratively over the \gls{CFG} until we reach the same fixed point
-computed by AWZ\todo{gls?}.  (The fact that it computes the \emph{same} fixed
-point is proven fairly straightforwardly in the dissertation.)  It could
-technically traverse the \gls{CFG} in any topological order, but Simpson
-defaults to reverse postorder.
+computed by AWZ.  (The fact that it computes the exact same fixed point is
+proven fairly straightforwardly in the dissertation.)  It could technically
+traverse the \gls{CFG} in any topological order, but Simpson defaults to
+reverse postorder.
 
 Because it is based off the hashing algorithm, we get the benefits essentially
 for free.  The same simplifications can be performed, but with the added
@@ -135,20 +135,19 @@ table, \factor|maybe-set-at| returns \factor|f|.  Therefore, when
 is what the \factor|on| word does).
 
 Finally, we define a new utility word, \Verb|clear-exprs|, which resets the
-\Verb|exprs>vns| and \Verb|vns>insns| tables.  Unlike the local value
-numbering phase, we don't reset the entire expression graph.  Instead, we make
-a pass over the whole \gls{CFG} at a time.  The only reason optimism works is
-that we keep trying to disprove our foolhardy assumptions.  Really,
-\Verb|vregs>vns| establishes congruence classes of value numbers.  At first,
-every value belongs in one class, \factor|f|.  We make a pass over the
-\gls{CFG} to disprove whatever we can about this.  If we've introduced new
-congruence classes (new values in the \Verb|vregs>vns| hash), we do another
-iteration.  But each time, we use the congruence classes discovered from the
-previous iteration.  At the start of each new pass, the expressions and
-instructions in \Verb|exprs>vns| and \Verb|vns>insns| are
-invalidated---their results are based on old information.  So, these are erased
-on each iteration.  Much like AWZ\todo{gls?}, we keep splitting classes until
-they can't be split anymore.
+\Verb|exprs>vns| and \Verb|vns>insns| tables.  Unlike the local value numbering
+phase, we don't reset the entire expression graph.  Instead, we make a pass
+over the whole \gls{CFG} at a time.  The only reason optimism works is that we
+keep trying to disprove our foolhardy assumptions.  Really, \Verb|vregs>vns|
+establishes congruence classes of value numbers.  At first, every value belongs
+in one class, \factor|f|.  We make a pass over the \gls{CFG} to disprove
+whatever we can about this.  If we've introduced new congruence classes (new
+values in the \Verb|vregs>vns| hash), we do another iteration.  But each time,
+we use the congruence classes discovered from the previous iteration.  At the
+start of each new pass, the expressions and instructions in \Verb|exprs>vns|
+and \Verb|vns>insns| are invalidated---their results are based on old
+information.  So, these are erased on each iteration.  Much like AWZ, we keep
+splitting classes until they can't be split anymore.
 
 \inputlst{gvn-step}
 

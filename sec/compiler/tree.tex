@@ -12,7 +12,7 @@ the \Verb|compiler.tree| vocabulary, then at a low-level with the
 
 The high-level \gls{IR} arranges code into a vector of \Verb|node| objects,
 which may themselves have children consisting of vectors of node---a tree
-structure that lends to the name \Verb|compiler.tree|.  This ordered sequence
+structure that lends to the name\\\Verb|compiler.tree|.  This ordered sequence
 of nodes represents control flow in a way that's effectively simple, annotated
 stack code.  \Vref{lst:tree} shows the definitions of the tuples that represent
 the ``instruction set'' of this stack code.  Each object inherits (directly or
@@ -106,24 +106,24 @@ to the \factor|dispatch| primitive, which is an implementation detail of the
 generic word system used to speed up method dispatch.
 
 You may have noted the emphasis on introducing new values, instead of
-reassigning old ones.  Even \Verb|#shuffle|s output fresh identifiers,
-letting their values be determined by the \Verb|mapping|.  The reason for
-this is that \Verb|compiler.tree| uses \gls{SSA} form, wherein every variable
-is defined by exactly one statement.  This simplifies the properties of
-variables, which helps optimizations perform faster and with better
-results\todo{cite?}.  By giving unique names to the targets of each assignment,
-the \gls{SSA} property is guaranteed.  However, \Verb|#branch|es introduce
-ambiguity: after, say, an \Verb|#if|, what will the \Verb|out-d| be?  It
-depends on which branch is taken.  To remedy this problem, after any
-\Verb|#branch| node, Factor will place a \Verb|#phi| node---the classical
-\gls{SSA} ``phony function'', $\phi$.  While it doesn't perform any literal
-computation, conceptually $\phi$ selects between its inputs, choosing the
-``correct'' argument depending on control flow.  This can then be assigned to a
-unique value, preserving the \gls{SSA} property.  In Factor, this is
-represented by a \Verb|phi-in-d| slot, which is a sequence of sequences.
-Each element corresponds to the \Verb|out-d| of the child at the same
-position in the \Verb|children| of the preceding \Verb|#branch| node.  The
-\Verb|#phi|'s \Verb|out-d| gives unique names to the output values.
+reassigning old ones.  Even \Verb|#shuffle|s output fresh identifiers, letting
+their values be determined by the \Verb|mapping|.  The reason for this is that
+\Verb|compiler.tree| uses \gls{SSA} form, wherein every variable is defined by
+exactly one statement.  This simplifies the properties of variables, which
+helps optimizations perform faster and with better results \autocite{SSA}.  By
+giving unique names to the targets of each assignment, the \gls{SSA} property
+is guaranteed.  However, \Verb|#branch|es introduce ambiguity: after, say, an
+\Verb|#if|, what will the \Verb|out-d| be?  It depends on which branch is
+taken.  To remedy this problem, after any \Verb|#branch| node, Factor will
+place a \Verb|#phi| node---the classical \gls{SSA} ``phony function'', $\phi$.
+While it doesn't perform any literal computation, conceptually $\phi$ selects
+between its inputs, choosing the ``correct'' argument depending on control
+flow.  This can then be assigned to a unique value, preserving the \gls{SSA}
+property.  In Factor, this is represented by a \Verb|phi-in-d| slot, which is a
+sequence of sequences.  Each element corresponds to the \Verb|out-d| of the
+child at the same position in the \Verb|children| of the preceding
+\Verb|#branch| node.  The \Verb|#phi|'s \Verb|out-d| gives unique names to the
+output values.
 
 \inputlst{build-tree-5}
 
@@ -183,9 +183,9 @@ passes can then use this information for data flow analysis.  Then,
 %
 \end{itemize}
 
-Once these passes have cleaned up the tree, \Verb|propagate| performs
-probably the most extensive analysis of all the phases.  In short, it performs
-an extended version of \gls{SCCP}\todo{cite}.  The traditional data flow
+Once these passes have cleaned up the tree, \Verb|propagate| performs probably
+the most extensive analysis of all the phases.  In short, it performs an
+extended version of \gls{SCCP} \autocite{SCCP}.  The traditional data flow
 analysis combines global copy propagation, constant propagation, and constant
 folding in a \term{flow-sensitive} way.  That is, it will propagate information
 from branches that it knows are definitely taken (e.g., because \Verb|#if| is

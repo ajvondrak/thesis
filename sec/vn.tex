@@ -6,9 +6,9 @@ values in a program are equal.  That way, we can simplify the code that wastes
 machine cycles repeatedly calculating the same values.  Classic optimization
 phases like constant/copy propagation, common subexpression elimination,
 loop-invariant code motion, induction variable elimination, and others
-discussed in the de facto treatise, ``The Dragon Book''\todo{cite}, perform
-this sort of redundancy elimination based on information about the equality of
-expressions.
+discussed in the de facto treatise, ``The Dragon Book'' \autocite{DragonBook},
+perform this sort of redundancy elimination based on information about the
+equality of expressions.
 
 In general, the problem of determining whether two expressions in a program are
 equivalent is undecidable.  Therefore, we seek a \term{conservative} solution

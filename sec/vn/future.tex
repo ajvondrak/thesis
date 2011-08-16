@@ -46,28 +46,29 @@ will only iterate over the cycles between definitions instead of over the whole
 \gls{CFG}.  
 
 Conceptually, we build a \term{value graph} (also known as \term{\gls{SSA}
-graph}\todo{cite}) whose nodes represent definitions and directed edges
+graph} \autocite{Simpson}) whose nodes represent definitions and directed edges
 represent uses.  Since it just codifies def-use information, we needn't build
-an actual graph data structure.  Using an algorithm due to
-Tarjan\todo{cite-like}, \glsplural{SCC} of the value graph are iterated upon,
-while single nodes are processed only once.  The \gls{SCC} algorithm is more
+an actual graph data structure.  Using an algorithm due to \citeauthor{Tarjan}
+\autocite*{Tarjan}, each \gls{SCC} of the value graph is iterated upon, while
+single nodes are processed only once.  The \gls{SCC} algorithm is more
 efficient than the \gls{RPO} algorithm in practice, but the principles are the
 same.  This gives us a comparatively simple, easily-extended \gls{GVN}
 algorithm with complexity $O(nd)$, where $n$ is the number of vertices in the
 value graph (i.e., the number of values we're numbering) and $d$ is the
 \term{loop connectedness} (the maximum number of back edges on any acyclic
 path) of the value graph.  Though $d$ can theoretically be $O(n)$, in practice
-it seems to be bounded by a small constant.  In Simpson's\todo{cite-like}
+it seems to be bounded by a small constant.  In \citeauthor{Simpson}'s
 experiments, the maximum value of $d$ was $4$.
 
 A more thorough overhaul could incorporate further rewriting of the
-instructions.  Gargi\todo{cite-like}~proposes a \term{predicated} value
-numbering algorithm that combines
+instructions.  \Citeauthor{Gargi} \autocite*{Gargi} proposes a
+\term{predicated} value numbering algorithm that combines
 \begin{itemize}
-  \item optimistic value numbering, thus emulating Simpson's\todo{cite}
+  \item optimistic value numbering, thus emulating \citeauthor{Simpson}'s
         \gls{RPO} and \gls{SCC} algorithms; 
   \item constant folding, algebraic simplification, and unreachable code
-        elimination, thus emulating Click's\todo{cite} strongest combination;
+        elimination, thus emulating \citeauthor{Click}'s strongest combination
+        \autocite{Click};
   \item global reassociation, thus performing the work already done in Factor;
   \item predicate inference, which can infer the values of comparisons
         dominated by some related predicate (i.e., comparisons in a block that
@@ -88,13 +89,12 @@ until reaching the fixed point), instead of recalculating every result (as in
 the \gls{RPO} algorithm), we only recalculate the values that may yet change
 from this new information (as in the \gls{SCC} algorithm).
 
-Any portion of Gargi's\todo{cite-like}~algorithm may be selectively disabled,
-thus letting us tweak it for specific compile time vs.~code quality trade-offs
-we might have.  It promotes a fairly good separation of concerns in the
-algorithm, too, letting the pseudocode be presented piecemeal for each
-optimization.  Gargi\todo{cite-like}~presents compelling examples of predicated
-value numbering's strength, and its addition to Factor could prove very
-worthwhile.
+Any portion of \citeauthor{Gargi}'s algorithm may be selectively disabled, thus
+letting us tweak it for specific compile time vs.~code quality trade-offs we
+might have.  It promotes a fairly good separation of concerns in the algorithm,
+too, letting the pseudocode be presented piecemeal for each optimization.
+\Citeauthor{Gargi} presents compelling examples of predicated value numbering's
+strength, and its addition to Factor could prove very worthwhile.
 
 Historically, the development of \gls{GVN} algorithms has forked along two
 concurrent bloodlines.  Those we've studied thus far reflect the more
@@ -102,30 +102,31 @@ concurrent bloodlines.  Those we've studied thus far reflect the more
 than the other algorithms.  But those focused on formal reasoning have recently
 become much more viable, and the wealth of ideas from them are worthwhile.
 
-For those acquainted with Chapter~$9$ of The Dragon Book\todo{cite}, this work
-will seem familiar, as it's rooted in the results of Kildall\todo{cite}~and
-Cousot\todo{cite}, upon which the chapter is based.  The former was a precursor
-to \gls{GVN}, in that it described an algorithm for common subexpression
-elimination that partitioned expressions into congruence classes.  However, its
-method was phrased in terms of \term{lattices}, which are algebraic structures
-that we can reason about formally.  This is as in The Dragon
-Book\todo{cite-like}: a lattice is a partially-ordered set for which any two
-elements have a unique \term{least upper bound} (or \term{join}) and
-\term{greatest lower bound} (or \term{meet}).  By defining meet and join
-operators on a partially-ordered set of abstract values, we can represent many
-sorts of analyses on our programs.
+For those acquainted with \cite[chapter 9 of][(The Dragon Book)]{DragonBook},
+this work will seem familiar, as it's rooted in the results of
+\citeauthor{Kildall} \autocite*{Kildall} and \citeauthor{Cousot}
+\autocite*{Cousot}, upon which the chapter is based.  The former was a
+precursor to \gls{GVN}, in that it described an algorithm for common
+subexpression elimination that partitioned expressions into congruence classes.
+However, its method was phrased in terms of \term{lattices}, which are
+algebraic structures that we can reason about formally.  This is as in The
+Dragon Book: a lattice is a partially-ordered set for which any two elements
+have a unique \term{least upper bound} (or \term{join}) and \term{greatest
+lower bound} (or \term{meet}).  By defining meet and join operators on a
+partially-ordered set of abstract values, we can represent many sorts of
+analyses on our programs.
 
 \inputfig{lattice}
 
-Cousot\todo{cite}~formalize the salient properties of such interpretation over
-lattices in a framework dubbed \term{abstract interpretation}.  To understand
-it intuitively, consider some arithmetic expression like $(-5 \times 14)$.  Our
-first inclination is probably to interpret it with respect to numeric values,
-but we can understand it in several different contexts.  Let's use signs ($+$,
-$-$, and $\pm$) as our abstract domain and consider the operators to be defined
-by the rules of signs.  \Vref{fig:lattice} shows a lattice we can use for this.
-Using a version of $\times$ cast in the context of this lattice, we can
-interpret $(-5 \times 14)$ as
+\citeauthor{Cousot} formalize the salient properties of such interpretation
+over lattices in a framework dubbed \term{abstract interpretation}.  To
+understand it intuitively, consider some arithmetic expression like $(-5 \times
+14)$.  Our first inclination is probably to interpret it with respect to
+numeric values, but we can understand it in several different contexts.  Let's
+use signs ($+$, $-$, and $\pm$) as our abstract domain and consider the
+operators to be defined by the rules of signs.  \Vref{fig:lattice} shows a
+lattice we can use for this.  Using a version of $\times$ cast in the context
+of this lattice, we can interpret $(-5 \times 14)$ as
 %
 $$-5 \times 14 \quad\to\quad (-) \times (+) \quad\to\quad (-)$$
 %
@@ -139,22 +140,22 @@ proving very little---the result is either positive or negative.
 
 Despite the inherent limitations, we find the results useful as approximations
 of more complex properties.  For example, we used congruence to approximate
-runtime equivalence.  Only a year before AWZ\todo{gls?}~was published,
-Steffen\todo{cite}~showed that Kildall's\todo{cite-like}~approach could be
-framed as abstract interpretation over \term{Herbrand equivalences}---that is,
-equivalences where operators are uninterpreted.  This is actually the same
-notion of congruence we had from before: expressions are equivalent if their
-operators and operands are equivalent, irrespective of the result of applying
-the operator.
+runtime equivalence.  Only a year before AWZ was published,
+\citeauthor{Steffen} \autocite*{Steffen} showed that \citeauthor{Kildall}'s
+approach could be framed as abstract interpretation over \term{Herbrand
+equivalences}---that is, equivalences where operators are uninterpreted.  This
+is actually the same notion of congruence we had from before: expressions are
+equivalent if their operators and operands are equivalent, irrespective of the
+result of applying the operator.
 
 The primary strength of the abstract interpretation approaches are that they
 are \term{complete}; intuitively, there is no loss of information at each step
 of abstract interpretation.  However, this ``loss of information'' is relative
-to the information encompassed by the abstract domains\todo{cite}.  While we
-can find all Herbrand equivalences, we aren't guaranteed to find equivalences
-induced by interpreting operators, which was effectively the work done by
-combining optimizations (e.g., constant folding is the interpretation of
-certain operators upon constant operands).  So, while complete, these
+to the information encompassed by the abstract domains \autocite{Completeness}.
+While we can find all Herbrand equivalences, we aren't guaranteed to find
+equivalences induced by interpreting operators, which was effectively the work
+done by combining optimizations (e.g., constant folding is the interpretation
+of certain operators upon constant operands).  So, while complete, these
 approaches vary in \term{preciseness}.  Most of the work in the abstract
 interpretation of \gls{GVN} did little to study the results of interpreting the
 same operators we saw before, but note it's a promising direction for future
@@ -162,46 +163,47 @@ research.
 
 The cost of this completeness has traditionally been exponential time
 complexities.  There have been several attempts to remedy this.
-RKS\todo{cite}~note AWZ\todo{gls?}~is incomplete, since it treats $\phi$
+\Citeauthor{RKS} \autocite*{RKS} note AWZ is incomplete, since it treats $\phi$
 functions as uninterpreted, so fails to discover congruences between $\phi$s
 and ordinary expressions.  Their attempt to improve upon it alternately applies
-AWZ\todo{gls?}~and the normalization rules
+AWZ and the normalization rules
 \begin{align*}
   \phi(a\otimes b, c\otimes d) &\quad\to\quad \phi(a,c) \otimes \phi(b,d) \\
   \phi(x, x) &\quad\to\quad x
 \end{align*}
 until the partitioning reaches a fixed point.  However, this is $O(n^2 \log n)$
 in the expected case---$O(n^4 \log n)$ in the worst case---and it turned out to
-be incomplete not just in the presence of cycles\todo{cite RKS} but also in
-certain acyclic code\todo{cite Gulwani07}.
+be incomplete not just in the presence of cycles \autocite{RKS} but also in
+certain acyclic code \autocite{Gulwani07}.
 
-Later, Gulwani04\todo{cite}~furthered the quest for an efficient, complete
-\gls{GVN} algorithm in a novel way by using \term{randomized interpretation}
-(which is what it sounds like).  The paper even explored various
-interpretations---specifically of linear combinations, bitwise operators,
-memory loads/stores, and integer division---that could make results more
-precise.  But it was still $O(n^4)$ and ran a small chance of making incorrect
-inferences due to its randomized nature.  For compilers, this isn't really
-acceptable, though such a scheme could be used in things like program
-verification tools\todo{cite Nie}.
+Later, \citeauthor{Gulwani04} \autocite*{Gulwani04} furthered the quest for an
+efficient, complete \gls{GVN} algorithm in a novel way by using
+\term{randomized interpretation} (which is what it sounds like).  The paper
+even explored various interpretations---specifically of linear combinations,
+bitwise operators, memory loads/stores, and integer division---that could make
+results more precise.  But it was still $O(n^4)$ and ran a small chance of
+making incorrect inferences due to its randomized nature.  For compilers, this
+isn't really acceptable, though such a scheme could be used in things like
+program verification tools \autocite{Nie}.
 
-From their trip back to the drawing board, Gulwani07\todo{cite}~returned with a
-polynomial time algorithm for \gls{GVN} that is complete for all Herbrand
-equivalences among terms of a limited size.  Choosing a size bound equal to the
-size of the entire program is clearly sufficient.  Note, however, that this is
-specifically for Herbrand equivalences; they do not show their results for any
-interpreted operators, but note it's an important area for exploration.  Adding
-to this, Nie\todo{cite}~present a similar algorithm, except based on \gls{SSA}
-form.  Both wind up using the same size restrictions to guarantee complexity.
-Both also use an additional special-purpose data structure to represent the set
-of Herbrand equivalences and to perform abstract evaluations over them, which
-adds a conceptual load to the algorithms and might make them more difficult to
-implement.  However, unlike most other abstract interpretation-based
-algorithms, Nie's\todo{cite}~is demonstrably practical, as the authors
-implemented it for GCC\todo{gls?}.  In their experiments, the size restriction
-turned out to be unnecessary for avoiding the exponential case, showing that
-the main bottleneck in complete \gls{GVN} algorithms is typically their poor
-data structure choices.
+From their trip back to the drawing board, \citeauthor{Gulwani07} returned with
+a polynomial time algorithm for \gls{GVN} that is complete for all Herbrand
+equivalences among terms of a limited size \autocite{Gulwani07}.  Choosing a
+size bound equal to the size of the entire program is clearly sufficient.
+Note, however, that this is specifically for Herbrand equivalences; they do not
+show their results for any interpreted operators, but note it's an important
+area for exploration.  Adding to this, \citeauthor{Nie} \autocite*{Nie} present
+a similar algorithm, except based on \gls{SSA} form.  Both wind up using the
+same size restrictions to guarantee complexity.  Both also use an additional
+special-purpose data structure to represent the set of Herbrand equivalences
+and to perform abstract evaluations over them, which adds a conceptual load to
+the algorithms and might make them more difficult to implement.  However,
+unlike most other abstract interpretation-based algorithms, \citeauthor{Nie}'
+is demonstrably practical, as the authors implemented it for the GNU Compiler
+Collection (GCC).  In their experiments, the size restriction turned out to be
+unnecessary for avoiding the exponential case, showing that the main bottleneck
+in complete \gls{GVN} algorithms is typically their poor data structure
+choices.
 
 Clearly, there is much room for future exploration.  Even without crossing the
 boundaries of \gls{GVN} into the scope of other compiler optimizations, we can

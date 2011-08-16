@@ -1,11 +1,12 @@
 \section{Local Value Numbering}\label{sec:vn:local}
 
 Tracing the exact origins of value numbering is difficult.  It's thought to
-have originally been invented in the 1960s by Balke\todo{cite Simpson}.  The
+have originally been invented in the 1960s by Balke \autocite{Simpson}.  The
 earliest tangible reference to a value numbering (at least, the earliest point
 where discussions in the literature seem to start) appears in an oft-cited but
-unpublished work of Cocke\todo{cite-like}.  The technique is relatively simple,
-but not as powerful as other methods for reasons described hereafter.
+unpublished work of \citeauthor{Cocke} \autocite*{Cocke}.  The technique is
+relatively simple, but not as powerful as other methods for reasons described
+hereafter.
 
 The algorithm considers a single basic block.  For each instruction (from top
 to bottom) in the block, we essentially let the value number of the assignment
@@ -50,7 +51,7 @@ issue later.
 In Factor, expressions are basically instructions (the \Verb|insn| objects
 discussed in \cref{sec:compiler:cfg}) that have had their destination registers
 stripped.  Instructions can be converted to expressions with the \Verb|>expr|
-word defined in the \Verb|compiler.cfg.value-numbering.expressions|
+word defined in the\\\Verb|compiler.cfg.value-numbering.expressions|
 vocabulary.  For instance, an \Verb|##add| instruction with the destination
 register \Verb|1| and source registers \Verb|2| and \Verb|3| will be
 converted into an array of three elements:
@@ -117,7 +118,7 @@ folding, and common subexpression elimination.
 \inputlst{value-numbering-step}
 
 To see how Factor accomplishes these extensions, we'll take a look at the
-\Verb|compiler.cfg.value-numbering| vocabulary.
+\\\Verb|compiler.cfg.value-numbering| vocabulary.
 \Vref{lst:value-numbering-step} shows the main words that start the
 optimization pass.  The \Verb|value-numbering-step| word is called on the
 sequence of instructions that comprise each basic block.  It starts the
@@ -136,13 +137,13 @@ transformations performed by \Verb|process-instruction|.
 
 The methods of \Verb|process-instruction| are shown in
 \vref{lst:process-instruction}.  The default behavior for dispatching on an
-\Verb|insn|\todo{line numbers?} is to invoke yet another generic word,
-\Verb|rewrite|.  This word will return either a replacement \Verb|insn| (or
-sequence thereof) or \factor|f|, indicating that no change has taken place.
-Thus, by recursively calling \Verb|process-instruction|, we can do more
-specialized processing on this rewritten replacement (e.g., dispatching on
-\Verb|insn| again, which applies \Verb|rewrite| once more).  If the
-instruction can't be simplified further, we simply return it.  (Note that
+\Verb|insn| is to invoke yet another generic word, \Verb|rewrite|.  This word
+will return either a replacement \Verb|insn| (or sequence thereof) or
+\factor|f|, indicating that no change has taken place.  Thus, by recursively
+calling \Verb|process-instruction|, we can do more specialized processing on
+this rewritten replacement (e.g., dispatching on \Verb|insn| again, which
+applies \Verb|rewrite| once more).  If the instruction can't be simplified
+further, we simply return it.  (Note that
 %
 \factor|[ X ] [ Y ] ?if|
 %
@@ -208,7 +209,7 @@ specialized behavior.
 \Verb|compiler.cfg.value-numbering.alien| contains methods that simplify
 nodes related to Factor's \gls{FFI}.  Most involve fusing together the results
 of intermediate arithmetic.  The instructions that access raw memory (namely
-\Verb|##load-memory|, \Verb|##load-memory-imm|, \Verb|##store-memory|,
+\Verb|##load-memory|, \Verb|##load-memory-imm|,\\\Verb|##store-memory|,
 and \Verb|##store-memory-imm|) tend to have inputs to perform address
 arithmetic.  Each has slots for a \Verb|base| register containing an address
 and a literal \Verb|offset| from it.  But if \Verb|base| is defined by an
@@ -316,7 +317,7 @@ computed at compile-time and fits in an immediate operand, then we save cycles
 by using \Verb|##mul-imm| on a smaller number.
 
 The last few methods of \Verb|rewrite| provide some obvious simplifications.
-\Verb|compiler.cfg.value-numbering.simd| performs some limited
+\\\Verb|compiler.cfg.value-numbering.simd| performs some limited
 constant-folding for vector operations.
 \Verb|compiler.cfg.value-numbering.slots| propagates \Verb|##add-imm|
 address calculation to \Verb|##slot|, \Verb|##set-slot|, and
@@ -432,19 +433,18 @@ $1$:
   \end{factorcode}
 
 Next, block $2$ in \vref{fig:lvn} is processed.  The tables are all reset, so
-even though block $1$ happens to dominate\todo{yay, another term} block $2$,
-none of its definitions are known to \Verb|value-numbering|.  The
-\Verb|##phi|s are ignored, as no important methods dispatch upon them.  In
-trying to rewrite the \Verb|##compare-integer|, we call \Verb|vreg>vn| on
-the operands.  Since they aren't in the \Verb|vregs>vns| table yet, they are
-assumed to be unique values.  This assumption is pessimistic---we'd rather the
-values be the same, so we can remove redundancy.  It happens to be correct
-here, though, as \Verb|26| corresponds to the integer \Verb|100|, while
-\Verb|30| is an induction variable of the loop.  However,
-\Verb|##compare-integer| cannot be rewritten into an immediate form, since
-our focus is local to the basic block, so we don't know that \Verb|26| has
-the value \Verb|100|.  The \Verb|##copy| instructions are processed as
-usual, and
+even though block $1$ happens to dominate block $2$, none of its definitions
+are known to \Verb|value-numbering|.  The \Verb|##phi|s are ignored, as no
+important methods dispatch upon them.  In trying to rewrite the
+\Verb|##compare-integer|, we call \Verb|vreg>vn| on the operands.  Since they
+aren't in the \Verb|vregs>vns| table yet, they are assumed to be unique values.
+This assumption is pessimistic---we'd rather the values be the same, so we can
+remove redundancy.  It happens to be correct here, though, as \Verb|26|
+corresponds to the integer \Verb|100|, while \Verb|30| is an induction variable
+of the loop.  However, \Verb|##compare-integer| cannot be rewritten into an
+immediate form, since our focus is local to the basic block, so we don't know
+that \Verb|26| has the value \Verb|100|.  The \Verb|##copy| instructions are
+processed as usual, and
 %
 \Verb|##compare-imm-branch 32 f cc/=|
 %

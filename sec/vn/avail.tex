@@ -42,17 +42,16 @@ replace the \Verb|##load-integer| in block $4$ with a \Verb|##copy|.
 
 There are several ways to decide if we can use a definition at a certain point.
 For instance, we could use dominator information, so that if a definition in a
-basic block $B$ can be used by any basic block dominated by $B$\todo{cite
-Simpson}.  However, here we'll use a data flow analysis called \term{available
-expression analysis}, since it was readily implemented.  Mercifully, Factor has
-a vocabulary that automatically defines data flow analyses with little more
-than a single line of code.
+basic block $B$ can be used by any basic block dominated by $B$
+\autocite{Simpson}.  However, here we'll use a data flow analysis called
+\term{available expression analysis}, since it was readily implemented.
+Mercifully, Factor has a vocabulary that automatically defines data flow
+analyses with little more than a single line of code.
 
 \inputlst{avail}
 
 \Vref{lst:avail} shows the vocabulary that defines the available expression
-analysis.  It is a forward analysis\todo{cite?}~ based on the flow equations
-below:
+analysis.  It is a forward analysis based on the flow equations below:
 \begin{align*}
   \text{\Verb|avail-in|}_i &=
     \begin{cases}
@@ -233,12 +232,12 @@ The new \Verb|value-numbering| word can be seen in
 \inputfig{gcse-before}
 \inputfig{gcse-after}
 
-Consider for the last time\todo{oh no! relative time stamps}~the example
+Consider for the last time the example
 %
 \factor|0 100 [ 1 fixnum+fast ] times|.
 %
 Before, we had the \gls{CFG} in \vref{fig:gcse-before}.  Making a final pass
-with \Verb|eliminate-common-subexpressions| gives us the \gls{CFG} in
+with\\\Verb|eliminate-common-subexpressions| gives us the \gls{CFG} in
 \vref{fig:gcse-after}.  Compared to the \gls{CFG} after the old
 \Verb|value-numbering| word was called (see \vref{fig:value-numbering}), we
 have identified several more redundancies:
@@ -250,7 +249,7 @@ have identified several more redundancies:
   a \Verb|##compare-integer-imm|, since its operand \Verb|26| is both
   available and known to correspond to the integer value \Verb|100|.
 %
-  \item Instead of a \Verb|##compare-integer-branch|, we similarly have a
+  \item Instead of a \Verb|##compare-integer-branch|, we similarly have a\\
   \Verb|##compare-integer-imm-branch| at the end of block $2$.
 %
   \item Because the \Verb|##phi|s have been recognized as copies (i.e., the

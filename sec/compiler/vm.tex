@@ -15,7 +15,7 @@ assembly instructions as it goes.
 
 This compiled code is saved in an \term{image file}, which contains a complete
 snapshot of the current state of the Factor instance, similar to many Smalltalk
-and Lisp systems\todo{cite?}.  As code is parsed and compiled, the image is
+and Lisp systems \autocite{DLS}.  As code is parsed and compiled, the image is
 updated, serving as a cache for compiled code.  This modified image can be
 saved so that future Factor instances needn't recompile vocabularies that are
 already contained in the image.
@@ -44,12 +44,13 @@ words.  Each generic word's call site is associated with a state:
 To manage memory, the Factor \gls{VM} uses a generational \gls{GC}, which
 carves out sections of space on the heap for objects of different ages.
 Garbage in the oldest generation is collected with a mark-sweep-compact
-algorithm, while younger generations rely on a copying collector\todo{cite?}.
-This way, the \gls{GC} is specialized for large numbers of short-lived objects
-that will stay in the younger generations without being promoted to the older
-generation.  In the oldest space, even compiled code can be compacted.  This is
-to avoid heap fragmentation in applications that must call the compiler at
-runtime, such as Factor's interactive development environment.
+algorithm, while younger generations rely on a copying collector
+\autocite{GGC}.  This way, the \gls{GC} is specialized for large numbers of
+short-lived objects that will stay in the younger generations without being
+promoted to the older generation.  In the oldest space, even compiled code can
+be compacted.  This is to avoid heap fragmentation in applications that must
+call the compiler at runtime, such as Factor's interactive development
+environment.
 
 Values are referenced by tagged pointers, which use the three least significant
 bits of the pointer's address to store type information.  This is possible
