@@ -59,3 +59,28 @@
 \newcommand{\vn}[1]{\ensuremath{\langle #1\rangle}}
 
 \usepackage{longtable,booktabs}
+
+\usepackage[
+  style=authoryear,
+  sortcites=true, % not that I care a whole lot
+  backref=true,
+  abbreviate=false,
+  alldates=long,
+  dateabbrev=false,
+  maxbibnames=5,
+  url=true,
+  doi=false,
+  firstinits=true,
+  dashed=false,
+]{biblatex}
+
+\DeclareNameAlias{sortname}{last-first}
+
+\renewbibmacro*{date+extrayear}{%
+  \iffieldundef{year}
+    {}
+    {\printtext{%
+   \addperiod\space\printfield{labelyear}%
+   \printfield{extrayear}}}}
+
+\addbibresource{thesis.bib}

@@ -132,7 +132,7 @@
                {}     % even side margin
                {}     % odd side margin
                {}     % column sep
-               {   }  % top margin
+               {   }  % top margin --- apparently not a factor in titlingpage
                {}     % head height
                {}     % head sep
                {}     % foot skip

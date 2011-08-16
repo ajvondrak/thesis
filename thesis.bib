@@ -1,7 +1,137 @@
+@book{Forth,
+  author       = {{American National Standards Institute} and {Computer and
+                  Business Equipment Manufacturers Association}},
+  title        = {{American National Standard} for information systems:
+                  programming languages: {Forth}: {ANSI/X3.215-1994}},
+  publisher    = {American National Standards Institute},
+  day          = {24},
+  month        = mar,
+  year         = {1994},
+}
+
+@online{Cat,
+  author  = {Christopher Diggins},
+  title   = {The Cat Programming Language},
+  year    = {2007},
+  url     = {http://cat-language.com/},
+  urldate = {2011-08-15}
+}
+
+@book{PostScript,
+  author       = {{Adobe Systems Incorporated}},
+  title        = {{PostScript} Language Reference},
+  publisher    = {Addison-Wesley},
+  edition      = {Third edition},
+  year         = {1999},
+  isbn         = {0-201-37922-8},
+  url          = {http://partners.adobe.com/public/developer/en/ps/PLRM.pdf},
+  urldate      = {2011-08-15}
+}
+
+@inproceedings{DLS,
+ author    = {Slava Pestov and Daniel Ehrenberg and Joe Groff},
+ title     = {Factor: A Dynamic Stack-based Programming Language},
+ booktitle = {Proceedings of the 6th Symposium on Dynamic languages},
+ series    = {DLS '10},
+ year      = {2010},
+ isbn      = {978-1-4503-0405-4},
+ pages     = {43--58},
+ numpages  = {16},
+ url       = {http://doi.acm.org/10.1145/1869631.1869637},
+ publisher = {ACM},
+}
+
+@inproceedings{GGC,
+ author    = {Paul R. Wilson},
+ title     = {Uniprocessor Garbage Collection Techniques},
+ booktitle = {Proceedings of the International Workshop on Memory Management},
+ series    = {IWMM '92},
+ year      = {1992},
+ isbn      = {3-540-55940-X},
+ pages     = {1--42},
+ numpages  = {42},
+ url       = {http://portal.acm.org/citation.cfm?id=645648.664824},
+ publisher = {Springer-Verlag},
+}
+
+@article{SSA,
+  author    = {Ron Cytron and Jeanne Ferrante and Barry K. Rosen and Mark N.
+               Wegman and F. Kenneth Zadeck},
+  title     = {Efficiently Computing Static Single Assignment Form and the
+               Control Dependence Graph},
+  journal   = {ACM Transactions Programming Languages and Systems},
+  volume    = {13},
+  issue     = {4},
+  month     = oct,
+  year      = {1991},
+  issn      = {0164-0925},
+  pages     = {451--490},
+  numpages  = {40},
+  url       =
+        {http://www.eecs.umich.edu/~mahlke/583w03/reading/cytron_toplas_91.pdf},
+  urldate   = {2011-08-15},
+  doi       = {http://doi.acm.org/10.1145/115372.115320},
+  acmid     = {115320},
+  publisher = {ACM},
+}
+
+@article{SCCP,
+  author     = {Mark N. Wegman and F. Kenneth Zadeck},
+  title      = {Constant Propagation with Conditional Branches},
+  journal    = {ACM Transactions on Programming Languages and Systems},
+  volume     = {13},
+  issue      = {2},
+  month      = apr,
+  year       = {1991},
+  issn       = {0164-0925},
+  pages      = {181--210},
+  numpages   = {30},
+  url        = {http://doi.acm.org/10.1145/103135.103136},
+  doi        = {http://doi.acm.org/10.1145/103135.103136},
+  acmid      = {103136},
+  publisher = {ACM},
+}
+
+@article{construct-ssa,
+  author    = {Preston Briggs and Keith D. Cooper and Timothy J. Harvey and L.
+               Taylor Simpson},
+  title     = {Practical Improvements to the Construction and Destruction of
+               Static Single Assignment Form},
+  journal   = {Software---Practice \& Experience},
+  volume    = {28},
+  issue     = {8},
+  month     = jul,
+  year      = {1998},
+  issn      = {0038-0644},
+  pages     = {859--881},
+  numpages  = {23},
+  url       = {http://portal.acm.org/citation.cfm?id=295545.295551},
+  acmid     = {295551},
+  publisher = {John Wiley \& Sons, Inc.},
+}
+
+@article{TDMSC,
+  author    = {Dibyendu Das and U. Ramakrishna},
+  title     = {A Practical and Fast Iterative Algorithm for phi-function
+               Computation using DJ Graphs},
+  journal   = {ACM Transactions Programming Languages and Systems},
+  volume    = {27},
+  issue     = {3},
+  month     = may,
+  year      = {2005},
+  issn      = {0164-0925},
+  pages     = {426--440},
+  numpages  = {15},
+  url       = {http://doi.acm.org/10.1145/1065887.1065890},
+  doi       = {http://doi.acm.org/10.1145/1065887.1065890},
+  acmid     = {1065890},
+  publisher = {ACM},
+}
+
 % AWZ based on Hopcroft's DFA minimization algorithm
 @techreport{Hopcroft,
   author      = {John E. Hopcroft},
-  title       = {An $n \log n$ Algorithm for Minimizing States in a Finite
+  title       = {An n log n Algorithm for Minimizing States in a Finite
                  Automaton},
   year        = {1971},
   institution = {Stanford University},
@@ -17,14 +147,12 @@
   series    = {POPL '88},
   year      = {1988},
   isbn      = {0-89791-252-7},
-  location  = {San Diego, California, United States},
   pages     = {1--11},
   numpages  = {11},
   url       = {http://doi.acm.org/10.1145/73560.73561},
   doi       = {http://doi.acm.org/10.1145/73560.73561},
   acmid     = {73561},
   publisher = {ACM},
-  address   = {New York, NY, USA},
 }
 
 %Using AWZ for limited Redundancy Elimination -- intro SSA
@@ -36,14 +164,12 @@
   series    = {POPL '88},
   year      = {1988},
   isbn      = {0-89791-252-7},
-  location  = {San Diego, California, United States},
   pages     = {12--27},
   numpages  = {16},
   url       = {http://doi.acm.org/10.1145/73560.73562},
   doi       = {http://doi.acm.org/10.1145/73560.73562},
   acmid     = {73562},
   publisher = {ACM},
-  address   = {New York, NY, USA},
 }
 
 % Hash-based (not-so-G)VN
@@ -58,12 +184,13 @@
 % Hash-based (moreso-but-not-quite-G)VN
 @unpublished{ch7,
   author    = {Bowen Alpern and F. Kenneth Zadeck},
-  title     = {Value Numbering},
+  title     = {Chapter 7---Value Numbering},
   year      = {1992},
-  note      = {Chapter 7 from an unpublished book, \textit{Optimization in
-               Compilers}.  Last accessed December 13, 2010},
+  note      = {Chapter from an unpublished book, \textit{Optimization in
+               Compilers}},
   publisher = {ACM Press and Addison-Wesley},
   url       = {http://www.cs.ucr.edu/~gupta/teaching/553-07/Papers/value.pdf},
+  urldate   = {2011-08-15},
 }
 
 % SSC-based GVN
@@ -85,14 +212,12 @@
   series    = {PLDI '02},
   year      = {2002},
   isbn      = {1-58113-463-0},
-  location  = {Berlin, Germany},
   pages     = {45--56},
   numpages  = {12},
   url       = {http://doi.acm.org/10.1145/512529.512536},
   doi       = {http://doi.acm.org/10.1145/512529.512536},
   acmid     = {512536},
   publisher = {ACM},
-  address   = {New York, NY, USA},
 }
 
 % PRE invention
@@ -112,7 +237,7 @@
   acmid     = {359069},
   publisher = {ACM},
   address   = {New York, NY, USA},
-} 
+}
 
 % PRE; see also Bodik, if start going into PRE more deeply
 @phdthesis{VanDrunen,
@@ -143,14 +268,12 @@
                Principles of Programming Languages},
   series    = {POPL '73},
   year      = {1973},
-  location  = {Boston, Massachusetts},
   pages     = {194--206},
   numpages  = {13},
   url       = {http://doi.acm.org/10.1145/512927.512945},
   doi       = {http://doi.acm.org/10.1145/512927.512945},
   acmid     = {512945},
   publisher = {ACM},
-  address   = {New York, NY, USA},
 }
 
 % Definition of Abstract Interpretation
@@ -163,14 +286,12 @@
                Principles of Programming Languages},
   series    = {POPL '77},
   year      = {1977},
-  location  = {Los Angeles, California},
   pages     = {238--252},
   numpages  = {15},
   url       = {http://doi.acm.org/10.1145/512950.512973},
   doi       = {http://doi.acm.org/10.1145/512950.512973},
   acmid     = {512973},
   publisher = {ACM},
-  address   = {New York, NY, USA},
 }
 
 % Start of ``theoretical'' line
@@ -182,13 +303,11 @@
                Software Development on TAPSOFT '87},
   year      = {1987},
   isbn      = {0-387-17660-8},
-  location  = {Pisa, Italy},
   pages     = {52--68},
   numpages  = {17},
   url       = {http://portal.acm.org/citation.cfm?id=29580.29585},
   acmid     = {29585},
   publisher = {Springer-Verlag},
-  address   = {London, UK},
 }
 
 % Value Flow Graphs vs. SSA; using Abstract Interpretation for GVN
@@ -207,7 +326,6 @@
   url       = {http://portal.acm.org/citation.cfm?id = 647168.718137},
   acmid     = {718137},
   publisher = {Springer-Verlag},
-  address   = {London, UK},
 }
 
 % Novel Approaches: Random Interpretation GVN
@@ -219,14 +337,12 @@
   series    = {POPL '04},
   year      = {2004},
   isbn      = {1-58113-729-X},
-  location  = {Venice, Italy},
   pages     = {342--352},
   numpages  = {11},
   url       = {http://doi.acm.org/10.1145/964001.964030},
   doi       = {http://doi.acm.org/10.1145/964001.964030},
   acmid     = {964030},
   publisher = {ACM},
-  address   = {New York, NY, USA},
 }
 
 % Novel Approaches: O(n) Complete GVN
@@ -248,7 +364,6 @@
   doi       = {10.1016/j.scico.2006.03.005},
   acmid     = {1222599},
   publisher = {Elsevier North-Holland, Inc.},
-  address   = {Amsterdam, The Netherlands, The Netherlands},
 }
 
 % Latest
@@ -261,13 +376,11 @@
   series    = {APLAS '07},
   year      = {2007},
   isbn      = {3-540-76636-7, 978-3-540-76636-0},
-  location  = {Singapore},
   pages     = {319--334},
   numpages  = {16},
   url       = {http://portal.acm.org/citation.cfm?id = 1784774.1784806},
   acmid     = {1784806},
   publisher = {Springer-Verlag},
-  address   = {Berlin, Heidelberg},
 }
 
 %%% Auxiliary citations
@@ -278,7 +391,7 @@
                Ullman},
   publisher = {Addison-Wesley},
   year      = {2007},
-  edition   = {Second}
+  edition   = {Second edition}
 }
 
 @article{Tarjan,
@@ -307,7 +420,6 @@
   doi = {http://doi.acm.org/10.1145/765568.765573},
   acmid = {765573},
   publisher = {ACM},
-  address = {New York, NY, USA}
 }
 
 @article{Completeness,
@@ -325,31 +437,23 @@
   doi = {http://doi.acm.org/10.1145/333979.333989},
   acmid = {333989},
   publisher = {ACM},
-  address = {New York, NY, USA},
-}
-
-@misc{gcc,
-  title = {GCC Command Options---Options That Control Optimization},
-  month = dec,
-  year  = {2010},
-  url   = {http://gcc.gnu.org/onlinedocs/gcc/Optimize-Options.html},
-  note  = {From the GNU Compiler Collection's version 4.6.0 online
-           documentation, \textcopyright 2010 Free Software Foundation, Inc.}
 }
 
 @phdthesis{Biggar,
-  author = {Paul Biggar},
-  title  = {Design and Implementation of an Ahead-of-Time Compiler for PHP},
-  school = {Trinity College, Dublin},
-  year   = {2009},
-  month  = oct,
-  url    = {http://www.paulbiggar.com/research/wip-thesis.pdf}
+  author  = {Paul Biggar},
+  title   = {Design and Implementation of an Ahead-of-Time Compiler for PHP},
+  school  = {Trinity College, Dublin},
+  year    = {2009},
+  month   = oct,
+  url     = {http://www.paulbiggar.com/research/wip-thesis.pdf},
+  urldate = {2011-08-15}
 }
 
 @misc{young-factor,
-  title = {Factor},
-  url   = {http://concatenative.org/wiki/view/Factor},
-  note  = {From Factor's documentation wiki.  Last accessed \today.},
-  year  = {2010},
-  month = sep
+  title   = {Factor},
+  url     = {http://concatenative.org/wiki/view/Factor},
+  urldate = {2011-08-15},
+  note    = {From Factor's documentation wiki.},
+  year    = {2010},
+  month   = sep
 }
