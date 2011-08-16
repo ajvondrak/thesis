@@ -1,6 +1,5 @@
 \centering
 
-\begin{minipage}{0.65\linewidth}
   \begin{factorcode}
     : without-bi* ( str1 str2 -- str1' str2' )
       [ >upper ] dip >lower ;
@@ -14,6 +13,5 @@
     : with-tri* ( x y z -- x+1 y+2 z+3 )
       [ 1 + ] [ 2 + ] [ 3 + ] tri* ;
   \end{factorcode}
-\end{minipage}
 
 \caption{Spread combinators}

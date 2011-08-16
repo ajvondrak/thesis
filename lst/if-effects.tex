@@ -1,6 +1,5 @@
 \centering
 
-\begin{minipage}{0.65\linewidth}
   \begin{factorcode}
     : example1 ( x -- 0/x-1 )
       dup even? [ drop 0 ] [ 1 - ] if ;
@@ -11,6 +10,5 @@
     : example3 ( x y -- x+y/x )
       dup odd? [ + ] [ drop ] if ;
   \end{factorcode}
-\end{minipage}
 
 \caption{\factor|if|'s stack effect varies}
