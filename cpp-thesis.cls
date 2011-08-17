@@ -51,61 +51,34 @@
 %\setlength{\marginparwidth}{64pt}
 %\checkandfixthelayout
 
-    %Paper size
-    \setlength{\paperheight}{11in}
-    \setlength{\paperwidth}{8.5in}
-    
-    %Left margin
-    \setlength{\marginparwidth}{0in}
-    \setlength{\marginparsep}{0in}
-    \setlength{\oddsidemargin}{0.5in}
-    \setlength{\evensidemargin}{0in}
-    
-    %Right margin
-    \setlength{\textwidth}{5.85in} 
-    
-    %Top margin
-    \setlength{\voffset}{0in}
-    \setlength{\topmargin}{0in}
+\setlrmarginsandblock{1.5in}{1in}{*}
 
-    %Bottom margin
-    \setlength{\headheight}{0.125in}
-    \setlength{\headsep}{0.25in}
-    \setlength{\textheight}{8.375in}
-    \setlength{\footskip}{0.50in}
-    
-    \raggedbottom
+% Adjust upper / lower margins based on the header & footer spaces, so that the
+% headers & footers fall within the 1in boundary
 
-% XXX the library didn't give two shits about this
+\setlength{\textheight}{\paperheight}
 
-%\setlrmarginsandblock{1.5in}{1in}{*}
-%
-%% Adjust upper / lower margins based on the header & footer spaces, so that the
-%% headers & footers fall within the 1in boundary
-%
-%\setlength{\textheight}{\paperheight}
-%
-%\setlength{\headheight}{\onelineskip}
-%\setlength{\headsep}{\onelineskip}
-%\addtolength{\headsep}{-\topskip}
-%
-%\setlength{\footskip}{\onelineskip}
-%\addtolength{\footskip}{\topskip}
-%\setlength{\footnotesep}{\onelineskip}
-%
-%\addtolength{\marginparwidth}{-\marginparsep}
-%
-%\setlength{\uppermargin}{1in}
+\setlength{\headheight}{\onelineskip}
+\setlength{\headsep}{\headheight}
+\addtolength{\headsep}{\topskip}
+
+\setlength{\footskip}{\onelineskip}
+\addtolength{\footskip}{\topskip}
+\setlength{\footnotesep}{\onelineskip}
+
+\addtolength{\marginparwidth}{-\marginparsep}
+
+\setlength{\uppermargin}{1in}
 %\addtolength{\uppermargin}{\headheight}
 %\addtolength{\uppermargin}{\headsep}
-%\addtolength{\textheight}{-\uppermargin}
-%
-%\setlength{\lowermargin}{1in}
-%\addtolength{\lowermargin}{\footskip}
-%\addtolength{\lowermargin}{\footnotesep}
-%\addtolength{\textheight}{-\lowermargin}
-%
-%\checkandfixthelayout
+\addtolength{\textheight}{-\uppermargin}
+
+\setlength{\lowermargin}{1in}
+\addtolength{\lowermargin}{\footskip}
+\addtolength{\lowermargin}{\footnotesep}
+\addtolength{\textheight}{-\lowermargin}
+
+\checkandfixthelayout
 
 %--- Pages ---------------------------------------------------------------------
 
