@@ -46,10 +46,35 @@
 
 %--- Margins -------------------------------------------------------------------
 
-\setlrmarginsandblock{1.5in}{1in}{*}
-\setulmarginsandblock{1in}{1in}{*}
-\setlength{\marginparwidth}{64pt}
-\checkandfixthelayout
+%\setlrmarginsandblock{1.5in}{1in}{*}
+%\setulmarginsandblock{1in}{1in}{*}
+%\setlength{\marginparwidth}{64pt}
+%\checkandfixthelayout
+
+    %Paper size
+    \setlength{\paperheight}{11in}
+    \setlength{\paperwidth}{8.5in}
+    
+    %Left margin
+    \setlength{\marginparwidth}{0in}
+    \setlength{\marginparsep}{0in}
+    \setlength{\oddsidemargin}{0.5in}
+    \setlength{\evensidemargin}{0in}
+    
+    %Right margin
+    \setlength{\textwidth}{5.85in} 
+    
+    %Top margin
+    \setlength{\voffset}{0in}
+    \setlength{\topmargin}{0in}
+
+    %Bottom margin
+    \setlength{\headheight}{0.125in}
+    \setlength{\headsep}{0.25in}
+    \setlength{\textheight}{8.375in}
+    \setlength{\footskip}{0.50in}
+    
+    \raggedbottom
 
 % XXX the library didn't give two shits about this
 
