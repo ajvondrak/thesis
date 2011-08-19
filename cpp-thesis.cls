@@ -96,48 +96,61 @@
 \setlength{\sigcaptionwidth}{0.3\textwidth}
 \setlength{\siglinewidth}{0.6\textwidth}
 
-\pretitle{\begin{center}\Huge\scshape\bfseries}
-\posttitle{\par\end{center}\par\vfill}
-\preauthor{\begin{center} \large By \par}
-\postauthor{\par\the\year\par\end{center}}
-%\predate{\begin{phantom}}
-%\postdate{\end{phantom}}
+\pretitle{\sc\bfseries}
+\posttitle{\vfill}
+\preauthor{By\\}
+\postauthor{\\\the\year}
+\predate{}
+\postdate{}
 
 \renewcommand{\maketitlehookb}{
-  \begin{center}
     A Thesis\\ % class is called ``cpp-thesis'', not ``cpp-project''
     Presented to the\\
     Faculty of\\
     California State Polytechnic University, Pomona
-
     \vfill
-
     In Partial Fulfillment\\
     Of the Requirements for the Degree\\
     \thedegree\\
     In\\
     \thefield
-  \end{center}
-  \vfill
+    \vfill
 }
+
+% renewcommand to remove extra vskip that memoir inserts for some god-awful
+% reason
+\renewcommand{\@maketitle}{%
+  \let\footnote\@mem@titlefootkill
+  \ifdim\pagetotal>\z@
+    \newpage
+  \fi
+  \null
+        \vspace*{\droptitle}
+  \maketitlehooka
+  {\@bspretitle \@title \@bsposttitle}
+  \maketitlehookb
+  {\@bspreauthor \@author \@bspostauthor}
+  \maketitlehookc
+  {\@bspredate \@date \@bspostdate}
+  \maketitlehookd}
+
 
 \newcommand{\titlepage}{
   \date{}
-  \setcounter{page}{1}
   \begin{titlingpage}
+    \centering
     \changepage{-1in} % text height
                {}     % text width
                {}     % even side margin
                {}     % odd side margin
                {}     % column sep
-               {   }  % top margin --- apparently not a factor in titlingpage
+               {1in}  % top margin
                {}     % head height
                {}     % head sep
                {}     % foot skip
     \maketitle
   \end{titlingpage}
   \addtocounter{page}{1}
-  %\changepage{1in}{}{}{}{}{-1in}{}{}{}
 }
 
 \newcommand{\signaturepage}{
