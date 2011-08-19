@@ -137,6 +137,7 @@
 
 \newcommand{\titlepage}{
   \date{}
+  \clearpage
   \begin{titlingpage}
     \centering
     \changepage{-1in} % text height
@@ -148,7 +149,9 @@
                {}     % head height
                {}     % head sep
                {}     % foot skip
+    \vspace*{-0.75in}
     \maketitle
+    \enlargethispage{0.25in}
   \end{titlingpage}
   \addtocounter{page}{1}
 }
@@ -156,7 +159,6 @@
 \newcommand{\signaturepage}{
   \addcontentsline{toc}{chapter}{Signature Page}
   %\newpage
-  % breaks in \titlepage, but not here; what the fuck?
   \changepage{-1in}{}{}{}{}{1in}{}{}{}
   \begin{center}
     \textbf{\textsc{\Huge Signature Page}}
@@ -185,7 +187,7 @@
   \end{SingleSpace}
 
   \newpage
-  \changepage{1in}{}{}{}{}{-1in}{}{}{}
+  %\changepage{1in}{}{}{}{}{-1in}{}{}{}
 }
 
 %--- Environments --------------------------------------------------------------
