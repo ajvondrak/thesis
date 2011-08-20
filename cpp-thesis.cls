@@ -74,37 +74,26 @@
 \addtolength{\textheight}{-\uppermargin}
 
 \setlength{\lowermargin}{1in}
-\addtolength{\lowermargin}{\footskip}
-\addtolength{\lowermargin}{\footnotesep}
+%\addtolength{\lowermargin}{\footskip}
+%\addtolength{\lowermargin}{\footnotesep}
 \addtolength{\textheight}{-\lowermargin}
 
 \checkandfixthelayout
 
 %--- Pages ---------------------------------------------------------------------
 
-% Options for signature lines
-
-\newlength{\siglinewidth}
-\newlength{\sigcaptionwidth}
-
 % Cover sheet is blank
 
 \newcommand{\coversheet}{\newpage\null\thispagestyle{empty}}
 
-% \maketitle customization for thesis
-
-\setlength{\sigcaptionwidth}{0.3\textwidth}
-\setlength{\siglinewidth}{0.6\textwidth}
-
-\pretitle{\sc\bfseries}
-\posttitle{\vfill}
-\preauthor{By\\}
-\postauthor{\\\the\year}
-\predate{}
-\postdate{}
-
-\renewcommand{\maketitlehookb}{
-    A Thesis\\ % class is called ``cpp-thesis'', not ``cpp-project''
+\newcommand{\titlepage}{
+  \clearpage
+  \setcounter{page}{1}
+  \thispagestyle{empty}
+  \begin{center}
+    \textsc{\textbf{\@title}}
+    \vfill
+    A Thesis\\
     Presented to the\\
     Faculty of\\
     California State Polytechnic University, Pomona
@@ -115,79 +104,58 @@
     In\\
     \thefield
     \vfill
-}
-
-% renewcommand to remove extra vskip that memoir inserts for some god-awful
-% reason
-\renewcommand{\@maketitle}{%
-  \let\footnote\@mem@titlefootkill
-  \ifdim\pagetotal>\z@
-    \newpage
-  \fi
-  \null
-        \vspace*{\droptitle}
-  \maketitlehooka
-  {\@bspretitle \@title \@bsposttitle}
-  \maketitlehookb
-  {\@bspreauthor \@author \@bspostauthor}
-  \maketitlehookc
-  {\@bspredate \@date \@bspostdate}
-  \maketitlehookd}
-
-
-\newcommand{\titlepage}{
-  \date{}
-  \clearpage
-  \begin{titlingpage}
-    \centering
-    \changepage{-1in} % text height
-               {}     % text width
-               {}     % even side margin
-               {}     % odd side margin
-               {}     % column sep
-               {1in}  % top margin
-               {}     % head height
-               {}     % head sep
-               {}     % foot skip
-    \vspace*{-0.75in}
-    \maketitle
-    \enlargethispage{0.25in}
-  \end{titlingpage}
-  \addtocounter{page}{1}
+    By\\
+    \@author\\
+    \the\year\\
+  \end{center}
+  \newpage
 }
 
 \newcommand{\signaturepage}{
   \addcontentsline{toc}{chapter}{Signature Page}
-  %\newpage
-  \changepage{-1in}{}{}{}{}{1in}{}{}{}
-  \begin{center}
-    \textbf{\textsc{\Huge Signature Page}}
-    \vfill
-    \begin{tabular}{p{\sigcaptionwidth}p{\siglinewidth}}
-      \textbf{Thesis:}         & \textsc{\thetitle} \\
-      \textbf{Author:}         & Alex Vondrak       \\
-                                %^^^^^^^^^^^^
-                                %well, something's making this 0 for some
-                                %fucking reason
-      \textbf{Date Submitted:} & \thequarter        \\
-                               & \thedepartment
-    \end{tabular}
-  \end{center}
-  \vfill
   \begin{SingleSpace}
-    \begin{tabular}{p{\sigcaptionwidth}p{\siglinewidth}}
-      \thechair              & \hrulefill \\
-      Thesis Committee Chair &            \\
-      \thechairdept          &            \\ \\[2\onelineskip]
-      \thememberA            & \hrulefill \\
-      \thememberAdept        &            \\ \\[2\onelineskip]
-      \thememberB            & \hrulefill \\
-      \thememberBdept        &
+    \begin{center}
+      \textbf{\textsc{Signature Page}}
+    \end{center}
+    ~\\
+    \begin{tabular}{ll}
+      \textbf{\textsc{Thesis:}}          & \textsc{\thetitle} \\
+                                                              \\\\
+      \textbf{\textsc{Author:}}          & \@author           \\
+                                                              \\\\
+      \textbf{\textsc{Date Submitted:}}  & \thequarter        \\\\
+                                         & \thedepartment     \\
+                                                              \\\\
+      \thechair                          & \hrulefill         \\
+      Thesis Committee Chair             &                    \\
+      \thechairdept                      &                    \\
+                                                              \\\\
+      \thememberA                        & \hrulefill         \\
+      \thememberAdept                    &                    \\
+                                                              \\\\
+      \thememberB                        & \hrulefill         \\
+      \thememberBdept                    &
     \end{tabular}
   \end{SingleSpace}
-
   \newpage
-  %\changepage{1in}{}{}{}{}{-1in}{}{}{}
+}
+
+%\changepage{\textheight}
+%           {\textwidth}
+%           {\evensidemargin}
+%           {\oddsidemargin}
+%           {\columnsep}
+%           {\topmargin}
+%           {\headheight}
+%           {\headsep}
+%           {\footskip}
+
+\addtodef{\frontmatter}{}{%
+  \coversheet
+  \changepage{-1in}{}{}{}{}{1in}{}{}{}
+  \titlepage
+  \signaturepage
+  \changepage{1in}{}{}{}{}{-1in}{}{}{}
 }
 
 %--- Environments --------------------------------------------------------------
