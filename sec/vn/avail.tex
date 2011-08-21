@@ -237,7 +237,7 @@ Consider for the last time the example
 \factor|0 100 [ 1 fixnum+fast ] times|.
 %
 Before, we had the \gls{CFG} in \vref{fig:gcse-before}.  Making a final pass
-with\\\Verb|eliminate-common-subexpressions| gives us the \gls{CFG} in
+with \Verb|eliminate-common-subexpressions| gives us the \gls{CFG} in
 \vref{fig:gcse-after}.  Compared to the \gls{CFG} after the old
 \Verb|value-numbering| word was called (see \vref{fig:value-numbering}), we
 have identified several more redundancies:
@@ -249,7 +249,7 @@ have identified several more redundancies:
   a \Verb|##compare-integer-imm|, since its operand \Verb|26| is both
   available and known to correspond to the integer value \Verb|100|.
 %
-  \item Instead of a \Verb|##compare-integer-branch|, we similarly have a\\
+  \item Instead of a \Verb|##compare-integer-branch|, we similarly have a
   \Verb|##compare-integer-imm-branch| at the end of block $2$.
 %
   \item Because the \Verb|##phi|s have been recognized as copies (i.e., the
