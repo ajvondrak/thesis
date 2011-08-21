@@ -10,6 +10,7 @@ the \Verb|compiler.tree| vocabulary, then at a low-level with the
 
 \inputlst{tree}
 
+\begin{sloppypar}
 The high-level \gls{IR} arranges code into a vector of \Verb|node| objects,
 which may themselves have children consisting of vectors of node---a tree
 structure that lends to the name \Verb|compiler.tree|.  This ordered sequence
@@ -20,6 +21,7 @@ indirectly) from the \Verb|node| class, which itself inherits from
 \factor|identity-tuple|.  This is a tuple whose \factor|equal?| method is
 defined to always return \factor|f| so that no two instances are equivalent
 unless they are the same instance.
+\end{sloppypar}
 
 Notice that most nodes define some sort of \Verb|in-d| and \Verb|out-d|
 slots, which mark each of them with the input and output data stacks.  This
