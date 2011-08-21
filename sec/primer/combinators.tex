@@ -324,8 +324,9 @@ the stack, respectively.
 
 \inputlst{spread}
 
+\begin{sloppypar}
 To apply multiple quotations to multiple values, Factor has \term{spread}
-combinators.  Where\-as cleave combinators abstract away repeated instances of
+combinators.  Whereas cleave combinators abstract away repeated instances of
 \factor|keep|, spread combinators replace nested calls to \factor|dip|.  The
 archetypical combinator, \factor|spread|, takes an array of quotations, like
 \factor|cleave|.  However, instead of applying each one to the top element of
@@ -348,6 +349,7 @@ extra word, making the code easier to read.  More compelling is the way that
 easier to comprehend at first glance.  While there are \factor|2bi*| and
 \factor|2tri*| variants that spread quotations to two values apiece on the
 stack, they are uncommon in practice.
+\end{sloppypar}
 
 \inputlst{apply}
 
