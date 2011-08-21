@@ -132,7 +132,8 @@
 %--- Environments --------------------------------------------------------------
 
 \newenvironment{acknowledgments}%
-  {\newpage\addcontentsline{toc}{chapter}{Acknowledgments}}%
+  {\newpage%
+   \addcontentsline{toc}{chapter}{Acknowledgments}\chapter*{Acknowledgments}}%
   {\newpage}
 \newenvironment{ack}{\begin{acknowledgments}}{\end{acknowledgments}}
 
