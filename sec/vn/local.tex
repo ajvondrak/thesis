@@ -48,6 +48,7 @@ order that ignores back-edges, but we may encounter operands whose values flow
 along those back-edges, so haven't been processed yet.  We'll address this
 issue later.
 
+\begin{sloppypar}
 In Factor, expressions are basically instructions (the \Verb|insn| objects
 discussed in \cref{sec:compiler:cfg}) that have had their destination registers
 stripped.  Instructions can be converted to expressions with the \Verb|>expr|
@@ -72,6 +73,7 @@ they can't be replaced with the value they compute without changing the
 program's behavior.  For example, \Verb|##call| and \Verb|##branch| cannot
 reasonably be converted into expressions.  In these cases, \Verb|>expr|
 merely returns a unique value.
+\end{sloppypar}
 
 \inputlst{value-numbering-graph}
 
@@ -117,6 +119,7 @@ folding, and common subexpression elimination.
 
 \inputlst{value-numbering-step}
 
+\begin{sloppypar}
 To see how Factor accomplishes these extensions, we'll take a look at the
 \Verb|compiler.cfg.value-numbering| vocabulary.
 \Vref{lst:value-numbering-step} shows the main words that start the
@@ -127,11 +130,12 @@ expression graph from a blank slate with \Verb|init-value-graph|, then
 generic word that we'll study momentarily; it returns either a single
 \Verb|insn| object or a sequence of them (in the case that an instruction is
 replaced by several others).  Then, the work of \Verb|value-numbering| is to
-just call \Verb|value-numbering-step| on each basic block, which is done with
-a combinator called \Verb|simple-optimization|.  The words
-\Verb|cfg-changed| and \Verb|predecessors-changed| alter some internal
-state of the \gls{CFG} that has been potentially invalidated by some
-transformations performed by \Verb|process-instruction|.
+just call \Verb|value-numbering-step| on each basic block, which is done with a
+combinator called \Verb|simple-optimization|.  The words \Verb|cfg-changed| and
+\Verb|predecessors-changed| alter some internal state of the \gls{CFG} that has
+been potentially invalidated by some transformations performed by
+\Verb|process-instruction|.
+\end{sloppypar}
 
 \inputlst{process-instruction}
 
@@ -206,27 +210,28 @@ rewriting is performed by default.  That way, we need only define
 \Verb|rewrite| methods for more specific instruction classes to get specialized
 behavior.
 
-\Verb|compiler.cfg.value-numbering.alien| contains methods that simplify
-nodes related to Factor's \gls{FFI}.  Most involve fusing together the results
-of intermediate arithmetic.  The instructions that access raw memory (namely
-\Verb|##load-memory|, \Verb|##load-memory-imm|, \Verb|##store-memory|,
-and \Verb|##store-memory-imm|) tend to have inputs to perform address
-arithmetic.  Each has slots for a \Verb|base| register containing an address
-and a literal \Verb|offset| from it.  But if \Verb|base| is defined by an
-\Verb|##add-imm| instruction, we can just update the \Verb|offset|,
-incrementing it by the literal operand of the \Verb|##add-imm|.  Then,
-\Verb|base| will just be changed to the register operand of the
-\Verb|##add-imm|.  This removes the memory instruction's need for the
-\Verb|##add-imm|, increasing the chances that the latter will become dead
-code to be removed later.  Unlike the \Verb|-imm| variants,
-\Verb|##load-memory| and \Verb|##store-memory| also take a
-\Verb|displacement| register, which works like a non-immediate
-\Verb|offset|.  Therefore, \Verb|##add|s can be similarly fused into
-\Verb|##load-memory-imm| and \Verb|##store-memory-imm| by transforming them
-into \Verb|##load-memory| and \Verb|##store-memory| instructions with the
-\Verb|##add|'s operand as the \Verb|displacement|.  A few other similar
-transformations are also done, including rewrites for
-\Verb|##box-displaced-alien|s and \Verb|##unbox-any-c-ptr|s.
+\begin{sloppypar}
+\Verb|compiler.cfg.value-numbering.alien| contains methods that simplify nodes
+related to Factor's \gls{FFI}.  Most involve fusing together the results of
+intermediate arithmetic.  The instructions that access raw memory (namely
+\Verb|##load-memory|, \Verb|##load-memory-imm|, \Verb|##store-memory|, and
+\Verb|##store-memory-imm|) tend to have inputs to perform address arithmetic.
+Each has slots for a \Verb|base| register containing an address and a literal
+\Verb|offset| from it.  But if \Verb|base| is defined by an \Verb|##add-imm|
+instruction, we can just update the \Verb|offset|, incrementing it by the
+literal operand of the \Verb|##add-imm|.  Then, \Verb|base| will just be
+changed to the register operand of the \Verb|##add-imm|.  This removes the
+memory instruction's need for the \Verb|##add-imm|, increasing the chances that
+the latter will become dead code to be removed later.  Unlike the \Verb|-imm|
+variants, \Verb|##load-memory| and \Verb|##store-memory| also take a
+\Verb|displacement| register, which works like a non-immediate \Verb|offset|.
+Therefore, \Verb|##add|s can be similarly fused into \Verb|##load-memory-imm|
+and \Verb|##store-memory-imm| by transforming them into \Verb|##load-memory|
+and \Verb|##store-memory| instructions with the \Verb|##add|'s operand as the
+\Verb|displacement|.  A few other similar transformations are also done,
+including rewrites for \Verb|##box-displaced-alien|s and
+\Verb|##unbox-any-c-ptr|s.
+\end{sloppypar}
 
 \Verb|compiler.cfg.value-numbering.comparisons| defines methods for the
 various branching and comparison instructions (which simply store booleans in
@@ -316,6 +321,7 @@ be created.  However, if the product of \Verb|Y| and \Verb|Z| can be
 computed at compile-time and fits in an immediate operand, then we save cycles
 by using \Verb|##mul-imm| on a smaller number.
 
+\begin{sloppypar}
 The last few methods of \Verb|rewrite| provide some obvious simplifications.
 \Verb|compiler.cfg.value-numbering.simd| performs some limited constant-folding
 for vector operations.  \Verb|compiler.cfg.value-numbering.slots| propagates
@@ -324,8 +330,7 @@ for vector operations.  \Verb|compiler.cfg.value-numbering.slots| propagates
 \Verb|compiler.cfg.value-numbering.alien|.  Finally,
 \Verb|compiler.cfg.value-numbering.misc| provides a single method to rewrite
 \Verb|##replace| into \Verb|##replace-imm| if possible.
-
-\todo[inline]{make sure margins don't get overflown by long vocab names}
+\end{sloppypar}
 
 \inputfig{lvn}
 
