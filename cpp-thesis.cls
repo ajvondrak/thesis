@@ -46,38 +46,9 @@
 
 %--- Margins -------------------------------------------------------------------
 
-%\setlrmarginsandblock{1.5in}{1in}{*}
-%\setulmarginsandblock{1in}{1in}{*}
-%\setlength{\marginparwidth}{64pt}
-%\checkandfixthelayout
-
 \setlrmarginsandblock{1.5in}{1in}{*}
-
-% Adjust upper / lower margins based on the header & footer spaces, so that the
-% headers & footers fall within the 1in boundary
-
-\setlength{\textheight}{\paperheight}
-
-\setlength{\headheight}{\onelineskip}
-\setlength{\headsep}{\headheight}
-\addtolength{\headsep}{\topskip}
-
-\setlength{\footskip}{\onelineskip}
-\addtolength{\footskip}{\topskip}
-\setlength{\footnotesep}{\onelineskip}
-
-\addtolength{\marginparwidth}{-\marginparsep}
-
-\setlength{\uppermargin}{1in}
-%\addtolength{\uppermargin}{\headheight}
-%\addtolength{\uppermargin}{\headsep}
-\addtolength{\textheight}{-\uppermargin}
-
-\setlength{\lowermargin}{1in}
-%\addtolength{\lowermargin}{\footskip}
-%\addtolength{\lowermargin}{\footnotesep}
-\addtolength{\textheight}{-\lowermargin}
-
+\setulmarginsandblock{1in}{1in}{*}
+\setlength{\marginparwidth}{64pt}
 \checkandfixthelayout
 
 %--- Pages ---------------------------------------------------------------------
