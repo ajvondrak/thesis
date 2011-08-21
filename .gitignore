@@ -13,3 +13,5 @@
 *.out
 *.fdb_latexmk
 *.pyg
+*-blx.bib
+*.xml
