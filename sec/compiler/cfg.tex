@@ -187,7 +187,7 @@ we see several changes:
   (which assigns the value \Verb|0| to the virtual register \Verb|23|) is
   redundant, so is replaced by \Verb|##copy 23 21|.
 %
-  \item \begin{flushleft}
+  \item \begin{sloppypar}
   In block $2$, the last instruction
   %
   \Verb|##compare-imm-branch 32 f cc/=|
@@ -205,11 +205,12 @@ we see several changes:
   \Verb|##compare-integer-branch|, which doesn't use the temporary virtual
   register \Verb|9| and doesn't waste time comparing against the \factor|f|
   object.
-  \end{flushleft}
+  \end{sloppypar}
 %
-  \item The second operands in both \Verb|##add|s of block $3$ are just
-  constants stored by \Verb|##load-integer|s.  So, these are turned into
-  \Verb|##add-imm|s.
+  \item \begin{sloppypar} The second operands in both \Verb|##add|s of block
+  $3$ are just constants stored by \Verb|##load-integer|s.  So, these are
+  turned into \Verb|##add-imm|s.
+  \end{sloppypar}
 %
   \item Also, the second \Verb|##load-integer| in block $3$ just loads
   \Verb|1| like the first instruction.  Therefore, it's replaced by a
