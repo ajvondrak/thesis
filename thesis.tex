@@ -1,4 +1,4 @@
-\documentclass[11pt,article,oldfontcommands]{cpp-thesis}
+\documentclass[11pt,article,oldfontcommands,draft]{cpp-thesis}
 
 \setlength{\parskip}{\medskipamount}
 
@@ -33,17 +33,15 @@
   \newpage
 \end{abstract}
 
-\begin{KeepFromToc}
-  \tableofcontents
-\end{KeepFromToc}
+\tableofcontents*
 \listoffigures
 
 \mainmatter
 
         \input{sec/intro}
-%\newpage\input{sec/primer}
-%\newpage\input{sec/compiler}
-%\newpage\input{sec/vn}
+\newpage\input{sec/primer}
+\newpage\input{sec/compiler}
+\newpage\input{sec/vn}
 
 \renewcommand{\bibname}{References}\newpage\printbibliography
 
