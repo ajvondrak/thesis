@@ -12,7 +12,7 @@ the \Verb|compiler.tree| vocabulary, then at a low-level with the
 
 The high-level \gls{IR} arranges code into a vector of \Verb|node| objects,
 which may themselves have children consisting of vectors of node---a tree
-structure that lends to the name\\\Verb|compiler.tree|.  This ordered sequence
+structure that lends to the name \Verb|compiler.tree|.  This ordered sequence
 of nodes represents control flow in a way that's effectively simple, annotated
 stack code.  \Vref{lst:tree} shows the definitions of the tuples that represent
 the ``instruction set'' of this stack code.  Each object inherits (directly or
@@ -95,6 +95,7 @@ unify with any other effect.  That way, branches will still be balanced even if
 one of them unconditionally throws an error.  \vref{lst:build-tree-4} shows
 \Verb|#terminate| being introduced by the \factor|throw| word.
 
+\begin{sloppypar}
 Next, \vref{lst:tree} defines nodes for branching based off the superclass
 \Verb|#branch|.  The \Verb|children| slot contains vectors of nodes
 representing different branches.  \Verb|live-branches| is filled in during
@@ -104,6 +105,7 @@ removed.  For instance, \Verb|#if| will have two elements in its
 hand, \Verb|#dispatch| has an arbitrary number of children.  It corresponds
 to the \factor|dispatch| primitive, which is an implementation detail of the
 generic word system used to speed up method dispatch.
+\end{sloppypar}
 
 You may have noted the emphasis on introducing new values, instead of
 reassigning old ones.  Even \Verb|#shuffle|s output fresh identifiers, letting
