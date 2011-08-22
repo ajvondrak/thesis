@@ -76,6 +76,7 @@ confluence operator means that the \Verb|avail-in| set will contain those
 values which are available on all paths from the start of the \gls{CFG} to that
 block.
 
+\begin{sloppypar}
 Using Factor's \Verb|compiler.cfg.dataflow-analysis| vocabulary, the
 implementation takes all of two lines of code.  The
 %
@@ -92,6 +93,7 @@ are the top-level \Verb|compute-avail-sets| word that actually performs the
 analysis, the \Verb|avail-ins| hash table that maps basic blocks to their
 in-sets, and the \Verb|avail-in| word that is shorthand for looking up a
 basic block's in-set.
+\end{sloppypar}
 
 We want to use the results of this analysis in the \Verb|rewrite| methods so
 that they won't overstep their boundaries, and only make meaningful rewrites.
@@ -126,6 +128,7 @@ So, we can protect it with a check for \Verb|final-iteration?|.
 
 \inputlst{self-inverse}
 
+\begin{sloppypar}
 More typical were words like \Verb|self-inverse| from
 \Verb|compiler.cfg.value-numbering.math| (refer to \vref{lst:self-inverse}).
 The idea is to change
@@ -159,6 +162,7 @@ virtual register \Verb|2|) isn't necessarily available.  So, we have to use
 \Verb|with-available-uses?| to make sure the virtual registers used by the
 result of a \Verb|vreg>insn| can themselves be used before we rewrite
 anything.
+\end{sloppypar}
 
 An even subtler issue that led to infinite loops occured in simplifcations like
 the arithmetic distribution in \Verb|compiler.cfg.value-numbering.math|.  The
@@ -232,6 +236,7 @@ The new \Verb|value-numbering| word can be seen in
 \inputfig{gcse-before}
 \inputfig{gcse-after}
 
+\begin{sloppypar}
 Consider for the last time the example
 %
 \factor|0 100 [ 1 fixnum+fast ] times|.
@@ -257,6 +262,7 @@ have identified several more redundancies:
   from the old version of \Verb|value-numbering| is turned into a
   \Verb|##copy| of the first.
 \end{itemize}
+\end{sloppypar}
 
 \inputfig{gcse-copy-prop}
 \inputfig{gcse-dce}
