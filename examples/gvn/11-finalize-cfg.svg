@@ -11,7 +11,7 @@
 <polygon fill="white" stroke="white" points="-4,5 -4,-396 346,-396 346,5 -4,5"/>
 <!-- 0 -->
 <g id="node1" class="node"><title>0</title>
-<polygon fill="grey" stroke="grey" points="166,-392 90,-392 90,-348 166,-348 166,-392"/>
+<polygon fill="none" stroke="black" points="166,-392 90,-392 90,-348 166,-348 166,-392"/>
 <text text-anchor="middle" x="128" y="-379" font-family="Courier,monospace" font-size="10.00">0</text>
 <text text-anchor="start" x="97.5" y="-367" font-family="Courier,monospace" font-size="10.00">##prologue</text>
 <text text-anchor="start" x="97.5" y="-355" font-family="Courier,monospace" font-size="10.00">##branch</text>
@@ -73,7 +73,7 @@
 </g>
 <!-- 5 -->
 <g id="node6" class="node"><title>5</title>
-<polygon fill="grey" stroke="grey" points="314,-44 238,-44 238,-1.42109e-14 314,-0 314,-44"/>
+<polygon fill="none" stroke="black" points="314,-44 238,-44 238,-1.42109e-14 314,-0 314,-44"/>
 <text text-anchor="middle" x="276" y="-31" font-family="Courier,monospace" font-size="10.00">5</text>
 <text text-anchor="start" x="245.5" y="-19" font-family="Courier,monospace" font-size="10.00">##epilogue</text>
 <text text-anchor="start" x="245.5" y="-7" font-family="Courier,monospace" font-size="10.00">##return</text>
