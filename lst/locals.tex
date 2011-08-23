@@ -1,0 +1,10 @@
+\centering
+
+  \begin{factorcode}
+    :: norm ( x y -- norm )
+        x x * :> x^2
+        y y * :> y^2 
+        x^2 y^2 + sqrt ;
+  \end{factorcode}
+
+\caption{\texttt{norm} with local variables}

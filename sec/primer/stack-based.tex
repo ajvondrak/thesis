@@ -6,7 +6,7 @@ Like \gls{RPN} calculators, Factor's evaluation model uses a global stack upon
 which operands are pushed before operators are called.  This naturally
 facilitates postfix notation, in which operators are written after their
 operands.  For example, instead of \texttt{1~+~2}, we write \texttt{1~2~+}.
-\vref{fig:rpn} shows how \texttt{1~2~+} works conceptually:
+\cref{fig:rpn} shows how \texttt{1~2~+} works conceptually:
 \begin{itemize}
   \item \texttt{1} is pushed onto the stack
   \item \texttt{2} is pushed onto the stack
@@ -60,7 +60,7 @@ The \verb|{| word would not be called if not for that space, whereas
 and the word \Verb|3}|---not an array.  Further, since the left-delimeter words
 parse recursively, such literals can be nested, contain comments, etc.  Other
 literals include \vpageref[the following][those in
-\vref{lst:literals}~]{lst:literals}.
+\cref{lst:literals}~]{lst:literals}.
 
 \inputlst[h]{literals}
 
@@ -75,7 +75,7 @@ anonymous functions in other languages, but the stack model makes them
 conceptually simpler, since we don't have to worry about variable binding and
 the like.  Consider a small example like \factor|1 2 [ + ] call|.  You can
 think of \factor|call| working by ``erasing'' the brackets around a quotation,
-so this example behaves just like \factor|1 2 +|.  \vref{fig:quot} shows its
+so this example behaves just like \factor|1 2 +|.  \cref{fig:quot} shows its
 evaluation: instead of adding the numbers immediately, \factor|+| is placed in
 a quotation, which is pushed to the stack.  The quotation is then invoked by
 \factor|call|, so \factor|+| pops and adds the two numbers and pushes the

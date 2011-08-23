@@ -100,8 +100,8 @@ algorithm.
 \inputlst{gvn-graph}
 
 The most fundamental change is to the expression graph.  Referring to
-\vref{lst:gvn-graph}, we see most of the same code as in
-\vref{lst:value-numbering-graph}, with changes indicated by arrows
+\cref{lst:gvn-graph}, we see most of the same code as in
+\cref{lst:value-numbering-graph}, with changes indicated by arrows
 ($\longrightarrow$).  Two more global variables have been added, namely
 \Verb|changed?| and \Verb|final-iteration?|.  The former is what we use to
 guide the fixed-point iteration.  As long as value numbers are changing, we
@@ -151,7 +151,7 @@ splitting classes until they can't be split anymore.
 
 \inputlst{gvn-step}
 
-This logic is captured in \vref{lst:gvn-step}.  Rather than reset the tables
+This logic is captured in \cref{lst:gvn-step}.  Rather than reset the tables
 when we start processing each basic block in \Verb|value-numbering-step| like
 before, we call \Verb|clear-exprs| on each iteration over the \gls{CFG} in
 \Verb|value-numbering-iteration|.  Note that \Verb|value-numbering-step| no
@@ -174,9 +174,9 @@ words, \Verb|simplify| and \Verb|value-number|.  These combine to do much
 the same work as \Verb|process-instruction| in
 \cref{lst:process-instruction}.  \Verb|simplify| makes the repeated calls to
 \Verb|rewrite| until the instruction cannot be simplified further.  Its
-definition is in \vref{lst:gvn-simplify}.  We then pass the simplified
+definition is in \cref{lst:gvn-simplify}.  We then pass the simplified
 instruction to \Verb|value-number|, which is defined in
-\vref{lst:gvn-value-number}.  This also has a similar structure to
+\cref{lst:gvn-value-number}.  This also has a similar structure to
 \Verb|process-instruction|.  The main difference is that instructions are no
 longer returned (again, they aren't altered in place).  So, the \factor|array|
 method uses \factor|each| instead of \factor|map| to recurse into the results
@@ -203,7 +203,7 @@ tweaked to not return instructions.
 
 \inputlst{phi-expr}
 
-The \Verb|##phi| method in \vref{lst:gvn-value-number} represents a major
+The \Verb|##phi| method in \cref{lst:gvn-value-number} represents a major
 change. Before, \Verb|##phi|s were left uninterpreted.  Congruences between
 induction variables that flowed along back-edges would not be identifiable.
 But now, by checking for redundant \Verb|##phi|s, we may reduce them to
@@ -225,12 +225,12 @@ identify \Verb|##phi|s that are equal to each other.  Even if its inputs are
 incongruent, a \Verb|##phi| might still represent a copy of another induction
 variable.  So that \Verb|check-redundancy| works, we also define a
 \Verb|>expr| method in \Verb|compiler.cfg.gvn.expressions|, as seen in
-\vref{lst:phi-expr}.  Here, the expression is an array consisting of the
+\cref{lst:phi-expr}.  Here, the expression is an array consisting of the
 \Verb|##phi| class word, the current basic block's number, and the inputs'
 value numbers.  We include the basic block number because only \Verb|##phi|s
 within the same block can be considered equivalent to each other.
 
-The final method in \vref{lst:gvn-value-number} defines the default behavior
+The final method in \cref{lst:gvn-value-number} defines the default behavior
 for \Verb|value-number|, which calls \Verb|check-redundancy| on the
 simplified instruction if it defines a single virtual register.  Note that we
 separate the \Verb|alien-call-insn| and \Verb|##callback-inputs| logic from
@@ -250,7 +250,7 @@ example
 %
 \factor|0 100 [ 1 fixnum+fast ] times|,
 %
-reproduced in \vref{fig:gvn}.  As the expression graph changes frequently in
+reproduced in \cref{fig:gvn}.  As the expression graph changes frequently in
 this new algorithm, instead of showing the literal hash tables we'll use a
 shorthand notation.  Virtual registers will be integers, and to avoid confusion
 value numbers will be written in brackets, like \vn{n}.  Then, we'll show

@@ -78,7 +78,7 @@ merely returns a unique value.
 \inputlst{value-numbering-graph}
 
 The hashing of expressions takes place in the so-called \term{expression graph}
-implemented in the vocabulary shown in \vref{lst:value-numbering-graph}.  This
+implemented in the vocabulary shown in \cref{lst:value-numbering-graph}.  This
 consists of three global hash tables that relate virtual registers, value
 numbers, instructions, and expressions.  Since virtual registers are just
 integers, we actually use them as value numbers, too.  \Verb|vregs>vns| maps
@@ -88,7 +88,7 @@ to compute the value.  This instruction is stored in the \Verb|vns>insns| table.
 name, it uses expressions as keys, which of course are implicitly hashed.
 Thus, we can use this table to determine equivalence of expressions.
 
-Other definitions in \vref{lst:value-numbering-graph} manipulate expressions
+Other definitions in \cref{lst:value-numbering-graph} manipulate expressions
 and the graph.  The global variable \Verb|input-expr-counter| is used in the
 generation of unique expressions discussed earlier.  \Verb|init-value-graph|
 initializes this and all the tables.  \Verb|set-vn| establishes a mapping
@@ -140,7 +140,7 @@ been potentially invalidated by some transformations performed by
 \inputlst{process-instruction}
 
 The methods of \Verb|process-instruction| are shown in
-\vref{lst:process-instruction}.  The default behavior for dispatching on an
+\cref{lst:process-instruction}.  The default behavior for dispatching on an
 \Verb|insn| is to invoke yet another generic word, \Verb|rewrite|.  This word
 will return either a replacement \Verb|insn| (or sequence thereof) or
 \factor|f|, indicating that no change has taken place.  Thus, by recursively
@@ -172,20 +172,7 @@ integers the source and destination registers in a new \Verb|##copy|
 instruction, which is then returned.  On the other hand,
 \Verb|useful-instruction| saves the instruction's information in the
 expression graph by setting the appropriate values in \Verb|vregs>vns|,
-\Verb|exprs>vns|, and \Verb|vns>insns|.  Note that in definitions using the
-syntax
-%
-\factor|:: word-name ( stack -- effect ) ... ;|,
-%
-the input values in the stack effect are actually named lexical variables, like
-in most programming languages\todo{move this to primer?}.  Furthermore, the
-first line
-%
-\factor|insn dst>> :> vn|
-%
-assigns the input instruction's destination register to the variable
-\Verb|vn|, which is used later in the definition of
-\Verb|useful-instruction|.
+\Verb|exprs>vns|, and \Verb|vns>insns|.
 
 The \Verb|##copy| method of \Verb|process-instruction| cannot do anything
 to simplify the instruction, but will set the value number of the destination
@@ -335,9 +322,9 @@ for vector operations.  \Verb|compiler.cfg.value-numbering.slots| propagates
 \inputfig{lvn}
 
 To finish the discussion of local value numbering and Factor's particular
-implementation, we'll examine the example from \vref{fig:value-numbering} in
+implementation, we'll examine the example from \cref{fig:value-numbering} in
 depth.  For convenience, the before/after snapshot of the \gls{CFG} is
-reproduced in \vref{fig:lvn}.
+reproduced in \cref{fig:lvn}.
 
 \Verb|value-numbering-step| begins at block $1$, where
 \Verb|process-instruction| is \factor|map|ped across the instructions.
@@ -434,7 +421,7 @@ $1$:
     }
   \end{factorcode}
 
-Next, block $2$ in \vref{fig:lvn} is processed.  The tables are all reset, so
+Next, block $2$ in \cref{fig:lvn} is processed.  The tables are all reset, so
 even though block $1$ happens to dominate block $2$, none of its definitions
 are known to \Verb|value-numbering|.  The \Verb|##phi|s are ignored, as no
 important methods dispatch upon them.  In trying to rewrite the
@@ -547,7 +534,7 @@ anything interesting, as the \Verb|##replace| cannot be changed into a
 In summary, we managed to replace redundancies within basic blocks online by
 maintaining some simple hash tables.  After copy propagation and dead code
 elimination, the \gls{CFG} gets finalized to the one shown in
-\vref{fig:finalize-lvn}.  Because the value numbering algorithm was local, the
+\cref{fig:finalize-lvn}.  Because the value numbering algorithm was local, the
 \Verb|##compare-integer-branch| in block $2$ could not be simplified to a
 \Verb|##compare-integer-imm-branch|, and we instead have to waste a register
 on the integer \Verb|100|.  But it's important to note that even considering
@@ -558,7 +545,7 @@ classify these values as distinct.  One is for the counter introduced by
 \Verb|times|, and the other is from the top value of the stack being
 incremented by \Verb|fixnum+fast|.  In this case, however, these induction
 variables are actually equal: both start at \Verb|0| and are incremented by
-\Verb|1| on each loop.  In terms of the \gls{CFG} in \vref{fig:finalize-lvn},
+\Verb|1| on each loop.  In terms of the \gls{CFG} in \cref{fig:finalize-lvn},
 the \Verb|EAX| and \Verb|EDX| registers are equivalent.  Yet the
 combination of the pessimism and locality of the algorithm keep us from
 discovering this.

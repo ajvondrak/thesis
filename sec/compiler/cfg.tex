@@ -30,7 +30,7 @@ tuple).
 
 By translating the high-level \gls{IR} into instructions that manipulate
 registers directly, we reveal further redundancies that can be optimized away.
-The \Verb|optimize-cfg| word in \vref{lst:optimize-cfg} shows the passes
+The \Verb|optimize-cfg| word in \cref{lst:optimize-cfg} shows the passes
 performed in doing this.  The first word, \Verb|optimize-tail-calls|,
 performs tail call elimination on the \gls{CFG}.
 %
@@ -41,7 +41,7 @@ tail calls into simple jumps, since afterwards the current procedure's call
 frame isn't really needed.  In the case of recursive tail calls, we can convert
 special cases of recursion into loops in the \gls{CFG}, so that we won't
 trigger call stack overflows.  For instance, consider
-\vref{fig:optimize-tail-calls}, which shows the effect of
+\cref{fig:optimize-tail-calls}, which shows the effect of
 \Verb|optimize-tail-calls| on the following definition:
 %
 \begin{center}
@@ -53,7 +53,7 @@ trigger call stack overflows.  For instance, consider
 \noindent Note the recursive call (trivially) occurs at the end of the
 definition, just before the return point.  When translated to a \gls{CFG}, this
 is a \Verb|##call| instruction, as seen in block $4$ to the left of
-\vref{fig:optimize-tail-calls}.  This is also just before the final
+\cref{fig:optimize-tail-calls}.  This is also just before the final
 \Verb|##epilogue| and \Verb|##return| instructions in block $8$, as blocks
 $5$--$7$ are effectively empty (these excessive \Verb|##branch|es will be
 eliminated in a later pass).  Because of this, rather than make a whole new
@@ -62,11 +62,11 @@ beginning of the word, as in the \gls{CFG} to the right.
 
 \inputfig{delete-useless-conditionals}
 
-The next pass in \vref{lst:optimize-cfg} is
+The next pass in \cref{lst:optimize-cfg} is
 \Verb|delete-useless-conditionals|, which removes branches that go to the
 same basic block.  This situation might occur as a result of optimizations
 performed in the high-level \gls{IR}.  To see it in action,
-\vref{fig:delete-useless-conditionals} shows the transformation on a
+\cref{fig:delete-useless-conditionals} shows the transformation on a
 purposefully useless conditional,
 %
 \factor|[ ] [ ] if|.
@@ -88,7 +88,7 @@ stack) to the immediate value \factor|f| to see if it's not equal (signified by
 merge at the same destination.  Thus, we can remove both branches and replace
 \Verb|##compare-imm-branch| with an unconditional \Verb|##branch| to the
 eventual destination.  We see this on the right of
-\vref{fig:delete-useless-conditionals}.
+\cref{fig:delete-useless-conditionals}.
 
 \inputfig{split-branches}
 
@@ -105,7 +105,7 @@ into
 %
 as long as \Verb|C| is small enough.  Later analyses may then, for example,
 more readily eliminate one of the branches if it's never taken.
-\vref{fig:split-branches} shows what such a transformation looks like on a
+\cref{fig:split-branches} shows what such a transformation looks like on a
 \gls{CFG}.  The example
 %
 \factor|[ 1 ] [ 2 ] if dup|
@@ -129,9 +129,9 @@ pass on the \gls{CFG} of
 \factor|fixnum+fast| is a specialized version of \factor|+| that suppresses
 overflow and type checks.  We use it here to keep the \gls{CFG} simple.  We'll
 be using this particular code to illustrate all but one of the remaining
-optimization passes in \vref{lst:optimize-cfg}, as it's a motivating example
+optimization passes in \cref{lst:optimize-cfg}, as it's a motivating example
 for the work in this thesis.  The passes before \Verb|join-blocks| don't
-change the \gls{CFG} seen on the left in \vref{fig:join-blocks}, but we get rid
+change the \gls{CFG} seen on the left in \cref{fig:join-blocks}, but we get rid
 of the useless \Verb|##branch| blocks in the \gls{CFG} on the right.
 
 \inputfig{normalize-height}
@@ -142,9 +142,9 @@ combines and canonicalizes the instructions that track the stack height, like
 \Verb|##inc-d|.  While the shuffling in this example isn't complex enough to
 be interesting, neither is this phase.  It amounts to more cleanup: multiple
 height changes are combined into single ones at the beginnings of the basic
-blocks.  In \vref{fig:normalize-height}, this means that \Verb|##inc-d| is
+blocks.  In \cref{fig:normalize-height}, this means that \Verb|##inc-d| is
 moved to the top of block $1$, as compared to the right of
-\vref{fig:join-blocks}.
+\cref{fig:join-blocks}.
 
 \inputfig{construct-ssa}
 
@@ -159,7 +159,7 @@ live after the insertion point.  This cuts down on useless $\phi$
 functions \autocites{TDMSC,construct-ssa}.
 %
 \Vref{fig:construct-ssa} shows the reconstructed \gls{SSA} form of the
-\gls{CFG} from \vref{fig:normalize-height}.
+\gls{CFG} from \cref{fig:normalize-height}.
 
 The next pass, \Verb|alias-analysis|, doesn't change the \gls{CFG} of
 %
@@ -177,13 +177,13 @@ can be removed.
 \inputfig{value-numbering}
 
 \Verb|value-numbering| is the key focus of this thesis.  It will be detailed
-in \vref{sec:vn}.  For now, it does to think of it as a combination of common
-subexpression elimination and constant folding.  In \vref{fig:value-numbering}, 
+in \cref{sec:vn}.  For now, it does to think of it as a combination of common
+subexpression elimination and constant folding.  In \cref{fig:value-numbering}, 
 we see several changes:
 %
 \begin{itemize}
 %
-  \item \Verb|##load-integer 23 0| in block $1$ of \vref{fig:construct-ssa}
+  \item \Verb|##load-integer 23 0| in block $1$ of \cref{fig:construct-ssa}
   (which assigns the value \Verb|0| to the virtual register \Verb|23|) is
   redundant, so is replaced by \Verb|##copy 23 21|.
 %
@@ -224,7 +224,7 @@ other equivalences.
 
 Following \Verb|value-numbering|, \Verb|copy-propagation| performs a global
 pass that eliminates \Verb|##copy| instructions.  Uses of the copies are
-replaced by the originals.  So, in \vref{fig:copy-propagation}, we can see that
+replaced by the originals.  So, in \cref{fig:copy-propagation}, we can see that
 all of the \Verb|##copy| instructions have been removed and, for instance,
 the use of the virtual register \Verb|25| in block $2$ has been replaced by
 \Verb|21|, since \Verb|25| was a copy of it.
@@ -238,7 +238,7 @@ defined values that were never used.
 
 \inputfig{finalize-cfg}
 
-The final pass in \vref{lst:optimize-cfg}, \Verb|finalize-cfg|, itself
+The final pass in \cref{lst:optimize-cfg}, \Verb|finalize-cfg|, itself
 consists of several more passes.  We will not get into many details here, but
 at a high level, the most important passes figure out how virtual registers
 should map to machine registers.  We first figure out when certain values can

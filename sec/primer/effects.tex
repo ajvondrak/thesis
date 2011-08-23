@@ -53,7 +53,7 @@ has the same relative height change, this declaration would be wrong, since
 For the purposes of documentation, of course, the names in stack effects do
 matter.  They correspond to elements of the stack from bottom-to-top.  So, the
 rightmost value on either side of the declaration names the top element of the
-stack.  We can see this in \vref{fig:shufflers}, which shows the effects of
+stack.  We can see this in \cref{fig:shufflers}, which shows the effects of
 standard \term{stack shuffler} words.  These words are used for basic data flow
 in Factor programs.  For example, to discard the top element of the stack, we
 use the \factor|drop| word, whose effect is simply
@@ -93,7 +93,7 @@ that duplicate data on the stack are
 %
 \factor|pick| with the effect \Verb|( x y z -- x y z x )|.
 
-True to the name \factor|swap|, the final shuffler in \vref{fig:shufflers}
+True to the name \factor|swap|, the final shuffler in \cref{fig:shufflers}
 permutes the top two elements of the stack, reversing their order.  The stack
 effect
 %

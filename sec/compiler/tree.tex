@@ -45,7 +45,7 @@ definition may be stored across the \Verb|body|, \Verb|method|,
 \inputlst{build-tree-1}
 
 The word \Verb|build-tree| takes a Factor quotation and constructs the
-equivalent high-level \gls{IR} form.  In \vref{lst:build-tree-1}, we see the
+equivalent high-level \gls{IR} form.  In \cref{lst:build-tree-1}, we see the
 output of the simple example
 %
 \factor|[ 1 + ] build-tree|.
@@ -66,7 +66,7 @@ the value left on the stack (the sum pushed by \Verb|#call|).
 
 \inputlst{build-tree-2}
 
-The next tuples in \vref{lst:tree} reassign existing values on the stack to
+The next tuples in \cref{lst:tree} reassign existing values on the stack to
 fresh identifiers.  The \Verb|#renaming| superclass has the two subclasses
 \Verb|#copy| and \Verb|#shuffle|.  The former represents the bijection from
 elements of \Verb|in-d| to elements of \Verb|out-d| in the same position;
@@ -74,7 +74,7 @@ corresponding values are copies of each other.  The latter represents a more
 general mapping.  Stack shufflers are translated to \Verb|#shuffle| nodes
 with \Verb|mapping| slots that dictate how the fresh values in \Verb|out-d|
 correspond to the input values in \Verb|in-d|.  For instance,
-\vref{lst:build-tree-2} shows how \factor|swap| takes in the values
+\cref{lst:build-tree-2} shows how \factor|swap| takes in the values
 \Verb|6256132| and \Verb|6256133| and outputs \Verb|6256134| and
 \Verb|6256135|, where the former is mapped to the second element
 (\Verb|6256133|) and the latter to the first (\Verb|6256132|).  Thus,
@@ -88,17 +88,17 @@ the scope of this discussion.
 
 \Verb|#declare| is a miscellaneous node used for the \factor|declare|
 primitive.  It simply annotates type information to stack values, as in
-\vref{lst:build-tree-3}.  \Verb|#terminate| is another one-off node, but a
+\cref{lst:build-tree-3}.  \Verb|#terminate| is another one-off node, but a
 much more interesting one.  While Factor normally requires a balanced stack,
 sometimes we purposefully want to throw an error.  \Verb|#terminate| is
 introduced where the program halts prematurely.  When checking the stack
 height, it gets to be treated specially so that \term{terminated} stack effects
 unify with any other effect.  That way, branches will still be balanced even if
-one of them unconditionally throws an error.  \vref{lst:build-tree-4} shows
+one of them unconditionally throws an error.  \cref{lst:build-tree-4} shows
 \Verb|#terminate| being introduced by the \factor|throw| word.
 
 \begin{sloppypar}
-Next, \vref{lst:tree} defines nodes for branching based off the superclass
+Next, \cref{lst:tree} defines nodes for branching based off the superclass
 \Verb|#branch|.  The \Verb|children| slot contains vectors of nodes
 representing different branches.  \Verb|live-branches| is filled in during
 later analyses to indicate which branches are alive so that dead ones may be
@@ -131,7 +131,7 @@ output values.
 
 \inputlst{build-tree-5}
 
-For example, the \Verb|#phi| in \vref{lst:build-tree-5} will select between
+For example, the \Verb|#phi| in \cref{lst:build-tree-5} will select between
 the \Verb|6256248| return value of the first child or the \Verb|6256249|
 output of the second.  Either way, we can refer to the result as
 \Verb|6256250| afterwards.  The \Verb|terminated| slot of the \Verb|#phi|
@@ -152,7 +152,7 @@ The nodes \Verb|#enter-recursive|, \Verb|#call-recursive|, and
 beginning, recursive call, and end, respectively.  They carry around a lot of
 metadata about the nature of the recursion, but it doesn't serve our purposes
 to get into the details.  Similarly, we gloss over the final nodes of
-\vref{lst:tree} correspond to Factor's \gls{FFI} vocabulary, called
+\cref{lst:tree} correspond to Factor's \gls{FFI} vocabulary, called
 \Verb|alien|.  At a high level, \Verb|#alien-node|, \Verb|#alien-invoke|,
 \Verb|#alien-indirect|, \Verb|#alien-assembly|, and
 \Verb|#alien-callback| are used to make calls to C libraries from within
@@ -221,7 +221,7 @@ propagated, contributing to constant folding and so forth.
 reaching a stable point where inferences can no longer be drawn.  Technically,
 this information doesn't alter the tree at all; we merely store it so that
 speculative decisions may be realized later.  The next word in
-\vref{lst:optimize-tree}, \Verb|cleanup|, does just this by inlining words,
+\cref{lst:optimize-tree}, \Verb|cleanup|, does just this by inlining words,
 folding constants, removing overflow checks, deleting unreachable branches, and
 flattening inline-recursive words that don't actually wind up calling
 themselves (e.g., because the calls got constant-folded).
@@ -234,7 +234,7 @@ the actual transformation \Verb|unbox-tuples|.  This discovers tuples that
 \Verb|#return| obviously escape, as they are passed to the world outside of
 the word in question.  Similarly, inputs to the \Verb|#call| of another word
 escape.  So, though the tuples in \Verb|escaping-via-#return| and
-\Verb|escaping-via-#call| in \vref{lst:escaping} both escape, we can see the
+\Verb|escaping-via-#call| in \cref{lst:escaping} both escape, we can see the
 one in \Verb|non-escaping| does not.  In fact, the last allocation is
 unnecessary.  By identifying this, \Verb|unbox-tuples| can then rewrite the
 code to avoid allocating a \Verb|data-struct| altogether, instead
@@ -248,7 +248,7 @@ return the other argument.  This converts the \Verb|#call| to \factor|+| into
 a simple \Verb|#shuffle|.  These identities are defined for most arithmetic
 words.
 
-Another simple few passes come next in \vref{lst:optimize-tree}.  True to its
+Another simple few passes come next in \cref{lst:optimize-tree}.  True to its
 name, \Verb|compute-def-use| computes where \gls{SSA} values are defined and
 used.  Values that are never used are eliminated by \Verb|remove-dead-code|.
 \Verb|?check| conditionally performs some consistency checks on the tree,

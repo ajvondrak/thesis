@@ -15,7 +15,7 @@ classes are defined.
 The central data type of Factor's object system is called a \term{tuple}, which
 is a class composed of named \term{slots}---like instance variables in other
 languages.  Tuples are defined with the \factor|TUPLE:| parsing word as shown
-in \vref{lst:tuples}.  A class name is specified first; if it is followed by
+in \cref{lst:tuples}.  A class name is specified first; if it is followed by
 the \factor|<| token and a superclass name, the tuple inherits the slots of the
 superclass.  If no superclass is specified, the default is the \factor|tuple|
 class.
@@ -32,7 +32,7 @@ which we will cover after some examples.
 
 \inputlst{colors}
 
-Consider the two tuples defined in \vref{lst:colors}.  The first,
+Consider the two tuples defined in \cref{lst:colors}.  The first,
 \Verb|color|, has no slots.  With every tuple, a class predicate is defined
 with the stack effect
 %
@@ -78,7 +78,7 @@ tuple (i.e., it doesn't make a ``deep'' copy).
 To construct an instance of a tuple, we can use either \factor|new| or
 \factor|boa|.  \factor|new| will not initialize any of the slots to a
 particular input value---all slots will default to Factor's canonical false
-value, \factor|f|.  \factor|new| is used in \vref{lst:colors} to define
+value, \factor|f|.  \factor|new| is used in \cref{lst:colors} to define
 \Verb|<color>| (by convention, the constructor for \Verb|foo| is named
 \Verb|<foo>|).  First, we push the class \Verb|color| onto the stack (this
 word is also automatically defined by \factor|TUPLE:|), then just call
@@ -89,7 +89,7 @@ slots' values.
 
 However, we often want to initialize a tuple with values for each of its slots.
 For this, we have \factor|boa|, which works similarly to \factor|new|.  This is
-used in the definition of \Verb|<rgb>| in \vref{lst:colors}.  The difference
+used in the definition of \Verb|<rgb>| in \cref{lst:colors}.  The difference
 here is the additional inputs on the stack---one for each slot, in the order
 they're declared.  That is, we're constructing the tuple \textbf{b}y
 \textbf{o}rder of \textbf{a}rguments, giving us the fun pun ``\factor|boa|
@@ -116,7 +116,7 @@ defined, so the slot cannot be altered.  A slot may also provide an initial
 value using the syntax \factor|initial: some-literal|.  This will be the slot's
 value when instantiated with \factor|new|. 
 
-For example, \vref{lst:email} shows a tuple definition from Factor's
+For example, \cref{lst:email} shows a tuple definition from Factor's
 \Verb|smtp| vocabulary that defines an \Verb|email| object.  The
 \Verb|from| address, \Verb|subject|, and \Verb|body| must be instances of
 \Verb|string|, while \Verb|to|, \Verb|cc|, and \Verb|bcc| are
@@ -149,7 +149,7 @@ new method with which to control this dispatch, we use the syntax
 An accessible example of a generic word is in Factor's \Verb|sets|
 vocabulary.  \factor|set| is a \term{mixin} class---a union of other classes
 whose members may be extended by the user.  We can see the standard definition
-in \vref{lst:sets}.  Note that the \factor|USING:| form specifies vocabularies
+in \cref{lst:sets}.  Note that the \factor|USING:| form specifies vocabularies
 being used (like Java's \mint{java}|import|), and \factor|IN:| specifies the
 vocabulary in which the definitions appear (like Java's \mint{java}|package|).
 We can see here that instances of the \factor|sequence|, \factor|hash-set|, and
@@ -160,7 +160,7 @@ and \factor|string|.
 
 \inputlst{cardinality}
 
-\vref{lst:cardinality} shows the \Verb|cardinality| generic from Factor's
+\cref{lst:cardinality} shows the \Verb|cardinality| generic from Factor's
 \Verb|sets| vocabulary, along with its methods.  This generic word takes a
 \factor|set| instance from the top of the stack and pushes the number of
 elements it contains.  For instance, if the top element is a \factor|bit-set|,

@@ -16,7 +16,7 @@ see the \gls{CFG} before value numbering for the code
 \factor|[ 10 ] [ 20 ] if 10 20 30|.
 %
 The two extra integers being pushed at the end are there to avoid branch
-splitting (see \vref{sec:compiler:cfg}).  In block $4$, there's a
+splitting (see \cref{sec:compiler:cfg}).  In block $4$, there's a
 %
 \Verb|##load-integer 27 10|,
 %
@@ -32,7 +32,7 @@ representative.  However, we can't replace the instruction in block $4$ with
 %
 because control flow doesn't necessarily go through block $2$, so the virtual
 register \Verb|22| might not even be defined.  However, in
-\vref{fig:is-avail}, we see the \gls{CFG} for the code
+\cref{fig:is-avail}, we see the \gls{CFG} for the code
 %
 \factor|10 swap [ 10 ] [ 20 ] if 10 20 30|.
 %
@@ -67,7 +67,7 @@ analysis.  It is a forward analysis based on the flow equations below:
 %
 \noindent Here, the subscripts indicate the basic block number.
 $\text{\Verb|defined|}_i$ denotes the result of the \Verb|defined| word
-from \vref{lst:avail}.  This returns the set of virtual registers defined in a
+from \cref{lst:avail}.  This returns the set of virtual registers defined in a
 basic block.  Since we use virtual registers as value numbers, this is the same
 as giving us all the value numbers produced by a basic block.  ``Killed''
 definitions are impossible by the \gls{SSA} property, so we needn't track
@@ -101,7 +101,7 @@ However, we also want to use \Verb|rewrite| in the
 \Verb|determine-value-numbers| pass, where we don't care about availability.
 In fact, we want to ignore availability altogether, so that we can discover as
 many congruences as possible.  In order to separate these concerns, we need to
-have two modes for checking availability.  \vref{lst:avail} defines the
+have two modes for checking availability.  \cref{lst:avail} defines the
 \Verb|available?| word to do just this.  It will only check the actual
 availability if \Verb|final-iteration?| is true, otherwise defaulting to
 \factor|t|.  Therefore, during the value numbering phase, everything is
@@ -130,7 +130,7 @@ So, we can protect it with a check for \Verb|final-iteration?|.
 
 \begin{sloppypar}
 More typical were words like \Verb|self-inverse| from
-\Verb|compiler.cfg.value-numbering.math| (refer to \vref{lst:self-inverse}).
+\Verb|compiler.cfg.value-numbering.math| (refer to \cref{lst:self-inverse}).
 The idea is to change
 %
 \begin{center}
@@ -179,10 +179,10 @@ final iteration.
 
 Armed with the correct rewrite rules, availability information, and global
 value numbers, we can perform \gls{GCSE}.  The logic in the \Verb|gcse|
-generic in \vref{lst:gcse} is similar to \Verb|process-instruction| from
+generic in \cref{lst:gcse} is similar to \Verb|process-instruction| from
 %XXX
 \cref{lst:process-instruction} and \Verb|value-number| from
-\vref{lst:gvn-value-number}.  Unlike \Verb|value-number|, we do return an
+\cref{lst:gvn-value-number}.  Unlike \Verb|value-number|, we do return an
 instruction (or sequence thereof) representing the replacement.  Thus, the
 \factor|array| method uses \factor|map| instead of \factor|each|, to hold onto
 the resulting sequence when recursing into several instructions.
@@ -190,7 +190,7 @@ the resulting sequence when recursing into several instructions.
 \Verb|defs-available| is similar to \Verb|record-defs|, except that value
 numbers have already stabilized, so we don't call \Verb|set-vn|.  Instead, we
 use the \Verb|make-available| word, which was the last one defined in
-\vref{lst:avail}.  As we process the instructions of a block in order, we want
+\cref{lst:avail}.  As we process the instructions of a block in order, we want
 to make sure that local rewrites can still be performed.  We have to ensure
 that after processing an instruction, any register it defines is available to
 future instructions in the same block.  Thus, we add the virtual register to
@@ -205,7 +205,7 @@ of the canonical value number that computes it.  If the value number isn't
 available, we don't do anything but post-process with \Verb|defs-available|.
 If it is, a \Verb|##copy| is produced and its destination is made available.
 Thus, \Verb|eliminate-redundancy| works like \Verb|check-redundancy| from
-\vref{lst:gvn-value-number}.  We look up the expression computed by the
+\cref{lst:gvn-value-number}.  We look up the expression computed by the
 instruction in the \Verb|exprs>vns| table.  If it's there, we call
 \Verb|?eliminate|, but otherwise we leave the instruction alone and make its
 definitions available.
@@ -226,12 +226,12 @@ The main loop works similarly to \Verb|determine-value-numbers|.
 compute the \Verb|avail-in| sets needed to make \Verb|available?| work.
 Then, using \Verb|simple-optimization|, we iterate over each basic block.
 For each instruction, we first use \Verb|simplify| (refer to
-\vref{lst:gvn-simplify}), then call \Verb|gcse| on the rewritten instruction.
+\cref{lst:gvn-simplify}), then call \Verb|gcse| on the rewritten instruction.
 Thus, \Verb|rewrite| does the work of propagating available subexpressions
 and simplifying instructions, then \Verb|gcse| cleans up redundant
 instructions by converting them into \Verb|##copy| instructions if possible.
 The new \Verb|value-numbering| word can be seen in
-\vref{lst:new-value-numbering}.
+\cref{lst:new-value-numbering}.
 
 \inputfig{gcse-before}
 \inputfig{gcse-after}
@@ -241,10 +241,10 @@ Consider for the last time the example
 %
 \factor|0 100 [ 1 fixnum+fast ] times|.
 %
-Before, we had the \gls{CFG} in \vref{fig:gcse-before}.  Making a final pass
+Before, we had the \gls{CFG} in \cref{fig:gcse-before}.  Making a final pass
 with \Verb|eliminate-common-subexpressions| gives us the \gls{CFG} in
-\vref{fig:gcse-after}.  Compared to the \gls{CFG} after the old
-\Verb|value-numbering| word was called (see \vref{fig:value-numbering}), we
+\cref{fig:gcse-after}.  Compared to the \gls{CFG} after the old
+\Verb|value-numbering| word was called (see \cref{fig:value-numbering}), we
 have identified several more redundancies:
 \begin{itemize}
   \item The second \Verb|##phi| in block $2$ has been turned into a
@@ -269,10 +269,10 @@ have identified several more redundancies:
 \inputfig{gcse-finalize}
 
 Afterwards, the \Verb|copy-propagation| pass cleans up all of these newly
-identified copies, as seen in \vref{fig:gcse-copy-prop}.
+identified copies, as seen in \cref{fig:gcse-copy-prop}.
 \Verb|eliminate-dead-code| now gets rid of more instructions than before,
 such as the second \Verb|##load-integer| in block $1$, since it has been
 propagated to the \Verb|-imm| instructions in block $2$.  See
-\vref{fig:gcse-dce}.  At last, after \Verb|finalize-cfg| in
-\vref{fig:gcse-finalize}, we see a loop that uses a single register---down from
-the three in \vref{fig:finalize-cfg}.
+\cref{fig:gcse-dce}.  At last, after \Verb|finalize-cfg| in
+\cref{fig:gcse-finalize}, we see a loop that uses a single register---down from
+the three in \cref{fig:finalize-cfg}.

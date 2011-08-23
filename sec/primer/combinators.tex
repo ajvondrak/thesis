@@ -57,7 +57,7 @@ so that the two quotations could each have the stack effect
 %
 \Verb|( x -- y )|.
 %
-This would work for the \Verb|example1| word in \vref{lst:if-effects}, yet
+This would work for the \Verb|example1| word in \cref{lst:if-effects}, yet
 it's just as restrictive.  For instance, the \Verb|example2| word would need
 \factor|if| to have the effect
 %
@@ -117,7 +117,7 @@ quotation will each create the same relative change in stack height as
 Though \factor|if| is necessarily a language primitive, other control flow
 constructs are defined in Factor itself.  It's simple to write combinators for
 iteration and looping as tail-recursive words that invoke quotations.
-\vref{lst:loops} showcases some common looping patterns.  The most basic yet
+\cref{lst:loops} showcases some common looping patterns.  The most basic yet
 versatile word is \factor|each|.  Its stack effect is
 %
 \begin{center}
@@ -132,7 +132,7 @@ unlike \factor|if|, we enforce that the input stack height is exactly the same
 as the output (since we use the same row variable).  Otherwise, depending on
 the number of elements in \Verb|seq|, we might dig arbitrarily deep into the
 stack or flood it with a varying number of values.  The first use of
-\factor|each| in \vref{lst:loops} is balanced, as the quotation has the effect
+\factor|each| in \cref{lst:loops} is balanced, as the quotation has the effect
 %
 \Verb|( str -- )|
 %
@@ -152,7 +152,7 @@ of the sequence elements).  So, this example is the same as
 \factor|0 1 + 2 + 3 +|.
 
 Any instance of the extensive \factor|sequence| mixin will work with
-\factor|each|, making it very flexible.  The third example in \vref{lst:loops}
+\factor|each|, making it very flexible.  The third example in \cref{lst:loops}
 shows \factor|iota|, which is used here to create a \term{virtual} sequence of
 integers from $0$ to $9$ (inclusive).  No actual sequence is allocated, merely
 an object that behaves like a sequence.  In Factor, it's common practice to use
@@ -172,7 +172,7 @@ cases, there's the \factor|times| combinator, with the stack effect
 \noindent This is similar to \factor|each|, except that \Verb|n| is a number
 (so we needn't use \factor|iota|) and the quotation doesn't expect an extra
 argument (i.e., a sequence element).  Therefore, the example in
-\vref{lst:loops} is equivalent to
+\cref{lst:loops} is equivalent to
 %
 \factor|"Ho!" print "Ho!" print "Ho!" print|.
 %
@@ -190,7 +190,7 @@ the \Verb|pred| quotation is invoked on each iteration to determine whether
 \Verb|body| should be called.  The \factor|do| word is a handy modifier for
 \factor|while| that simply executes the body of the loop once before leaving
 \factor|while| to test the precondition as per usual.  Thus, the last example
-in \vref{lst:loops} executes the body once, despite the condition being
+in \cref{lst:loops} executes the body once, despite the condition being
 immediately false.
 
 \inputlst{high-order}
@@ -198,7 +198,7 @@ immediately false.
 In the preceding combinators, quotations were used like blocks of code.  But
 really, they're the same as anonymous functions from other languages.  As such,
 Factor borrows classic tools from functional languages, like \factor|map| and
-\factor|filter|, as shown in \vref{lst:high-order}.  \factor|map| is like
+\factor|filter|, as shown in \cref{lst:high-order}.  \factor|map| is like
 \factor|each|, except that the quotation should produce a single output.  Each
 such output is collected up into a new sequence of the same class as the input
 sequence.  Here, the example produces
@@ -207,7 +207,7 @@ sequence.  Here, the example produces
 %
 \factor|filter| selects only those elements from the sequence for which the
 quotation returns a true value.  Thus, the \factor|filter| in
-\vref{lst:high-order} outputs
+\cref{lst:high-order} outputs
 %
 \factor|{ 2 4 }|.
 %
@@ -221,11 +221,11 @@ where \factor|swapd| is a shuffler word with the stack effect
 %
 \Verb|( x y z -- y x z )|.
 %
-Thus, the example in \vref{lst:high-order} is the same as
+Thus, the example in \cref{lst:high-order} is the same as
 %
 \factor|0 { 1 2 3 } [ + ] each|,
 %
-as in \vref{lst:loops}.
+as in \cref{lst:loops}.
 
 These are just some of the control flow combinators defined in Factor.  Several
 variants exist that meld stack shuffling with control flow, or can be used to
@@ -253,7 +253,7 @@ sometimes we don't want to use all of them at quite the same time.  Using
 Rather, we want to retain certain stack elements, do a computation, then
 restore them.  For an uncompelling but illustrative example, suppose we have
 two values on the stack, but we want to increment the second element from the
-top.  \Verb|without-dip1| in \vref{lst:preserve} shows one strategy, where we
+top.  \Verb|without-dip1| in \cref{lst:preserve} shows one strategy, where we
 shuffle the top element away with \factor|swap|, perform the computation, then
 \factor|swap| the top back to its original place.  A cleaner way is to call
 \factor|dip| on a quotation, which will execute that quotation just under the
@@ -283,7 +283,7 @@ is equivalent to
 %
 Thus, the current top of the stack remains on top after the use of
 \factor|keep|, but the quotation is still invoked with that value.  In
-\Verb|with-keep1| in \vref{lst:preserve}, we want to increment the top, but
+\Verb|with-keep1| in \cref{lst:preserve}, we want to increment the top, but
 stash the result below.  Again, this logic isn't terribly complicated, though
 \Verb|with-keep1| does away with the shuffling.  \Verb|without-keep2| shows
 a messier example where a simple \factor|dup| will not save us, as we're using
@@ -303,7 +303,7 @@ one in turn on the top element of the stack.  Of course, for only a couple of
 quotations, wrapping them in an array literal becomes cumbersome.  The word
 \factor|bi| exists for the two-quotation case, and \factor|tri| for the three
 quotations.  Cleave combinators are often used to extract multiple slots from a
-tuple.  \vref{lst:cleave} shows such a case in the \Verb|with-bi| word, which
+tuple.  \cref{lst:cleave} shows such a case in the \Verb|with-bi| word, which
 improves upon using just \factor|keep| in the \Verb|without-bi| word.  In
 general, a series of \factor|keep|s like
 %
@@ -338,7 +338,7 @@ invokes \Verb|b| on the top element, and \Verb|a| on the element beneath
 the top.  Much like \factor|cleave|, there are shorthand words for the two- and
 three-quotation cases.  These are suffixed with asterisks to indicate the
 spread variants, so we have \factor|bi*| and \factor|tri*|.  In
-\vref{lst:spread}, the \Verb|without-bi*| word shows the simple \factor|dip|
+\cref{lst:spread}, the \Verb|without-bi*| word shows the simple \factor|dip|
 pattern that \factor|bi*| encapsulates.  Here, we're converting the string
 \Verb|str1| (the second element from the top) into uppercase and
 \Verb|str2| (the top element) to lowercase.  In \Verb|with-bi*|, the
@@ -359,7 +359,7 @@ the corresponding shorthands.  Here, they are suffixed with at-signs, so
 \factor|bi@| applies a quotation to each of the top two stack values, and
 \factor|tri@| to each of the top three.  This way, rather than duplicate code
 for each time we want to call a word, we need only specify it once.  This is
-demonstrated clearly in \vref{lst:apply}.  In \Verb|without-bi@|, we see that
+demonstrated clearly in \cref{lst:apply}.  In \Verb|without-bi@|, we see that
 the quotation \factor|[ sq ]| (for squaring numbers) appears twice for the call
 to \factor|bi*|.  In general, we can replace spread combinators whose
 quotations are all the same with a single quotation and an apply combinator.

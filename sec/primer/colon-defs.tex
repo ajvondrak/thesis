@@ -9,7 +9,7 @@ Using the basic syntax of stack effect declarations described in
 words are defined with the parsing word \factor|:|, which scans for a name, a
 stack effect, and then any words up until the \factor|;| token, which together
 become the body of the definition.  Thus, the classic example in
-\vref{lst:hello-world} defines a word named \Verb|hello-world| which expects
+\cref{lst:hello-world} defines a word named \Verb|hello-world| which expects
 no inputs and pushes no outputs onto the stack.  When called, this word will
 display the canonical greeting on standard output using the \factor|print|
 word.
@@ -17,8 +17,8 @@ word.
 \inputfig{norm-steps}
 
 A slightly more interesting example is the \Verb|norm| word in
-\vref{lst:norm}.  This squares each of the top two numbers on the stack, adds
-them, then takes the square root of the sum.  \vref{fig:norm-steps} shows this
+\cref{lst:norm}.  This squares each of the top two numbers on the stack, adds
+them, then takes the square root of the sum.  \cref{fig:norm-steps} shows this
 in action.  By defining a word to perform these steps, we can replace virtually
 any instance of
 %
@@ -34,12 +34,33 @@ This emphasis on ``factoring'' your code is what gives Factor its name.
 \inputlst{norm-factored}
 
 As a simple case in point, we see the subexpression \factor|dup *| appears
-twice in the definition of \Verb|norm| in \vref{lst:norm}.  We can easily
+twice in the definition of \Verb|norm| in \cref{lst:norm}.  We can easily
 factor that out into a new word and substitute it for the old expressions, as
-in \vref{lst:norm-factored}.  By contrast, programs in more traditional
+in \cref{lst:norm-factored}.  By contrast, programs in more traditional
 languages are laden with variables and syntactic noise that require more work
 to refactor: identifying free variables, pulling out the right functions
 without causing finicky syntax errors, calling a new function with the right
 variables, etc.  Though Factor's stack-based paradigm is atypical, it is part
 of a design philosophy that aims to facilitate readable code focusing on short,
 reusable definitions.
+
+\inputlst{locals}
+
+Be that as it may, every once in awhile stack code gets too complicated to do
+away with more traditional notation.  For these cases, Factor has a vocabulary
+called \Verb|locals|, which introduces syntax for defining words that use named
+lexical variables.  Defining words with \texttt{\textbf{::}} instead of
+\texttt{\textbf{:}} turns the stack effect declaration into a full-fledged
+parameter list.  The inputs are assigned to their corresponding names in the
+effect, and are used throughout the body in lieu of stack manipulation.  The
+outputs just mean the same thing as before (i.e., the right side of the effect
+doesn't declare any variables like the left does).  We can also assign local
+variables in the body of the word by using the syntax
+%
+\factor|:> destination|,
+%
+which assigns \Verb|destination| to the value on the top of the stack.
+\Vref{lst:locals} shows a version of \Verb|norm| that uses these features,
+though they aren't really necessary here.  Interestingly, \Verb|locals| is
+implemented entirely in high-level Factor code, using parsing words to convert
+the syntax into equivalent stack manipulations.
