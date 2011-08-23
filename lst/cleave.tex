@@ -4,16 +4,16 @@
     TUPLE: coord x y ;
 
     : without-bi ( coord -- norm )
-      [ x>> sq ] keep y>> sq + sqrt ;
+        [ x>> sq ] keep y>> sq + sqrt ;
 
     : with-bi ( coord -- norm )
-      [ x>> sq ] [ y>> sq ] bi + sqrt ;
+        [ x>> sq ] [ y>> sq ] bi + sqrt ;
 
     : without-tri ( x -- x+1 x+2 x+3 )
-      [ 1 + ] keep [ 2 + ] keep 3 + ;
+        [ 1 + ] keep [ 2 + ] keep 3 + ;
 
     : with-tri ( x -- x+1 x+2 x+3 )
-      [ 1 + ] [ 2 + ] [ 3 + ] tri ;
+        [ 1 + ] [ 2 + ] [ 3 + ] tri ;
   \end{factorcode}
 
 \caption{Cleave combinators}

@@ -2,16 +2,16 @@
 
   \begin{factorcode}
     : without-bi@ ( x y -- norm )
-      [ sq ] [ sq ] bi* + sqrt ;
+        [ sq ] [ sq ] bi* + sqrt ;
 
     : with-bi@ ( x y -- norm )
-      [ sq ] bi@ + sqrt ;
+        [ sq ] bi@ + sqrt ;
 
     : without-tri@ ( x y z -- x+1 y+1 z+1 )
-      [ 1 + ] [ 1 + ] [ 1 + ] tri* ;
+        [ 1 + ] [ 1 + ] [ 1 + ] tri* ;
 
     : with-tri* ( x y z -- x+1 y+1 z+1 )
-      [ 1 + ] tri@ ;
+        [ 1 + ] tri@ ;
   \end{factorcode}
 
 \caption{Apply combinators}

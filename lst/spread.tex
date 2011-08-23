@@ -2,16 +2,16 @@
 
   \begin{factorcode}
     : without-bi* ( str1 str2 -- str1' str2' )
-      [ >upper ] dip >lower ;
+        [ >upper ] dip >lower ;
 
     : with-bi* ( str1 str2 -- str1' str2' )
-      [ >upper ] [ >lower ] bi* ;
+        [ >upper ] [ >lower ] bi* ;
 
     : without-tri* ( x y z -- x+1 y+2 z+3 )
-      [ [ 1 + ] dip 2 + ] dip 3 + ;
+        [ [ 1 + ] dip 2 + ] dip 3 + ;
 
     : with-tri* ( x y z -- x+1 y+2 z+3 )
-      [ 1 + ] [ 2 + ] [ 3 + ] tri* ;
+        [ 1 + ] [ 2 + ] [ 3 + ] tri* ;
   \end{factorcode}
 
 \caption{Spread combinators}

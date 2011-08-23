@@ -2,13 +2,13 @@
 
   \begin{factorcode}
     : example1 ( x -- 0/x-1 )
-      dup even? [ drop 0 ] [ 1 - ] if ;
+        dup even? [ drop 0 ] [ 1 - ] if ;
 
     : example2 ( x y -- x+y/x-y )
-      2dup mod 0 = [ + ] [ - ] if ;
+        2dup mod 0 = [ + ] [ - ] if ;
 
     : example3 ( x y -- x+y/x )
-      dup odd? [ + ] [ drop ] if ;
+        dup odd? [ + ] [ drop ] if ;
   \end{factorcode}
 
 \caption{\factor|if|'s stack effect varies}
