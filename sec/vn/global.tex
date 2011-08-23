@@ -275,13 +275,13 @@ the value \Verb|0|.  The \Verb|##copy| instructions all pile on value
 number mappings, leaving us with the following:
 %
 \begin{align*}
-  21 &\to \vn{21} \quad (0)  \\
-  22 &\to \vn{22} \quad (100)\\
-  23 &\to \vn{21}            \\
-  24 &\to \vn{22}            \\
-  25 &\to \vn{21}            \\
-  26 &\to \vn{22}            \\
-  27 &\to \vn{21}
+  \texttt{21} &\to \vn{21} \quad (0)  \\
+  \texttt{22} &\to \vn{22} \quad (100)\\
+  \texttt{23} &\to \vn{21}            \\
+  \texttt{24} &\to \vn{22}            \\
+  \texttt{25} &\to \vn{21}            \\
+  \texttt{26} &\to \vn{22}            \\
+  \texttt{27} &\to \vn{21}
 \end{align*}
 
 At iteration $1$, basic block $2$, the first \Verb|##phi| has inputs
@@ -313,19 +313,19 @@ has the global knowledge of the value number of \Verb|26|.  Because the
 with:
 %
 \begin{align*}
-  21 &\to \vn{21} \quad (0)                 \\
-  22 &\to \vn{22} \quad (100)               \\
-  23 &\to \vn{21}                           \\
-  24 &\to \vn{22}                           \\
-  25 &\to \vn{21}                           \\
-  26 &\to \vn{22}                           \\
-  27 &\to \vn{21}                           \\
-  29 &\to \vn{21}                           \\
-  30 &\to \vn{21}                           \\
-  31 &\to \vn{31} \quad (\text{\factor|t|}) \\
-  32 &\to \vn{31}                           \\
-  33 &\to \vn{22}                           \\
-  34 &\to \vn{31}
+  \texttt{21} &\to \vn{21} \quad (0)                 \\
+  \texttt{22} &\to \vn{22} \quad (100)               \\
+  \texttt{23} &\to \vn{21}                           \\
+  \texttt{24} &\to \vn{22}                           \\
+  \texttt{25} &\to \vn{21}                           \\
+  \texttt{26} &\to \vn{22}                           \\
+  \texttt{27} &\to \vn{21}                           \\
+  \texttt{29} &\to \vn{21}                           \\
+  \texttt{30} &\to \vn{21}                           \\
+  \texttt{31} &\to \vn{31} \quad (\text{\factor|t|}) \\
+  \texttt{32} &\to \vn{31}                           \\
+  \texttt{33} &\to \vn{22}                           \\
+  \texttt{34} &\to \vn{31}
 \end{align*}
 
 Block $3$ of iteration $1$ gives the \Verb|##load-integer|s' destinations the
@@ -334,27 +334,27 @@ the algorithm think that \Verb|29| and \Verb|30| correspond to the integer
 $0$, the \Verb|##add|s are constant-folded.  This leaves us with:
 %
 \begin{align*}
-  21 &\to \vn{21} \quad (0)                 \\
-  22 &\to \vn{22} \quad (100)               \\
-  23 &\to \vn{21}                           \\
-  24 &\to \vn{22}                           \\
-  25 &\to \vn{21}                           \\
-  26 &\to \vn{22}                           \\
-  27 &\to \vn{21}                           \\
-  29 &\to \vn{21}                           \\
-  30 &\to \vn{21}                           \\
-  31 &\to \vn{31} \quad (\text{\factor|t|}) \\
-  32 &\to \vn{31}                           \\
-  33 &\to \vn{22}                           \\
-  34 &\to \vn{31}                           \\
-  35 &\to \vn{35} \quad (1)                 \\
-  36 &\to \vn{35}                           \\
-  37 &\to \vn{35}                           \\
-  38 &\to \vn{35}                           \\
-  39 &\to \vn{21}                           \\
-  40 &\to \vn{22}                           \\
-  41 &\to \vn{35}                           \\
-  42 &\to \vn{35}
+  \texttt{21} &\to \vn{21} \quad (0)                 \\
+  \texttt{22} &\to \vn{22} \quad (100)               \\
+  \texttt{23} &\to \vn{21}                           \\
+  \texttt{24} &\to \vn{22}                           \\
+  \texttt{25} &\to \vn{21}                           \\
+  \texttt{26} &\to \vn{22}                           \\
+  \texttt{27} &\to \vn{21}                           \\
+  \texttt{29} &\to \vn{21}                           \\
+  \texttt{30} &\to \vn{21}                           \\
+  \texttt{31} &\to \vn{31} \quad (\text{\factor|t|}) \\
+  \texttt{32} &\to \vn{31}                           \\
+  \texttt{33} &\to \vn{22}                           \\
+  \texttt{34} &\to \vn{31}                           \\
+  \texttt{35} &\to \vn{35} \quad (1)                 \\
+  \texttt{36} &\to \vn{35}                           \\
+  \texttt{37} &\to \vn{35}                           \\
+  \texttt{38} &\to \vn{35}                           \\
+  \texttt{39} &\to \vn{21}                           \\
+  \texttt{40} &\to \vn{22}                           \\
+  \texttt{41} &\to \vn{35}                           \\
+  \texttt{42} &\to \vn{35}
 \end{align*}
 
 While block $4$ is visited in each iteration, it doesn't define any registers,
@@ -366,27 +366,27 @@ the expressions, though the value numbers remain.  Block $1$ doesn't change
 from iteration $1$, giving us:
 %
 \begin{align*}
-  21 &\to \vn{21} \quad (0)                 \\
-  22 &\to \vn{22} \quad (100)               \\
-  23 &\to \vn{21}                           \\
-  24 &\to \vn{22}                           \\
-  25 &\to \vn{21}                           \\
-  26 &\to \vn{22}                           \\
-  27 &\to \vn{21}                           \\
-  29 &\to \vn{21}                           \\
-  30 &\to \vn{21}                           \\
-  31 &\to \vn{31}                           \\
-  32 &\to \vn{31}                           \\
-  33 &\to \vn{22}                           \\
-  34 &\to \vn{31}                           \\
-  35 &\to \vn{35}                           \\
-  36 &\to \vn{35}                           \\
-  37 &\to \vn{35}                           \\
-  38 &\to \vn{35}                           \\
-  39 &\to \vn{21}                           \\
-  40 &\to \vn{22}                           \\
-  41 &\to \vn{35}                           \\
-  42 &\to \vn{35}
+  \texttt{21} &\to \vn{21} \quad (0)                 \\
+  \texttt{22} &\to \vn{22} \quad (100)               \\
+  \texttt{23} &\to \vn{21}                           \\
+  \texttt{24} &\to \vn{22}                           \\
+  \texttt{25} &\to \vn{21}                           \\
+  \texttt{26} &\to \vn{22}                           \\
+  \texttt{27} &\to \vn{21}                           \\
+  \texttt{29} &\to \vn{21}                           \\
+  \texttt{30} &\to \vn{21}                           \\
+  \texttt{31} &\to \vn{31}                           \\
+  \texttt{32} &\to \vn{31}                           \\
+  \texttt{33} &\to \vn{22}                           \\
+  \texttt{34} &\to \vn{31}                           \\
+  \texttt{35} &\to \vn{35}                           \\
+  \texttt{36} &\to \vn{35}                           \\
+  \texttt{37} &\to \vn{35}                           \\
+  \texttt{38} &\to \vn{35}                           \\
+  \texttt{39} &\to \vn{21}                           \\
+  \texttt{40} &\to \vn{22}                           \\
+  \texttt{41} &\to \vn{35}                           \\
+  \texttt{42} &\to \vn{35}
 \end{align*}
 
 Now that we're in iteration $2$, the inputs to the \Verb|##phi|s of block $2$
@@ -404,27 +404,27 @@ same expression as the \Verb|##compare-integer|, so winds up getting the same
 value number.  This gives us:
 %
 \begin{align*}
-  21 &\to \vn{21} \quad (0)                                                \\
-  22 &\to \vn{22} \quad (100)                                              \\
-  23 &\to \vn{21}                                                          \\
-  24 &\to \vn{22}                                                          \\
-  25 &\to \vn{21}                                                          \\
-  26 &\to \vn{22}                                                          \\
-  27 &\to \vn{21}                                                          \\
-  29 &\to \vn{29} \quad (\text{\Verb|\#\#phi 2 21 35|})                    \\
-  30 &\to \vn{29}                                                          \\
-  31 &\to \vn{31} \quad (\text{\Verb|\#\#compare-integer-imm 29 100 cc<|}) \\
-  32 &\to \vn{31}                                                          \\
-  33 &\to \vn{22}                                                          \\
-  34 &\to \vn{31}                                                          \\
-  35 &\to \vn{35}                                                          \\
-  36 &\to \vn{35}                                                          \\
-  37 &\to \vn{35}                                                          \\
-  38 &\to \vn{35}                                                          \\
-  39 &\to \vn{21}                                                          \\
-  40 &\to \vn{22}                                                          \\
-  41 &\to \vn{35}                                                          \\
-  42 &\to \vn{35}
+  \texttt{21} &\to \vn{21} \quad (0)                                                \\
+  \texttt{22} &\to \vn{22} \quad (100)                                              \\
+  \texttt{23} &\to \vn{21}                                                          \\
+  \texttt{24} &\to \vn{22}                                                          \\
+  \texttt{25} &\to \vn{21}                                                          \\
+  \texttt{26} &\to \vn{22}                                                          \\
+  \texttt{27} &\to \vn{21}                                                          \\
+  \texttt{29} &\to \vn{29} \quad (\text{\Verb|\#\#phi 2 21 35|})                    \\
+  \texttt{30} &\to \vn{29}                                                          \\
+  \texttt{31} &\to \vn{31} \quad (\text{\Verb|\#\#compare-integer-imm 29 100 cc<|}) \\
+  \texttt{32} &\to \vn{31}                                                          \\
+  \texttt{33} &\to \vn{22}                                                          \\
+  \texttt{34} &\to \vn{31}                                                          \\
+  \texttt{35} &\to \vn{35}                                                          \\
+  \texttt{36} &\to \vn{35}                                                          \\
+  \texttt{37} &\to \vn{35}                                                          \\
+  \texttt{38} &\to \vn{35}                                                          \\
+  \texttt{39} &\to \vn{21}                                                          \\
+  \texttt{40} &\to \vn{22}                                                          \\
+  \texttt{41} &\to \vn{35}                                                          \\
+  \texttt{42} &\to \vn{35}
 \end{align*}
 
 Block $3$ of iteration $2$ also changes, since the \Verb|##add|s can't be
@@ -434,27 +434,27 @@ second is marked the same as the first.  This leaves the following value
 numbers:
 %
 \begin{align*}
-  21 &\to \vn{21} \quad (0)                                                \\
-  22 &\to \vn{22} \quad (100)                                              \\
-  23 &\to \vn{21}                                                          \\
-  24 &\to \vn{22}                                                          \\
-  25 &\to \vn{21}                                                          \\
-  26 &\to \vn{22}                                                          \\
-  27 &\to \vn{21}                                                          \\
-  29 &\to \vn{29} \quad (\text{\Verb|\#\#phi 2 21 35|})                    \\
-  30 &\to \vn{29}                                                          \\
-  31 &\to \vn{31} \quad (\text{\Verb|\#\#compare-integer-imm 29 100 cc<|}) \\
-  32 &\to \vn{31}                                                          \\
-  33 &\to \vn{22}                                                          \\
-  34 &\to \vn{31}                                                          \\
-  35 &\to \vn{35} \quad (1)                                                \\
-  36 &\to \vn{36} \quad (\text{\Verb|\#\#add-imm 29 1|})                   \\
-  37 &\to \vn{35}                                                          \\
-  38 &\to \vn{36}                                                          \\
-  39 &\to \vn{29}                                                          \\
-  40 &\to \vn{22}                                                          \\
-  41 &\to \vn{36}                                                          \\
-  42 &\to \vn{36}
+  \texttt{21} &\to \vn{21} \quad (0)                                                \\
+  \texttt{22} &\to \vn{22} \quad (100)                                              \\
+  \texttt{23} &\to \vn{21}                                                          \\
+  \texttt{24} &\to \vn{22}                                                          \\
+  \texttt{25} &\to \vn{21}                                                          \\
+  \texttt{26} &\to \vn{22}                                                          \\
+  \texttt{27} &\to \vn{21}                                                          \\
+  \texttt{29} &\to \vn{29} \quad (\text{\Verb|\#\#phi 2 21 35|})                    \\
+  \texttt{30} &\to \vn{29}                                                          \\
+  \texttt{31} &\to \vn{31} \quad (\text{\Verb|\#\#compare-integer-imm 29 100 cc<|}) \\
+  \texttt{32} &\to \vn{31}                                                          \\
+  \texttt{33} &\to \vn{22}                                                          \\
+  \texttt{34} &\to \vn{31}                                                          \\
+  \texttt{35} &\to \vn{35} \quad (1)                                                \\
+  \texttt{36} &\to \vn{36} \quad (\text{\Verb|\#\#add-imm 29 1|})                   \\
+  \texttt{37} &\to \vn{35}                                                          \\
+  \texttt{38} &\to \vn{36}                                                          \\
+  \texttt{39} &\to \vn{29}                                                          \\
+  \texttt{40} &\to \vn{22}                                                          \\
+  \texttt{41} &\to \vn{36}                                                          \\
+  \texttt{42} &\to \vn{36}
 \end{align*}
 
 Since the value numbers changed, we start iteration $3$.  The expressions are
@@ -471,39 +471,37 @@ different (because it, in fact, isn't).  So, we're left with the following
 after iteration $3$ finishes with block $2$:
 %
 \begin{align*}
-  21 &\to \vn{21} \quad (0)                                                \\
-  22 &\to \vn{22} \quad (100)                                              \\
-  23 &\to \vn{21}                                                          \\
-  24 &\to \vn{22}                                                          \\
-  25 &\to \vn{21}                                                          \\
-  26 &\to \vn{22}                                                          \\
-  27 &\to \vn{21}                                                          \\
-  29 &\to \vn{29} \quad (\text{\Verb|\#\#phi 2 21 36|})                    \\
-  30 &\to \vn{29}                                                          \\
-  31 &\to \vn{31} \quad (\text{\Verb|\#\#compare-integer-imm 29 100 cc<|}) \\
-  32 &\to \vn{31}                                                          \\
-  33 &\to \vn{22}                                                          \\
-  34 &\to \vn{31}                                                          \\
-  35 &\to \vn{35}                                                          \\
-  36 &\to \vn{36}                                                          \\
-  37 &\to \vn{35}                                                          \\
-  38 &\to \vn{36}                                                          \\
-  39 &\to \vn{29}                                                          \\
-  40 &\to \vn{22}                                                          \\
-  41 &\to \vn{36}                                                          \\
-  42 &\to \vn{36}
+  \texttt{21} &\to \vn{21} \quad (0)                                                \\
+  \texttt{22} &\to \vn{22} \quad (100)                                              \\
+  \texttt{23} &\to \vn{21}                                                          \\
+  \texttt{24} &\to \vn{22}                                                          \\
+  \texttt{25} &\to \vn{21}                                                          \\
+  \texttt{26} &\to \vn{22}                                                          \\
+  \texttt{27} &\to \vn{21}                                                          \\
+  \texttt{29} &\to \vn{29} \quad (\text{\Verb|\#\#phi 2 21 36|})                    \\
+  \texttt{30} &\to \vn{29}                                                          \\
+  \texttt{31} &\to \vn{31} \quad (\text{\Verb|\#\#compare-integer-imm 29 100 cc<|}) \\
+  \texttt{32} &\to \vn{31}                                                          \\
+  \texttt{33} &\to \vn{22}                                                          \\
+  \texttt{34} &\to \vn{31}                                                          \\
+  \texttt{35} &\to \vn{35}                                                          \\
+  \texttt{36} &\to \vn{36}                                                          \\
+  \texttt{37} &\to \vn{35}                                                          \\
+  \texttt{38} &\to \vn{36}                                                          \\
+  \texttt{39} &\to \vn{29}                                                          \\
+  \texttt{40} &\to \vn{22}                                                          \\
+  \texttt{41} &\to \vn{36}                                                          \\
+  \texttt{42} &\to \vn{36}
 \end{align*}
 
 Blocks $3$ and $4$ do not produce any more changes, so \gls{GVN} has stabilized
 after $3$ iterations, with our final congruence classes being:
 %
 \begin{align*}
-  \vn{21} &= \{21, 23, 25, 27\}     \\
-  \vn{22} &= \{22, 24, 26, 33, 40\} \\
-  \vn{29} &= \{29, 30, 39\}         \\
-  \vn{31} &= \{31, 32, 34\}         \\
-  \vn{35} &= \{35, 37\}             \\
-  \vn{36} &= \{36, 38, 41, 42\}
+  \vn{21} &= \{\texttt{21},\texttt{23},\texttt{25},\texttt{27}\}             \\
+  \vn{22} &= \{\texttt{22},\texttt{24},\texttt{26},\texttt{33},\texttt{40}\} \\
+  \vn{29} &= \{\texttt{29},\texttt{30},\texttt{39}\}                         \\
+  \vn{31} &= \{\texttt{31},\texttt{32},\texttt{34}\}                         \\
+  \vn{35} &= \{\texttt{35},\texttt{37}\}                                     \\
+  \vn{36} &= \{\texttt{36},\texttt{38},\texttt{41},\texttt{42}\}
 \end{align*}
-
-\todo[inline]{teletype the numbers in the align*s, I guess}
