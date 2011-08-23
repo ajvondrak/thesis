@@ -151,6 +151,7 @@ splitting classes until they can't be split anymore.
 
 \inputlst{gvn-step}
 
+\begin{sloppypar} % only because of cref...
 This logic is captured in \cref{lst:gvn-step}.  Rather than reset the tables
 when we start processing each basic block in \Verb|value-numbering-step| like
 before, we call \Verb|clear-exprs| on each iteration over the \gls{CFG} in
@@ -164,6 +165,7 @@ we needn't worry about traversal order.  The top-level word
 \Verb|determine-value-numbers| ties this all together by calling
 \Verb|value-numbering-iteration| until we can get through it with
 \Verb|changed?| remaining false.
+\end{sloppypar}
 
 \inputlst{gvn-simplify}
 \inputlst{gvn-value-number}
