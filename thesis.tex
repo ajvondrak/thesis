@@ -29,7 +29,28 @@
 \end{ack}
 
 \begin{abstract}
-  TODO
+
+  Compilers translate code in one programming language into semantically
+  equivalent code in another language---canonically from a high-level language
+  to low-level machine primitives.  Generally, the further removed a
+  language's abstractions get from those of a computer, the harder it gets to
+  compile code into an efficient representation.  What isn't redundant in the
+  source language may map to repetitive target instructions that waste time
+  recomputing results.  To combat this, compilers try to optimize away
+  redundancies by looking for values that are provably equivalent when the
+  program is run.
+
+  This thesis explores the theory and implementation of a particularly
+  aggressive analysis called global value numbering in a particularly
+  high-level language called Factor.  Factor is a stack-based,
+  dynamically-typed, object-oriented language born in late $2003$.  A baby
+  among languages (now at version $0.94$), its compiler craves all the
+  optimizations it can get.  By altering the existing local value numbering
+  pass, redundancies can be identified and eliminated across entire programs,
+  rather than isolated regions of code.  This induces speedups as high as
+  $45\%$ across the majority of benchmarks.  The results from these
+  comparatively simple changes hold much promise for future improvements in
+  making Factor programs more efficient.
   \newpage
 \end{abstract}
 
