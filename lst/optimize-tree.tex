@@ -1,24 +1,24 @@
 \centering
 
-  \begin{factorcode}
-    : optimize-tree ( nodes -- nodes' )
-      [
-          analyze-recursive
-          normalize
-          propagate
-          cleanup
-          dup run-escape-analysis? [
-              escape-analysis
-              unbox-tuples
-          ] when
-          apply-identities
-          compute-def-use
-          remove-dead-code
-          ?check
-          compute-def-use
-          optimize-modular-arithmetic
-          finalize
-      ] with-scope ;
-  \end{factorcode}
+\begin{Verbatim}[commandchars=\\\{\},frame=single]
+\PY{k}{:} \PY{n+nf}{optimize-tree} \PY{n+nf}{(} \PY{n+nv}{nodes} \PY{n+nf}{--} \PY{n+nv}{nodes'} \PY{n+nf}{)}
+  [
+      analyze-recursive
+      normalize
+      propagate
+      cleanup
+      \PY{k}{dup }run-escape-analysis? [
+          escape-analysis
+          unbox-tuples
+      ] \PY{k}{when}
+      apply-identities
+      compute-def-use
+      remove-dead-code
+      ?check
+      compute-def-use
+      optimize-modular-arithmetic
+      finalize
+  ] \PY{k}{with-scope ;}
+\end{Verbatim}
 
 \caption{Optimization passes on the high-level IR}
