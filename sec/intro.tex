@@ -31,9 +31,9 @@ often interpreted rather than compiled, and perform no heavy optimization of
 the source code.  However, the Factor language (\url{http://factorcode.org})
 fills an intriguing design niche, as it's very high-level yet still fully
 compiled.  It's still young, though, so its compiler craves all the
-improvements it can get.  In particular, while Factor currently has a
-\term{local} value numbering analysis, it is inferior to \gls{GVN} in several
-significant ways.
+improvements it can get.  In particular, while the current Factor version (as
+of this writing, $0.94$) has a \term{local} value numbering analysis, it is
+inferior to \gls{GVN} in several significant ways.
 
 In this thesis, we explore the implementation and use of \gls{GVN} in improving
 the strength of optimizations in Factor.  Because Factor is a young and
@@ -44,10 +44,8 @@ the exact contributions of this thesis fit in.  Finally, \cref{sec:vn} goes
 into detail about the existing and new value numbering passes, closing with a
 look at the results achieved and directions for future work. 
 
-All the code for the \gls{GVN} phase was written atop Factor version $0.94$,
-and a copy of it can be found in the appendix\todo{ref}.  In the unlikely event
-that you want to cite this thesis, you may use the following
-\textsc{Bib}\TeX~entry\todo{make sure it's single-page}:
+In the unlikely event that you want to cite this thesis, you may use the
+following \textsc{Bib}\TeX~entry\todo{make sure it's single-page}:
 \begin{Verbatim}[gobble=2,frame=single]
   @mastersthesis{vondrak:11,
     author = {Alex Vondrak},
