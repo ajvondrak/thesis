@@ -1,0 +1,13 @@
+\centering
+
+  \begin{factorcode}
+    TUPLE: regexp
+        { raw read-only }
+        { parse-tree read-only }
+        { options read-only }
+        dfa next-match ;
+
+    TUPLE: reverse-regexp < regexp ;
+  \end{factorcode}
+
+\caption{Sample tuple definitions from Factor's \texttt{regexp} vocabulary}

@@ -180,7 +180,7 @@ definition is in \cref{lst:gvn-simplify}.  We then pass the simplified
 instruction to \Verb|value-number|, which is defined in
 \cref{lst:gvn-value-number}.  This also has a similar structure to
 \Verb|process-instruction|.  The main difference is that instructions are no
-longer returned (again, they aren't altered in place).  So, the \factor|array|
+longer returned (again, they aren't altered in place).  So, the \Verb|array|
 method uses \factor|each| instead of \factor|map| to recurse into the results
 of \Verb|rewrite|.
 \end{sloppypar}

@@ -10,86 +10,106 @@ classes are defined.
 
 \subsection{Tuples}
 
-\inputlst{tuples}
-
 The central data type of Factor's object system is called a \term{tuple}, which
 is a class composed of named \term{slots}---like instance variables in other
-languages.  Tuples are defined with the \factor|TUPLE:| parsing word as shown
-in \cref{lst:tuples}.  A class name is specified first; if it is followed by
-the \factor|<| token and a superclass name, the tuple inherits the slots of the
-superclass.  If no superclass is specified, the default is the \factor|tuple|
-class.
+languages.  Tuples are defined with the \texttt{\textbf{TUPLE:}} parsing word
+as shown in \vref{lst:tuples}.  A class name is specified first; if it is
+followed by the \factor|<| token and a superclass name, the tuple inherits the
+slots of the superclass.  If no superclass is specified, the default is the
+\factor|tuple| class.  Any number of slot specifiers follow, and the definition
+is terminated by the \factor|;| token.
 
-Slots can be specified in several ways.  The simplest is to just provide a
-single token, which is the name of the slot.  This slot can then hold any type
-of object.  Using the syntax
-%
-\factor|{ name class }|,
-%
-a slot can be limited to hold only instances of a particular class, like
-\factor|integer| or \factor|string|.  There are other forms of slot specifiers,
-which we will cover after some examples.
+\inputlst{tuples}
 
-\inputlst{colors}
+Tuple definitions automatically generate several different words, most of which
+depend on how slots are specified.  There are various ways to specify slots,
+but we use only two basic forms in later code examples.  We can see both in the
+first tuple of \vref{lst:regexp}, which defines an object to represent regular
+expressions.  The first three slots have the form
+%
+\factor|{ name read-only }|,
+%
+which specifies a slot named \Verb|name| that can't be modified once
+initialized, akin to a \mint{java}|final| variable in Java.  The next two
+specifiers are simpler, being just the names of the slots.  Such slots can be
+modified freely.  The following words are automatically defined for the first
+tuple:
+\begin{itemize}
+  \item The \Verb|regexp| \term{class word} acts like a literal representing
+  the class.  This gets used for instantiation and method definitions, which
+  we'll see later.
+%
+  \item The \Verb|regexp?| \term{class predicate} is a word with the stack
+  effect \Verb|( object -- ? )|.  That is, it returns a boolean (either
+  \factor|t| or \factor|f|, conventionally written in stack effects as a single
+  question mark) indicating whether the top of the stack is an instance of the
+  \Verb|regexp| class.  This is like a class-specific variant of Java's
+  \mint{java}|instanceof|.
+%
+  \item Each slot has an associated \term{reader} word with the stack effect %
+  \Verb|( object -- value )|.  These are analogous  to ``getter'' methods in
+  other languages.  Each one is named after the slot whose value is extracted,
+  so this example defines \Verb|raw>>|, \Verb|parse-tree>>|, \Verb|options>>|,
+  \Verb|dfa>>|, and \Verb|next-match>>|.
+%
+  \item Similarly, any slot that is not marked \Verb|read-only| has a
+  corresponding \term{writer} word with the stack effect                      %
+  \Verb|( value object -- )|.  These destructively write the value into the
+  eponymous slot of the object.  Here, only two are defined, named \Verb|dfa<<|
+  and \Verb|next-match<<|.
+%
+  \item Extra \term{setter} words are defined in terms of writers.  These will
+  have the stack effect \Verb|( object value -- object' )|, leaving the
+  modified instance on top of the stack.  The first tuple in \vref{lst:regexp}
+  defines \Verb|>>dfa| and \Verb|>>next-match|, which are equivalent to
+  \factor|over dfa<<| and \factor|over next-match<<|, respectively.  The
+  shuffler duplicates \Verb|object| and pushes it to the top of the stack.
+  More accurately, it duplicates a reference to \Verb|object|, as Factor's data
+  stack is actually a stack of pointers.  That way, changes to the new top of
+  the stack with \Verb|dfa<<| or \Verb|next-match<<| will be reflected in the
+  original \Verb|object|, which is left over at the end.
+%
+  \item \term{Changer} words are also created with the stack effect           %
+  \Verb|( object quot -- object' )|.  Here, \Verb|change-dfa| and
+  \Verb|change-next-match| are defined.  The quotation is called on the slot's
+  current value in \Verb|object|.  The result of calling the quotation is then
+  stored in the slot.  For instance, incrementing an integer slot named
+  \Verb|foo| could be done with \factor|[ 1 + ] change-foo|.
+\end{itemize}
 
-Consider the two tuples defined in \cref{lst:colors}.  The first,
-\Verb|color|, has no slots.  With every tuple, a class predicate is defined
-with the stack effect
-%
-\verb|( object -- ? )|
-%
-whose name is the class suffixed by a question mark.  Here, the word
-\Verb|color?| is defined, which pushes a boolean (in Factor, either
-\factor|t| or \factor|f|) indicating whether the top element of the stack is an
-instance of the \Verb|color| class.  The second tuple, \Verb|rgb|, inherits
-from the \Verb|color| class.  While this doesn't give \Verb|rgb| any
-different slots, it does mean that an instance of \Verb|rgb| will return
-\factor|t| for \Verb|color?| due to the ``is-a'' relationship between
-subclass and superclass.  The word \Verb|rgb?| is similarly defined.
+\inputlst{regexp}
 
-Notice that the \Verb|rgb| tuple declares three slots named \Verb|red|,
-\Verb|green|, and \Verb|blue|.  Since the slots' classes aren't declared,
-any sort of object can be stored in them.  A set of methods are defined to
-manipulate an \Verb|rgb| instance's slots.  Three \term{reader} words are
-defined (one for each slot), analogous to ``getter'' methods in other
-languages.  Following the template for naming reader words, this example
-defines \Verb|red>>|, \Verb|green>>|, and \Verb|blue>>|.  Each word has
-the stack effect
-%
-\Verb|( object -- value )|,
-%
-and extracts the value corresponding to the eponymous slot.  Similarly, the
-\term{writer} words \Verb|red<<|, \Verb|green<<|, and \Verb|blue<<| each
-have the stack effect
-%
-\Verb|( value object -- )|,
-%
-and store values in the corresponding \Verb|rgb| slots destructively.  To
-leave the modified \Verb|rgb| instance on the stack while setting slots, the
-\term{setter} words \Verb|>>red|, \Verb|>>green|, and \Verb|>>blue| are
-also defined, each with the stack effect
-%
-\Verb|( object value -- object' )|.
-%
-These words are defined in terms of writers.  For instance, \Verb|>>red| is
-the same as \factor|over red<<|, since \factor|over| copies a reference to the
-tuple (i.e., it doesn't make a ``deep'' copy).
+The second tuple in \vref{lst:regexp} also defines a class word and predicate.
+Since it inherits from \Verb|regexp|, \Verb|reverse-regexp| gets the same five
+slots.  If we had any other slot specifiers in the definition, it would have
+those in addition to the slots of its parent class.  The reader, writer,
+setter, and changer methods will work on instances of \Verb|reverse-regexp|,
+since inheritance establishes an ``is-a'' relationship from subclass to
+superclass---any instance of \Verb|reverse-regexp| is also an instance of
+\Verb|regexp|, though the reverse is not necessarily true.  That is,
+\Verb|regexp?| will return \factor|t| on instances of \Verb|reverse-regexp|,
+but \Verb|reverse-regexp?| will only return \factor|t| on instances of
+\Verb|regexp| that are also \Verb|reverse-regexp|s.  By viewing a class as the
+set of all objects that respond positively to the class predicate, we may
+partially order classes with the subset relationship.  This fact will be
+important later.
 
 To construct an instance of a tuple, we can use either \factor|new| or
 \factor|boa|.  \factor|new| will not initialize any of the slots to a
 particular input value---all slots will default to Factor's canonical false
-value, \factor|f|.  \factor|new| is used in \cref{lst:colors} to define
-\Verb|<color>| (by convention, the constructor for \Verb|foo| is named
-\Verb|<foo>|).  First, we push the class \Verb|color| onto the stack (this
-word is also automatically defined by \factor|TUPLE:|), then just call
+value, \factor|f|.  For example, \factor|new| is used in \vref{lst:colors} to
+define \Verb|<color>| (by convention, the constructor for \Verb|foo| is named
+\Verb|<foo>|).  First, we push the class \Verb|color|, then just call
 \factor|new|, leaving a new instance on the stack.  Since this particular tuple
 has no slots, using \factor|new| makes sense.  We might also use it to
 initialize a class, then use setter words to only assign a particular subset of
-slots' values.
+slots' values (as long as the slots aren't \Verb|read-only|).
+
+\inputlst{colors}
 
 However, we often want to initialize a tuple with values for each of its slots.
 For this, we have \factor|boa|, which works similarly to \factor|new|.  This is
-used in the definition of \Verb|<rgb>| in \cref{lst:colors}.  The difference
+used in the definition of \Verb|<rgb>| in \vref{lst:colors}.  The difference
 here is the additional inputs on the stack---one for each slot, in the order
 they're declared.  That is, we're constructing the tuple \textbf{b}y
 \textbf{o}rder of \textbf{a}rguments, giving us the fun pun ``\factor|boa|
@@ -97,91 +117,63 @@ constructor''.  So, \Verb|1 2 3 <rgb>| will construct an \Verb|rgb|
 instance with the \Verb|red| slot set to \Verb|1|, the \Verb|green| slot
 set to \Verb|2|, and the \Verb|blue| slot set to \Verb|3|.
 
-\inputlst{email}
-
-Now that we've seen the various words defined for tuples, we can explore more
-complex slot specifiers.  Using the array-like syntax from before, slot
-specifiers may be marked with certain \term{attributes}---both with the class
-declared (like
-%
-\factor|{ name class attributes... }|)
-%
-and without the class declared (as in 
-%
-\factor|{ name attributes... }|).
-%
-In particular, Factor recognizes two different attributes.  If a slot marked
-\factor|read-only|, the writer (and thus setter) for the slot will not be
-defined, so the slot cannot be altered.  A slot may also provide an initial
-value using the syntax \factor|initial: some-literal|.  This will be the slot's
-value when instantiated with \factor|new|. 
-
-For example, \cref{lst:email} shows a tuple definition from Factor's
-\Verb|smtp| vocabulary that defines an \Verb|email| object.  The
-\Verb|from| address, \Verb|subject|, and \Verb|body| must be instances of
-\Verb|string|, while \Verb|to|, \Verb|cc|, and \Verb|bcc| are
-\factor|array|s of destination addresses.  The \Verb|content-type| slot must
-also be a \factor|string|, but if unspecified, it defaults to
-\factor|"text/plain"|.  The \Verb|encoding| must be a \Verb|word| (in
-Factor, even words are first-class objects), which by default is \Verb|utf8|,
-a word from the \Verb|io.encodings.utf8| vocabulary for a Unicode format.
-
 \subsection{Generics and Methods}
 
 Unlike more common object systems, we do not define individual methods that
-``belong'' to particular tuples.  In Factor, you define a method that
-specializes on a class for a particular generic word.  That way, when the
-generic word is called, it dispatches on the class of the object, invoking the
-most specific method for the object.
+``belong'' to particular tuples.  In Factor, for a given generic word you
+define a method that specializes on a class.  When the generic word is called
+on an object, it selects the method most specific to the object's class.  This
+is determined by the aforementioned partial ordering of classes by their
+inheritance relationships.
 
 Generic words are declared with the syntax
 %
-\factor|GENERIC: word-name ( stack -- effect )|.
+\begin{center} \factor|GENERIC: word-name ( stack -- effect )| \end{center}
 %
 Words defined this way will then dispatch on the class of the top element of
 the stack (necessarily the rightmost input in the stack effect).  To define a
 new method with which to control this dispatch, we use the syntax
 %
-\factor|M: class word-name definition... ;|.
+\begin{center} \factor|M: class word-name definition... ;| \end{center}
+
+Factor's \Verb|sets| vocabulary gives us an accessible example of a generic
+word.  \Verb|set| is a \term{mixin} class, defined by the \factor|MIXIN:|
+parsing word.  That is, the \Verb|set| class is a union of other classes, and
+users may extend the members of this union with the \factor|INSTANCE:| word.
+We can this in \vref{lst:sets}, which shows the standard members of the
+\Verb|set| mixin.  Note that the \factor|USING:| form specifies vocabularies
+being used (like Java's \mint{java}|import|) and \texttt{\textbf{IN:}}
+specifies the vocabulary in which the definitions appear (like Java's
+\mint{java}|package|).  We can see here that instances of the \Verb|sequence|,
+\Verb|hash-set|, and \Verb|bit-set| classes are all instances of \Verb|set|, so
+will respond \factor|t| to the predicate \Verb|set?|.  Similarly,
+\Verb|sequence| is a mixin class with many more members, including
+\Verb|array|, \Verb|vector|, and \Verb|string|.
 
 \inputlst{sets}
 
-An accessible example of a generic word is in Factor's \Verb|sets|
-vocabulary.  \factor|set| is a \term{mixin} class---a union of other classes
-whose members may be extended by the user.  We can see the standard definition
-in \cref{lst:sets}.  Note that the \factor|USING:| form specifies vocabularies
-being used (like Java's \mint{java}|import|), and \factor|IN:| specifies the
-vocabulary in which the definitions appear (like Java's \mint{java}|package|).
-We can see here that instances of the \factor|sequence|, \factor|hash-set|, and
-\factor|bit-set| classes are all instances of \factor|set|, so will respond
-\factor|t| to the predicate \Verb|set?|.  Similarly, \factor|sequence| is a
-mixin class with many more members, including \factor|array|, \factor|vector|,
-and \factor|string|.
+\Vref{lst:cardinality} shows the \Verb|cardinality| generic from Factor's
+\Verb|sets| vocabulary, along with its methods.  This generic word takes a
+\Verb|set| instance from the top of the stack and pushes the number of elements
+it contains.  For instance, if the top element is a \Verb|bit-set|, we extract
+its \Verb|table| slot and invoke another word, \Verb|bit-count|, on that.  But
+if the top element is \factor|f| (the canonical false/empty value), we know the
+cardinality is $0$.  For any \Verb|sequence|, we may offshore the work to a
+different generic, \factor|length|, defined in the \Verb|sequences| vocabulary.
+The final method gives a default behavior for any other \Verb|set| instance,
+which simply uses \Verb|members| to obtain an equivalent \Verb|sequence| of set
+members, then calls \factor|length|.
 
 \inputlst{cardinality}
 
-\cref{lst:cardinality} shows the \Verb|cardinality| generic from Factor's
-\Verb|sets| vocabulary, along with its methods.  This generic word takes a
-\factor|set| instance from the top of the stack and pushes the number of
-elements it contains.  For instance, if the top element is a \factor|bit-set|,
-we extract its \Verb|table| slot and invoke another word, \Verb|bit-count|,
-on that.  But if the top element is \factor|f| (the canonical false/empty
-value), we know the cardinality is $0$.  For any \factor|sequence|, we may
-offshore the work to a different generic, \factor|length|, defined in the
-\Verb|sequences| vocabulary.  The final method gives a default behavior for
-any other \factor|set| instance, which simply uses \Verb|members| to obtain
-an equivalent \factor|sequence| of set members, then calls \factor|length|.
-
-By viewing a class as a set of all objects that respond positively to the class
-predicate, we may partially order classes with the subset relationship.  Method
-dispatch will use this ordering when \Verb|cardinality| is called to select
-the most specific method for the object being dispatched upon.  For instance,
-while no explicit method for \factor|array| is defined, any instance of
-\factor|array| is also an instance of \factor|sequence|.  In turn, every
-instance of \factor|sequence| is also an instance of \factor|set|.  We have
-methods that dispatch on both \factor|set| and \factor|sequence|, but the
-latter is more specific, so that is the method invoked.  If we define our own
-class, \Verb|foo|, and declare it as an instance of \factor|set| but not as
-an instance of \factor|sequence|, then the \factor|set| method of
+We can see how the class ordering is used when \Verb|cardinality| selects the
+proper method for the object being dispatched upon.  For instance, while no
+explicit method for \Verb|array| is defined, any instance of \Verb|array| is
+also an instance of \Verb|sequence|.  In turn, every instance of
+\Verb|sequence| is also an instance of \Verb|set|.  We have methods that
+dispatch on both \Verb|set| and \Verb|sequence|, but the latter is more
+specific, so that is the method invoked on an \Verb|array|.  If we define our
+own class, \Verb|foo|, and declare it as an instance of \Verb|set| but not as
+an instance of \Verb|sequence|, then the \Verb|set| method of
 \Verb|cardinality| will be invoked.  Sometimes resolving the precedence gets
 more complicated, but these edge-cases are beyond the scope of our discussion.
