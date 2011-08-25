@@ -62,7 +62,7 @@
   \setcounter{page}{1}
   \thispagestyle{empty}
   \begin{center}
-    \textsc{\textbf{\@title}}
+    \MakeUppercase{\textbf{\@title}}
     \vfill
     A Thesis\\
     Presented to the\\
@@ -86,15 +86,15 @@
   \addcontentsline{toc}{chapter}{Signature Page}
   \begin{SingleSpace}
     \begin{center}
-      \textbf{\textsc{Signature Page}}
+      \MakeUppercase{\textbf{Signature Page}}
     \end{center}
     ~\\
     \begin{tabular}{ll}
-      \textbf{\textsc{Thesis:}}          & \textsc{\thetitle} \\
-                                                              \\\\
-      \textbf{\textsc{Author:}}          & \@author           \\
-                                                              \\\\
-      \textbf{\textsc{Date Submitted:}}  & \thequarter        \\\\
+      \MakeUppercase{\textbf{Thesis:}}          & \MakeUppercase{\thetitle} \\
+                                                                     \\\\
+      \MakeUppercase{\textbf{Author:}}          & \@author           \\
+                                                                     \\\\
+      \MakeUppercase{\textbf{Date Submitted:}}  & \thequarter        \\\\
                                          & \thedepartment     \\
                                                               \\\\
       \thechair                          & \hrulefill         \\
