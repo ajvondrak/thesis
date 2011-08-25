@@ -45,15 +45,16 @@ are all equally valid.  Further, while the stack effect
 %
 \Verb|( junk x y -- junk z )|
 %
-has the same relative height change, this declaration would be wrong, since
-\factor|+| might legitimately be called on only two inputs.
+has the same relative height change, this declaration would be wrong, since it
+requires at least three inputs but \factor|+| might legitimately be called on
+only two.
 
 \inputfig{shufflers}
 
 For the purposes of documentation, of course, the names in stack effects do
 matter.  They correspond to elements of the stack from bottom-to-top.  So, the
 rightmost value on either side of the declaration names the top element of the
-stack.  We can see this in \cref{fig:shufflers}, which shows the effects of
+stack.  We can see this in \vref{fig:shufflers}, which shows the effects of
 standard \term{stack shuffler} words.  These words are used for basic data flow
 in Factor programs.  For example, to discard the top element of the stack, we
 use the \factor|drop| word, whose effect is simply
@@ -93,7 +94,7 @@ that duplicate data on the stack are
 %
 \factor|pick| with the effect \Verb|( x y z -- x y z x )|.
 
-True to the name \factor|swap|, the final shuffler in \cref{fig:shufflers}
+True to the name \factor|swap|, the final shuffler in \vref{fig:shufflers}
 permutes the top two elements of the stack, reversing their order.  The stack
 effect
 %
@@ -105,4 +106,4 @@ outputs are swapped (the top element is \Verb|x| and the next is \Verb|y|).
 Factor has other words that permute elements deeper into the stack.  However,
 their use is discouraged because it's harder for the programmer to mentally
 keep track of more than a couple items on the stack.  We'll see how more
-complex data flow patterns are handled in \cref{sec:primer:data-flow}.
+complex data flow patterns are handled in \vref{sec:primer:combinators}.
