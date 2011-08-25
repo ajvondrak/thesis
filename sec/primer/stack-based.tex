@@ -1,12 +1,10 @@
 \section{Stack-Based Languages}\label{sec:primer:stack-based}
 
-\inputfig{rpn}
-
 Like \gls{RPN} calculators, Factor's evaluation model uses a global stack upon
 which operands are pushed before operators are called.  This naturally
 facilitates postfix notation, in which operators are written after their
 operands.  For example, instead of \texttt{1~+~2}, we write \texttt{1~2~+}.
-\cref{fig:rpn} shows how \texttt{1~2~+} works conceptually:
+\vref{fig:rpn} shows how \texttt{1~2~+} works conceptually:
 \begin{itemize}
   \item \texttt{1} is pushed onto the stack
   \item \texttt{2} is pushed onto the stack
@@ -16,8 +14,10 @@ operands.  For example, instead of \texttt{1~+~2}, we write \texttt{1~2~+}.
 Other stack-based programming languages include Forth \autocite{Forth},
 Cat \autocite{Cat}, and PostScript \autocite{PostScript}.
 
+\inputfig{rpn}
+
 The strength of this model is its simplicity.  Evaluation essentially goes
-left-to-right: literals (like \texttt{1} and \texttt{2}) are pushed onto the
+left to right: literals (like \texttt{1} and \texttt{2}) are pushed onto the
 stack, and operators (like \texttt{+}) perform some computation using values
 currently on the stack.  This ``flatness'' makes parsing easier, since we don't
 need complex grammars with subtle ambiguities and precedence issues.  Rather,
@@ -25,7 +25,7 @@ we basically just scan left-to-right for tokens separated by whitespace.  In
 the Forth tradition, functions are called \term{words} since they're made up of
 any contiguous non-whitespace characters.  This also lends to the term
 \term{vocabulary} instead of ``module'' or ``library''.   In Factor, the parser
-works as follows.
+works as follows:
 \begin{itemize}
   \item If the current character is a double-quote (\texttt{"}), try to
         parse ahead for a string literal.
@@ -59,12 +59,9 @@ The \verb|{| word would not be called if not for that space, whereas
 \Verb[showspaces]|{1 2 3}| parses as the word \Verb|{1|, the number \Verb|2|,
 and the word \Verb|3}|---not an array.  Further, since the left-delimeter words
 parse recursively, such literals can be nested, contain comments, etc.  Other
-literals include \vpageref[the following][those in
-\cref{lst:literals}~]{lst:literals}.
+literals include those in \vref{lst:literals}.
 
-\inputlst[h]{literals}
-
-\inputfig{quot}
+\inputlst{literals}
 
 A particularly important set of parsing words in Factor are the square
 brackets, \Verb|[| and \Verb|]|.  Any code in between such brackets is
@@ -73,11 +70,16 @@ it's a snippet of code whose execution is suppressed.  The code inside a
 quotation can then be run with the \factor|call| word.  Quotations are like
 anonymous functions in other languages, but the stack model makes them
 conceptually simpler, since we don't have to worry about variable binding and
-the like.  Consider a small example like \factor|1 2 [ + ] call|.  You can
-think of \factor|call| working by ``erasing'' the brackets around a quotation,
-so this example behaves just like \factor|1 2 +|.  \cref{fig:quot} shows its
-evaluation: instead of adding the numbers immediately, \factor|+| is placed in
-a quotation, which is pushed to the stack.  The quotation is then invoked by
-\factor|call|, so \factor|+| pops and adds the two numbers and pushes the
-result onto the stack.  We'll show how quotations are used in
-\cref{sec:primer:combinators}.
+the like.  Consider a small example like
+%
+\begin{center} \factor|1 2 [ + ] call| \end{center}
+%
+You can think of \factor|call| working by ``erasing'' the brackets around a
+quotation, so this example behaves just like \factor|1 2 +|.  \cref{fig:quot}
+shows its evaluation: instead of adding the numbers immediately, \factor|+| is
+placed in a quotation, which is pushed to the stack.  The quotation is then
+invoked by \factor|call|, so \factor|+| pops and adds the two numbers and
+pushes the result onto the stack.  We'll show how quotations are used in
+\vref{sec:primer:combinators}.
+
+\inputfig{quot}
