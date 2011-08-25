@@ -15,18 +15,18 @@ are applied to an \term{\acrlong{IR}} of the source code.  These then
 Optimizers tend to work in \term{phases}, applying specific transformations
 during any given phase.
 
-\Gls{GVN} is such an analysis performed by many highly-optimizing compilers.
-Its roots run deep through both the theoretical and the practical.  Using the
+\Gls{GVN} is such a phase performed by many highly-optimizing compilers.  Its
+roots run deep through both the theoretical and the practical.  Using the
 results of this analysis, the compiler can identify expressions in the source
 code that produce the same value---not just by lexical comparison (i.e.,
-variables having the same name), but by proving equivalences between what's
-actually computed at runtime.  These expressions can then be simplified by
-further algorithms for redundancy elimination.  This is the very essence of
-most compiler optimizations: avoid redundant computation, giving us code that
-runs as quickly as possible while still following what the programmer
-originally wrote.
+comparing variable names), but by proving equivalences between what's actually
+computed at runtime.  These expressions can then be simplified by further
+algorithms for redundancy elimination.  This is the very essence of most
+compiler optimizations: avoid redundant computation, giving us code that runs
+as quickly as possible while still following what the programmer originally
+wrote.
 
-High-level, dynamic languages tend to suffer from efficiency issues: they're
+High-level, dynamic languages tend to suffer from efficiency issues.  They're
 often interpreted rather than compiled, and perform no heavy optimization of
 the source code.  However, the Factor language (\url{http://factorcode.org})
 fills an intriguing design niche, as it's very high-level yet still fully
