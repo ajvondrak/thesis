@@ -8,7 +8,7 @@
         [ 1 + ] dip ;
     
     : without-dip2 ( x y z -- x-y z )
-        2over - swapd nip swapd nip swap ;
+        swap swapd - swap ;
 
     : with-dip2 ( x y z -- x-y z )
         [ - ] dip ;

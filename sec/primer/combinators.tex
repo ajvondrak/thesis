@@ -247,16 +247,11 @@ patterns of data flow that we otherwise couldn't identify.  In Factor, there
 are several combinators that clean up common stack-shuffling logic, making code
 easier to understand.
 
-\inputlst{preserve}
-
 The first combinators we'll look at are \factor|dip| and \factor|keep|.  These
-are used to preserve elements of the stack.  When working with several values,
-sometimes we don't want to use all of them at quite the same time.  Using
-\factor|drop| and the like wouldn't help, as we'd lose the data altogether.
-Rather, we want to retain certain stack elements, do a computation, then
-restore them.  For an uncompelling but illustrative example, suppose we have
+are used to preserve certain stack elements, do a computation, then restore
+said elements.  For an uncompelling but illustrative example, suppose we have
 two values on the stack, but we want to increment the second element from the
-top.  \Verb|without-dip1| in \cref{lst:preserve} shows one strategy, where we
+top.  \Verb|without-dip1| in \vref{lst:preserve} shows one strategy, where we
 shuffle the top element away with \factor|swap|, perform the computation, then
 \factor|swap| the top back to its original place.  A cleaner way is to call
 \factor|dip| on a quotation, which will execute that quotation just under the
@@ -265,15 +260,17 @@ top of the stack, as in \Verb|with-dip1|.  While the stack shuffling in
 very well.  Shuffling the top element out of the way becomes increasingly
 difficult with more complex computations.  In \Verb|without-dip2|, we want to
 call \factor|-| on the two elements below the top.  For lack of a more robust
-stack shuffler, we use \factor|2over| to isolate the two values so we can call
-\factor|-|.  The rest of the word consists of shuffling to get rid of excess
-values on the stack.  It's also worth noting that \factor|swapd| is a
-deprecated word in Factor, since its use starts making code harder to reason
-about.  Alternatively, we could dream up a more complex stack shuffler with
-exactly the stack effect we wanted in this situation.  But this solution
-doesn't scale: what if we had to calculate something that required more inputs
-or produced more outputs?  Clearly, \factor|dip| provides a cleaner alternative
-in \Verb|with-dip2|.
+stack shuffler, we use \factor|swap| followed by \factor|swapd| to rearrange
+the stack so we can call \factor|-|, then \factor|swap| it back to the desired
+order.  This is even less clear, plus \factor|swapd| is actually a deprecated
+word in Factor, since its use starts making code harder to reason about.
+Alternatively, we could dream up a more complex stack shuffler with exactly the
+stack effect we wanted in this situation.  But this solution doesn't scale:
+what if we had to calculate something that required more inputs or produced
+more outputs?  Clearly, \factor|dip| provides a cleaner alternative in
+\Verb|with-dip2|.
+
+\inputlst{preserve}
 
 \factor|keep| provides a way to hold onto the top element of the stack, but
 still use it to perform a computation.  In general,
@@ -286,10 +283,10 @@ is equivalent to
 %
 Thus, the current top of the stack remains on top after the use of
 \factor|keep|, but the quotation is still invoked with that value.  In
-\Verb|with-keep1| in \cref{lst:preserve}, we want to increment the top, but
+\Verb|with-keep1| in \vref{lst:preserve}, we want to increment the top, but
 stash the result below.  Again, this logic isn't terribly complicated, though
-\Verb|with-keep1| does away with the shuffling.  \Verb|without-keep2| shows
-a messier example where a simple \factor|dup| will not save us, as we're using
+\Verb|with-keep1| does away with the shuffling.  \Verb|without-keep2| shows a
+messier example where a simple \factor|dup| will not save us, as we're using
 more than just the top element in the call to \factor|-|.  Rather, three of the
 four words in the definition are dedicated to rearranging the stack in just the
 right way, obscuring the call to \factor|-| that we really want to focus on.
@@ -297,37 +294,38 @@ On the other hand, \Verb|with-keep2| places the subtraction word
 front-and-center in its own quotation, while \factor|keep| does the work of
 retaining the top of the stack.
 
-\inputlst{cleave}
-
 The next set of combinators apply multiple quotations to a single value.  The
 most general form of these so-called \term{cleave} combinators is the word
 \factor|cleave|, which takes an array of quotations as input, and calls each
-one in turn on the top element of the stack.  Of course, for only a couple of
-quotations, wrapping them in an array literal becomes cumbersome.  The word
-\factor|bi| exists for the two-quotation case, and \factor|tri| for the three
-quotations.  Cleave combinators are often used to extract multiple slots from a
-tuple.  \cref{lst:cleave} shows such a case in the \Verb|with-bi| word, which
-improves upon using just \factor|keep| in the \Verb|without-bi| word.  In
-general, a series of \factor|keep|s like
+one in turn on the top element of the stack.  So,
 %
-\factor|[ a ] keep [ b ] keep c|
+\begin{center} \factor|x { [ a ] [ b ] [ c ] } cleave| \end{center}
+%
+takes the top element, \Verb|x|, and applies each quotation to it: \Verb|a| is
+applied to \Verb|x|, then \Verb|b| to \Verb|x|, then \Verb|c| to \Verb|x|.  Of
+course, for only a couple of quotations, wrapping them in an array literal
+becomes cumbersome.  The word \factor|bi| exists for the two-quotation case,
+and \factor|tri| for three quotations.  Cleave combinators are often used to
+extract multiple slots from a tuple.  \vref{lst:cleave} shows such a case in
+the \Verb|with-bi| word, which improves upon using just \factor|keep| in the
+\Verb|without-bi| word.  In general, a series of \factor|keep|s like
+%
+\begin{center} \factor|[ a ] keep [ b ] keep c| \end{center}
 %
 is the same as
 %
-\factor|{ [ a ] [ b ] [ c ] } cleave|,
+\begin{center} \factor|{ [ a ] [ b ] [ c ] } cleave| \end{center}
 %
-%XXX fuck this dumb-shit fucking cunt what the fuck does it fucking want
 which is more readable.  We can see this in action in the difference between
-\Verb|without-tri| and \Verb|with-tri| in \cref{lst:cleave}.  In cases
-where we need to apply multiple quotations to a set of values instead of just a
-single one, there are also the variants \factor|2cleave| and \factor|3cleave|
-(and the corresponding \factor|2bi|, \factor|2tri|, \factor|3bi|, and
-\factor|3tri|), which apply the quotations to the top two and three elements of
-the stack, respectively.
+\Verb|without-tri| and \Verb|with-tri| in \vref{lst:cleave}.  In cases where we
+need to apply multiple quotations to a set of values instead of just a single
+one, there are also the variants \factor|2cleave| and \factor|3cleave| (and the
+corresponding \factor|2bi|, \factor|2tri|, \factor|3bi|, and \factor|3tri|),
+which apply the quotations to the top two and three elements of the stack,
+respectively.
 
-\inputlst{spread}
+\inputlst{cleave}
 
-\begin{sloppypar}
 To apply multiple quotations to multiple values, Factor has \term{spread}
 combinators.  Whereas cleave combinators abstract away repeated instances of
 \factor|keep|, spread combinators replace nested calls to \factor|dip|.  The
@@ -335,26 +333,24 @@ archetypical combinator, \factor|spread|, takes an array of quotations, like
 \factor|cleave|.  However, instead of applying each one to the top element of
 the stack, each one corresponds to a separate element of the stack.  Thus,
 %
-\factor|{ [ a ] [ b ] } spread|
+\begin{center} \factor|x y { [ a ] [ b ] } spread| \end{center}
 %
-invokes \Verb|b| on the top element, and \Verb|a| on the element beneath
-the top.  Much like \factor|cleave|, there are shorthand words for the two- and
-three-quotation cases.  These are suffixed with asterisks to indicate the
-spread variants, so we have \factor|bi*| and \factor|tri*|.  In
-\cref{lst:spread}, the \Verb|without-bi*| word shows the simple \factor|dip|
-pattern that \factor|bi*| encapsulates.  Here, we're converting the string
-\Verb|str1| (the second element from the top) into uppercase and
-\Verb|str2| (the top element) to lowercase.  In \Verb|with-bi*|, the
-\factor|>upper| and \factor|>lower| words are seen first, uninterrupted by an
-extra word, making the code easier to read.  More compelling is the way that
-\factor|tri*| replaces the \factor|dip|s that can be seen in
-\Verb|without-tri*|.  In comparison, \Verb|with-tri*| is less nested and
-easier to comprehend at first glance.  While there are \factor|2bi*| and
-\factor|2tri*| variants that spread quotations to two values apiece on the
-stack, they are uncommon in practice.
-\end{sloppypar}
+invokes \Verb|a| on \Verb|x| and \Verb|b| on \Verb|y|.  Much like
+\factor|cleave|, there are shorthand words for the two- and three-quotation
+cases.  These are suffixed with asterisks to indicate the spread variants, so
+we have \factor|bi*| and \factor|tri*|.  In \vref{lst:spread}, the
+\Verb|without-bi*| word shows the simple \factor|dip| pattern that \factor|bi*|
+encapsulates.  Here, we're converting the string \Verb|str1| (the second
+element from the top) into uppercase and \Verb|str2| (the top element) to
+lowercase.  In \Verb|with-bi*|, the \factor|>upper| (``to uppercase'') and
+\factor|>lower| (``to lowercase'') words are seen first, uninterrupted by an
+extra word.  More compelling is the way that \factor|tri*| replaces the
+\factor|dip|s that can be seen in \Verb|without-tri*|.  In comparison,
+\Verb|with-tri*| is less nested and easier to comprehend at first glance.
+While there are \factor|2bi*| and \factor|2tri*| variants that spread
+quotations to two values apiece on the stack, they are uncommon in practice.
 
-\inputlst{apply}
+\inputlst{spread}
 
 Finally, \term{apply} combinators invoke a single quotation on multiple stack
 entries in turn.  While there is a generalized word, it's more common to use
@@ -362,7 +358,7 @@ the corresponding shorthands.  Here, they are suffixed with at-signs, so
 \factor|bi@| applies a quotation to each of the top two stack values, and
 \factor|tri@| to each of the top three.  This way, rather than duplicate code
 for each time we want to call a word, we need only specify it once.  This is
-demonstrated clearly in \cref{lst:apply}.  In \Verb|without-bi@|, we see that
+demonstrated clearly in \vref{lst:apply}.  In \Verb|without-bi@|, we see that
 the quotation \factor|[ sq ]| (for squaring numbers) appears twice for the call
 to \factor|bi*|.  In general, we can replace spread combinators whose
 quotations are all the same with a single quotation and an apply combinator.
@@ -379,4 +375,11 @@ where \Verb|quot| expects two inputs, and is thus applied to \Verb|w| and
 applies the quotation to the top six objects of the stack in groups of two.
 Like their spread counterparts, they are not used very much.
 
-\todo[inline]{Some wrap-up that isn't completely lame.}
+\inputlst{apply}
+
+This concludes our overview of Factor.  Various other features are hidden away
+in different vocabularies, most of which are understandable based on the basics
+we've covered.  For the purposes of this thesis, it's not important to know
+every little detail about Factor.  Future code snippets will always be
+accompanied by further explanation, though they should generally be readable
+given this short tutorial.
