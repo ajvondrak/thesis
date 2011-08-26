@@ -6,60 +6,60 @@ anonymous functions, but the stack model also makes them syntactically
 lightweight enough to serve as blocks akin to the code between curly braces in
 C or Java.  Higher-order words that make use of quotations on the stack are
 called \term{combinators}.  It's simple to express familiar conditional logic
-and loops using combinators, as we'll show in \cref{sec:primer:control-flow}.
-In the presence of explicit data flow via stack operations, even more patterns
-arise that can be abstracted away.  \cref{sec:primer:data-flow} explores how we
-can use combinators to express otherwise convoluted stack-shuffling logic more
-succinctly.
+and loops using combinators, as we'll show first.  In the presence of explicit
+data flow via stack operations, even more patterns arise that can be abstracted
+away.  The last half of this \lcnamecref{sec:primer:combinators} explores how
+we can use combinators to express otherwise convoluted stack-shuffling logic
+more succinctly.
 
 \subsection{Control Flow}\label{sec:primer:control-flow}
 
-\inputlst{if}
-
 The most primitive form of control flow in typical programming languages is, of
 course, the \mint{java}|if| statement, and the same holds true for Factor.  The
-only difference is that Factor's \factor|if| isn't syntactically
+only difference is that Factor's \texttt{\textbf{if}} isn't syntactically
 significant---it's just another word, albeit implemented as a primitive.  For
-the moment, it will do to think of \factor|if| as having the stack effect
+the moment, it will do to think of \texttt{\textbf{if}} as having the stack
+effect
 %
 \Verb|( ? true false -- )|.
 %
-The third element from the top of the stack is a condition, and it's followed
-by two quotations.  The first quotation (second element from the top of the
-stack) is called if the condition is true, and the second quotation (the top of
-the stack) is called if the condition is false.  Specifically, \factor|f| is a
-special object in Factor for falsity.  It is a singleton object---the sole
-instance of the \factor|f| class---and is the only false value in the entire
-language.  Any other object is necessarily boolean true.  For a canonical
-boolean, there is the \factor|t| object, but its truth value exists only
-because it is not \factor|f|.  Basic \factor|if| use is shown in \cref{lst:if}.
-The first example will print ``odd'', the second ``empty'', and the third
-``isn't f''.  All of them leave nothing on the stack.
+The third element from the top of the stack is a boolean condition, and it's
+followed by two quotations.  The first quotation (\Verb|true|) is called if the
+condition is true, and the second quotation (\Verb|false|) is called if the
+condition is false.  Specifically, \factor|f| is a special object in Factor for
+falsity.  It is a singleton object---the sole instance of the \factor|f|
+class---and is the only false value in the entire language.  Any other object
+is necessarily boolean true.  For a canonical boolean, there is the \factor|t|
+object, but its truth value exists only because it is not \factor|f|.  Basic
+\texttt{\textbf{if}} use is shown in \vref{lst:if}.  The first example will
+print ``odd'', the second ``empty'', and the third ``isn't f''.  All of them
+leave nothing on the stack.
 
-\inputlst{if-effects}
+\inputlst{if}
 
-However, the simplified stack effect for \factor|if| is quite restrictive.
+However, the simplified stack effect for \texttt{\textbf{if}} is quite
+restrictive.  Because the effect
 %
 \Verb|( ? true false -- )|
 %
-intuitively means that both the \Verb|true| and \Verb|false| quotations
-can't take any inputs or produce any outputs---that their effects are
+has no extra inputs and no outputs at all, it intuitively means that the
+\Verb|true| and \Verb|false| quotations both have the effect
 %
 \Verb|( -- )|.
 %
 We'd like to loosen this restriction, but per \cref{sec:primer:effects}, Factor
-must know the stack height after the \factor|if| call.  We could give
-\factor|if| the effect
+must know the stack height after the \texttt{\textbf{if}} call.  We could give
+\texttt{\textbf{if}} the effect
 %
-\Verb|( x ? true false -- y )|,
+\Verb|( x ? true false -- y )|
 %
 so that the two quotations could each have the stack effect
 %
 \Verb|( x -- y )|.
 %
-This would work for the \Verb|example1| word in \cref{lst:if-effects}, yet
-it's just as restrictive.  For instance, the \Verb|example2| word would need
-\factor|if| to have the effect
+This would work for the \Verb|example1| word in \vref{lst:if-effects}, yet it's
+just as restrictive.  For instance, the \Verb|example2| word would need
+\texttt{\textbf{if}} to have the effect
 %
 \Verb|( x y ? true false -- z )|,
 %
@@ -78,29 +78,31 @@ while \factor|drop| has the effect
 %
 \Verb|( x -- )|.
 
-In reality, there are infinitely many correct stack effects for \factor|if|.
-Factor has a special notation for such \term{row-polymorphic} stack effects.
-If a token in a stack effect begins with two dots, like \Verb|..a| or
-\Verb|..b|, it is a \term{row variable}.  If either side of a stack effect
-begins with a row variable, it represents any number inputs/outputs.  Thus, we
-could give \factor|if| the stack effect
+In reality, there are infinitely many correct stack effects for
+\texttt{\textbf{if}}.  Factor has a special notation for such
+\term{row-polymorphic} stack effects.  If a token in a stack effect begins with
+two dots, like \Verb|..a| or \Verb|..b|, it is a \term{row variable}.  If
+either side of a stack effect begins with a row variable, it represents any
+number of inputs or outputs.  Thus, we could give \texttt{\textbf{if}} the
+stack effect
 %
 \begin{center} \Verb|( ..a ? true false -- ..b )| \end{center}
 %
 \noindent to indicate that there may be any number of inputs below the
-condition on the stack, and any number of outputs will be present after the
-call to \factor|if|.  Note that these numbers aren't necessarily equal, which
-is why we use distinct row variables in this case.  However, this still isn't
-quite enough to capture the stack height requirements.  It doesn't communicate
-that \Verb|true| and \Verb|false| must affect the stack in the same ways.
-For this, we can use the notation
+condition on the stack, and that any number of outputs will be present after
+the call to \texttt{\textbf{if}}.  Note that these numbers aren't necessarily
+equal, which is why we use distinct row variables (\Verb|..a| and \Verb|..b|)
+in this case.  However, this still isn't quite enough to capture the stack
+height requirements.  It doesn't communicate that \Verb|true| and \Verb|false|
+must affect the stack in the same ways, which has remained tacit to this point.
+For this, the notation
 %
-\Verb|quot: ( stack -- effect )|,
+\Verb|quot: ( stack -- effect )|
 %
-giving quotations a nested stack effect.  Using the same names for row
-variables in both the ``inner'' and ``outer'' stack effects will refer to the
-same number of inputs or outputs.  Thus, our final (correct) stack effect for
-\factor|if| is 
+gives quotations a nested stack effect.  Using the same names for row variables
+in both the ``inner'' and ``outer'' stack effects will refer to the same number
+of inputs or outputs.  Thus, our final (correct) stack effect for
+\texttt{\textbf{if}} is 
 %
 \begin{center}
 %
@@ -109,15 +111,15 @@ same number of inputs or outputs.  Thus, our final (correct) stack effect for
 \end{center}
 %
 \noindent This tells us that the \Verb|true| quotation and the \Verb|false|
-quotation will each create the same relative change in stack height as
-\factor|if| does overall.
+quotation will each leave the stack at the same height as \texttt{\textbf{if}}
+does overall, and that neither expects any extra inputs.
 
-\inputlst{loops}
+\inputlst{if-effects}
 
-Though \factor|if| is necessarily a language primitive, other control flow
-constructs are defined in Factor itself.  It's simple to write combinators for
-iteration and looping as tail-recursive words that invoke quotations.
-\cref{lst:loops} showcases some common looping patterns.  The most basic yet
+Though \texttt{\textbf{if}} is necessarily a language primitive, other control
+flow constructs are defined in Factor itself.  It's simple to write combinators
+for iteration and looping as recursive words that invoke quotations.
+\Vref{lst:loops} showcases some common looping patterns.  The most basic yet
 versatile word is \factor|each|.  Its stack effect is
 %
 \begin{center}
@@ -126,18 +128,18 @@ versatile word is \factor|each|.  Its stack effect is
 %
 \end{center}
 %
-\noindent Each element \Verb|x| of the sequence \Verb|seq| will be passed
-to \Verb|quot|, which may use any of the underlying stack elements.  Here,
-unlike \factor|if|, we enforce that the input stack height is exactly the same
-as the output (since we use the same row variable).  Otherwise, depending on
-the number of elements in \Verb|seq|, we might dig arbitrarily deep into the
-stack or flood it with a varying number of values.  The first use of
-\factor|each| in \cref{lst:loops} is balanced, as the quotation has the effect
+\noindent Each element \Verb|x| of the sequence \Verb|seq| will be passed to
+\Verb|quot|, which may use any of the underlying stack elements.  Here, unlike
+\texttt{\textbf{if}}, we enforce that \Verb|quot|'s output stack height is
+exactly one less than the input.  Otherwise, depending on the number of
+elements in \Verb|seq|, we might dig arbitrarily deep into the stack or flood
+it with a varying number of values.  The first use of \factor|each| in
+\vref{lst:loops} is balanced, as the quotation has the effect
 %
 \Verb|( str -- )|
 %
-and no additional items were on the stack to begin with.  Essentially, it's
-equivalent to
+and no additional items were on the stack to begin with (i.e., \Verb|...|
+stands in for $0$ elements).  Essentially, it's equivalent to
 %
 \factor|"Lorem" print "ipsum" print "dolor" print|.
 %
@@ -146,13 +148,15 @@ On the other hand, the quotation in the second example has the stack effect
 \Verb|( total n -- total+n )|.
 %
 This is still balanced, since there is one additional item below the sequence
-on the stack (namely \Verb|0|), and one element is left by the end (the sum
-of the sequence elements).  So, this example is the same as
+on the stack (namely \Verb|0|), and one element is left by the end (the sum of
+the sequence elements).  So, this example is the same as
 %
 \factor|0 1 + 2 + 3 +|.
 
+\inputlst{loops}
+
 Any instance of the extensive \Verb|sequence| mixin will work with
-\factor|each|, making it very flexible.  The third example in \cref{lst:loops}
+\factor|each|, making it very flexible.  The third example in \vref{lst:loops}
 shows \factor|iota|, which is used here to create a \term{virtual} sequence of
 integers from $0$ to $9$ (inclusive).  No actual sequence is allocated, merely
 an object that behaves like a sequence.  In Factor, it's common practice to use
@@ -172,10 +176,9 @@ cases, there's the \factor|times| combinator, with the stack effect
 \noindent This is similar to \factor|each|, except that \Verb|n| is a number
 (so we needn't use \factor|iota|) and the quotation doesn't expect an extra
 argument (i.e., a sequence element).  Therefore, the example in
-\cref{lst:loops} is equivalent to
+\vref{lst:loops} is equivalent to
 %
 \factor|"Ho!" print "Ho!" print "Ho!" print|.
-%
 
 Naturally, Factor also has the \factor|while| combinator, whose stack effect is
 %
@@ -185,20 +188,18 @@ Naturally, Factor also has the \factor|while| combinator, whose stack effect is
 %
 \end{center}
 %
-\noindent The row variables are a bit messy, but it works as you'd expected:
-the \Verb|pred| quotation is invoked on each iteration to determine whether
+\noindent The row variables are a bit messy, but it works as you'd expect: the
+\Verb|pred| quotation is invoked on each iteration to determine whether
 \Verb|body| should be called.  The \factor|do| word is a handy modifier for
 \factor|while| that simply executes the body of the loop once before leaving
 \factor|while| to test the precondition as per usual.  Thus, the last example
-in \cref{lst:loops} executes the body once, despite the condition being
+in \vref{lst:loops} executes the body once, despite the condition being
 immediately false.
-
-\inputlst{high-order}
 
 In the preceding combinators, quotations were used like blocks of code.  But
 really, they're the same as anonymous functions from other languages.  As such,
 Factor borrows classic tools from functional languages, like \factor|map| and
-\factor|filter|, as shown in \cref{lst:high-order}.  \factor|map| is like
+\factor|filter|, as shown in \vref{lst:high-order}.  \factor|map| is like
 \factor|each|, except that the quotation should produce a single output.  Each
 such output is collected up into a new sequence of the same class as the input
 sequence.  Here, the example produces
@@ -207,7 +208,7 @@ sequence.  Here, the example produces
 %
 \factor|filter| selects only those elements from the sequence for which the
 quotation returns a true value.  Thus, the \factor|filter| in
-\cref{lst:high-order} outputs
+\vref{lst:high-order} outputs
 %
 \factor|{ 2 4 }|.
 %
@@ -221,28 +222,30 @@ where \factor|swapd| is a shuffler word with the stack effect
 %
 \Verb|( x y z -- y x z )|.
 %
-Thus, the example in \cref{lst:high-order} is the same as
+Thus, the example in \vref{lst:high-order} is the same as
 %
 \factor|0 { 1 2 3 } [ + ] each|,
 %
-as in \cref{lst:loops}.
+as in \vref{lst:loops}.
+
+\inputlst{high-order}
 
 These are just some of the control flow combinators defined in Factor.  Several
 variants exist that meld stack shuffling with control flow, or can be used to
-shorten common patterns like empty false branches.  An entire list is beyond
+shorten common patterns such as empty false branches.  An entire list is beyond
 the scope of our discussion, but the ones we've studied should give a solid
 view of what standard conditional execution, iteration, and looping looks like
 in a stack-based language.
 
 \subsection{Data Flow}\label{sec:primer:data-flow}
 
-While avoiding variables and additional syntax makes it easier to refactor
-code, keeping mental track of the stack can be taxing.  If we need to
-manipulate more than the top few elements of the stack, code gets harder to
-read and write.  Since the flow of data is made explicit via stack shufflers,
-we actually wind up with redundant patterns of data flow that we otherwise
-couldn't identify.  In Factor, there are several combinators that clean up
-common stack-shuffling logic, making code easier to understand.
+While avoiding variables makes it easier to refactor code, keeping mental track
+of the stack can be taxing.  If we need to manipulate more than the top few
+elements of the stack, code gets harder to read and write.  Since the flow of
+data is made explicit via stack shufflers, we actually wind up with redundant
+patterns of data flow that we otherwise couldn't identify.  In Factor, there
+are several combinators that clean up common stack-shuffling logic, making code
+easier to understand.
 
 \inputlst{preserve}
 
