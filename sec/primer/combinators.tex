@@ -326,6 +326,7 @@ respectively.
 
 \inputlst{cleave}
 
+\begin{sloppypar}
 To apply multiple quotations to multiple values, Factor has \term{spread}
 combinators.  Whereas cleave combinators abstract away repeated instances of
 \factor|keep|, spread combinators replace nested calls to \factor|dip|.  The
@@ -349,6 +350,7 @@ extra word.  More compelling is the way that \factor|tri*| replaces the
 \Verb|with-tri*| is less nested and easier to comprehend at first glance.
 While there are \factor|2bi*| and \factor|2tri*| variants that spread
 quotations to two values apiece on the stack, they are uncommon in practice.
+\end{sloppypar}
 
 \inputlst{spread}
 
