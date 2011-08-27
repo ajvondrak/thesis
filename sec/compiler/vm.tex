@@ -17,17 +17,19 @@ This compiled code is saved in an \term{image file}, which contains a complete
 snapshot of the current state of the Factor instance, similar to many Smalltalk
 and Lisp systems \autocite{DLS}.  As code is parsed and compiled, the image is
 updated, serving as a cache for compiled code.  This modified image can be
-saved so that future Factor instances needn't recompile vocabularies that are
-already contained in the image.
+saved so that future Factor instances needn't recompile vocabularies that have
+already been loaded.
 
 The \gls{VM} also handles method dispatch and memory management.  Method
 dispatch incorporates a \term{polymorphic inline cache} to speed up generic
-words.  Each generic word's call site is associated with a state:
+words.  Each generic word's call site (i.e., every point in the code at which
+we invoke a generic) is associated with a state:
 \begin{itemize}
-  \item In the \term{cold} state, the call site's instruction computes the
-        right method for the class being dispatched upon, which is the
-        operation we're trying to avoid.  As it does this, a polymorphic inline
-        cache stub is generated, thus transitioning it to the next state.
+  \item In the \term{cold} state, the call site's instruction performs
+        relatively expensive computations to find the right method for the
+        class being dispatched upon, which we'd like to avoid.  To speed up
+        future calls at that site, a polymorphic inline cache stub is
+        generated, thus transitioning it to the next state.
   \item In the \term{inline cache} state, a stub has been generated that caches
         the locations of methods for classes that have already been seen.  This
         way, if a generic word at a particular call site is invoked often upon
@@ -50,20 +52,20 @@ short-lived objects that will stay in the younger generations without being
 promoted to the older generation.  In the oldest space, even compiled code can
 be compacted.  This is to avoid heap fragmentation in applications that must
 call the compiler at runtime, such as Factor's interactive development
-environment.
+environment \autocite{DLS}.
 
 Values are referenced by tagged pointers, which use the three least significant
 bits of the pointer's address to store type information.  This is possible
 because Factor aligns objects on an eight-byte boundary, so the three least
 significant bits of an address are always $0$.  These bits give us eight unique
-tags, but since Factor has more than eight data types, two tags are reserved to
-indicate that the type information is stored elsewhere.  One is for \gls{VM}
-types without their own tag, and the other is for user-defined tuples, each of
-which has its own type.  Sufficiently small integers (e.g., $29$-bit integers
-on a $32$-bit machine, since the other $3$ bits are used for the type tag) are
-stored directly in the pointer, so they needn't be heap-allocated.  Larger
-integers and floating point numbers are boxed, but the optimizing compiler may
-unbox them to store floats in registers.
+tags, but Factor has more than eight data types.  So, to indicate that the type
+information is stored elsewhere, two tags are reserved.  One is for \gls{VM}
+types without their own tag, and the other is for tuples, each of which defines
+its own type.  Sufficiently small integers (e.g., $29$-bit integers on a
+$32$-bit machine, since the other $3$ bits are used for the type tag) are
+stored directly in the pointer, so they needn't be heap-allocated (i.e.,
+``boxed'').  Larger integers and floating point numbers are normally boxed, but
+the optimizing compiler may find ways to store floats in registers.
 
 The \gls{VM} is meant to be minimal, as Factor is mostly \term{self-hosting}.
 That is, the real workhorses of the language are written in Factor itself,

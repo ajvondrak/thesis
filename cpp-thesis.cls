@@ -49,7 +49,7 @@
 \setlrmarginsandblock{1.5in}{1in}{*}
 \setulmarginsandblock{1in}{1in}{*}
 \setlength{\marginparwidth}{64pt}
-\checkandfixthelayout
+\checkandfixthelayout%[lines] % <-- uncomment if librarian gets too picky
 
 %--- Pages ---------------------------------------------------------------------
 
