@@ -101,7 +101,7 @@ Next, \vref{lst:tree} defines nodes for branching based off the superclass
 \Verb|#branch|.  The \Verb|children| slot contains vectors of nodes
 representing different branches.  \Verb|live-branches| is filled in during
 later analyses to indicate which branches might be executed so ``dead'' ones
-that are never taken may be removed.  We'll mostly see \Verb|#if|, which will
+that are never taken may be removed.  Mostly, we'll see \Verb|#if|, which will
 have two elements in its \Verb|children| slot representing the true and false
 branches.  On the other hand, \Verb|#dispatch| has an arbitrary number of
 children.  It corresponds to the \texttt{\textbf{dispatch}} primitive, which is
