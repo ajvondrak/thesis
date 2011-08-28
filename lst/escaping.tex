@@ -11,8 +11,8 @@
     : escaping-via-#call ( -- )
         1 2 data-struct boa pprint ;
 
-    : non-escaping ( -- )
-        1 2 data-struct [ a>> ] [ b>> ] bi + ;
+    : non-escaping ( -- a+b )
+        1 2 data-struct boa [ a>> ] [ b>> ] bi + ;
   \end{factorcode}
 
 \caption{Escaping vs. non-escaping tuple allocations}
