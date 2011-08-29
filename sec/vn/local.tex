@@ -2,7 +2,7 @@
 
 Tracing the exact origins of value numbering is difficult.  It's thought to
 have originally been invented in the 1960s by Balke \autocite{Simpson}.  The
-earliest tangible reference to a value numbering (at least, the earliest point
+earliest tangible reference to value numbering (at least, the earliest point
 where discussions in the literature seem to start) appears in an oft-cited but
 unpublished work of \citeauthor{Cocke} \autocite*{Cocke}.  The technique is
 relatively simple, but not as powerful as other methods for reasons described
@@ -12,26 +12,16 @@ The algorithm considers a single basic block.  For each instruction (from top
 to bottom) in the block, we essentially let the value number of the assignment
 target be a hash of the operator and the value numbers of the operands.  That
 is, we hash the \term{expression} being computed by an instruction.  Thus,
-assuming a proper hash function, two expressions are \term{congruent} if
-%
-\begin{itemize}
-%
-  \item they have the same operators and
-%
-  \item their operands are congruent.
-%
-\end{itemize}
-%
-\noindent This is our approximation of runtime equivalence.  The first property
-is fulfilled by basing the hash, in part, on the operator.  The second property
-holds because the hash is based on the value numbers of the statement's
-operands---not just the operands as they appear in code (i.e., \term{lexical}
-equivalence).  Any information about congruence is propagated through the value
-numbers.  We'll have discovered any such equivalences among the operands before
-computing the value number of the assignment target because every value in a
-basic block is either defined before it's used, or else defined at some point
-in a predecessor of the block, which we don't care about when only considering
-one basic block.
+assuming a proper hash function, two expressions are \term{congruent} if they
+have the same operators and their operands are congruent.  This is our
+approximation of runtime equivalence.  It's important that the hash is based on
+the value numbers of the statement's operands, not just the operands as they
+appear in code (i.e., \term{lexical} equivalence).  Any information about
+congruence is propagated through the value numbers.  We'll have discovered any
+such equivalences among the operands before computing the value number of the
+assignment target.  This is because every value in a basic block is either
+defined before it's used, or else defined at some point in a predecessor, which
+we don't care about when only considering one basic block.
 
 This is the first shortcoming of the algorithm.  It is \term{local}, focusing
 on only one basic block at a time.  Any definitions outside the boundaries of
@@ -78,17 +68,18 @@ merely returns a unique value.
 \inputlst{value-numbering-graph}
 
 The hashing of expressions takes place in the so-called \term{expression graph}
-implemented in the vocabulary shown in \cref{lst:value-numbering-graph}.  This
+implemented in the vocabulary shown in \vref{lst:value-numbering-graph}.  This
 consists of three global hash tables that relate virtual registers, value
 numbers, instructions, and expressions.  Since virtual registers are just
 integers, we actually use them as value numbers, too.  \Verb|vregs>vns| maps
 virtual registers to their value numbers.  If a virtual register  is mapped to
 itself in this table, its definition is the canonical instruction that we use
-to compute the value.  This instruction is stored in the \Verb|vns>insns| table.  Finally, the most important mapping is \Verb|exprs>vns|.  True to its
-name, it uses expressions as keys, which of course are implicitly hashed.
-Thus, we can use this table to determine equivalence of expressions.
+to compute the value.  This instruction is stored in the \Verb|vns>insns|
+table.  Finally, the most important mapping is \Verb|exprs>vns|.  True to its
+name, it uses expressions as keys, which (of course) are implicitly hashed.
+Thus, we can use this table to determine the equivalence of expressions.
 
-Other definitions in \cref{lst:value-numbering-graph} manipulate expressions
+Other definitions in \vref{lst:value-numbering-graph} manipulate expressions
 and the graph.  The global variable \Verb|input-expr-counter| is used in the
 generation of unique expressions discussed earlier.  \Verb|init-value-graph|
 initializes this and all the tables.  \Verb|set-vn| establishes a mapping
@@ -111,13 +102,10 @@ a single basic block or an entire topological ordering.
 One the other hand, an advantage of this local value numbering algorithm is its
 simplicity.  It makes a single pass over all the instructions, identifying and
 replacing redundancies \term{online} (i.e., rewriting as it goes).  It's
-straightforward to write, and even to extend.  In particular, there's nothing
-stopping the online replacements from being more complex than \Verb|##copy|
-instructions.  At every step, the currently known value numbers will be sound,
-and we can use this information for copy/constant propagation, constant
-folding, and common subexpression elimination.
-
-\inputlst{value-numbering-step}
+straightforward to write, and even to extend.  At every step, the currently
+known value numbers will be sound, so we can use this information for
+copy/constant propagation, constant folding, and common subexpression
+elimination.
 
 \begin{sloppypar}
 To see how Factor accomplishes these extensions, we'll take a look at the
@@ -126,10 +114,10 @@ To see how Factor accomplishes these extensions, we'll take a look at the
 optimization pass.  The \Verb|value-numbering-step| word is called on the
 sequence of instructions that comprise each basic block.  It starts the
 expression graph from a blank slate with \Verb|init-value-graph|, then
-\Verb|map|s the word \Verb|process-instruction| on each of them.  This is a
+\factor|map|s the word \Verb|process-instruction| on each of them.  This is a
 generic word that we'll study momentarily; it returns either a single
-\Verb|insn| object or a sequence of them (in the case that an instruction is
-replaced by several others).  Then, the work of \Verb|value-numbering| is to
+\Verb|insn| object or a sequence of them in the case that an instruction is
+replaced by several others.  Then, the work of \Verb|value-numbering| is to
 just call \Verb|value-numbering-step| on each basic block, which is done with a
 combinator called \Verb|simple-optimization|.  The words \Verb|cfg-changed| and
 \Verb|predecessors-changed| alter some internal state of the \gls{CFG} that has
@@ -137,17 +125,18 @@ been potentially invalidated by some transformations performed by
 \Verb|process-instruction|.
 \end{sloppypar}
 
-\inputlst{process-instruction}
+\inputlst{value-numbering-step}
 
 The methods of \Verb|process-instruction| are shown in
-\cref{lst:process-instruction}.  The default behavior for dispatching on an
-\Verb|insn| is to invoke yet another generic word, \Verb|rewrite|.  This word
-will return either a replacement \Verb|insn| (or sequence thereof) or
-\factor|f|, indicating that no change has taken place.  Thus, by recursively
-calling \Verb|process-instruction|, we can do more specialized processing on
-this rewritten replacement (e.g., dispatching on \Verb|insn| again, which
-applies \Verb|rewrite| once more).  If the instruction can't be simplified
-further, we simply return it.  (Note that
+\vref{lst:process-instruction}.  Skipping the first three normal words for the
+moment, the default behavior for dispatching on an \Verb|insn| is to invoke yet
+another generic word, \Verb|rewrite|.  This word will return either a
+replacement \Verb|insn| (or sequence thereof) or \factor|f|, indicating that no
+change has taken place.  Thus, by recursively calling
+\Verb|process-instruction|, we can do more specialized processing on this
+rewritten replacement (e.g., dispatching on \Verb|insn| again, which applies
+\Verb|rewrite| once more).  If the instruction can't be simplified further, we
+simply return it.  (Note that
 %
 \factor|[ X ] [ Y ] ?if|
 %
@@ -155,24 +144,25 @@ is the same as
 %
 \factor|dup [ nip X ] [ drop Y ] if|.)
 
-For instances of \Verb|foldable-insn| (i.e., \Verb|insn|s that can be
-converted to useful expressions with \Verb|>expr|), we similarly invoke
-\Verb|rewrite| recursively until no more rewriting occurs.  When that
-happens, rather than just return the instruction, we invoke
-\Verb|check-redundancy|---though only if the instruction defines exactly $1$
+\inputlst{process-instruction}
+
+For instances of \Verb|foldable-insn| (a subclass of \Verb|insn| for those that
+can be converted to useful expressions with \Verb|>expr|), we similarly invoke
+\Verb|rewrite| recursively until no more rewriting occurs.  When that happens,
+rather than just return the instruction, we invoke
+\Verb|check-redundancy|---though only if the instruction defines exactly one
 virtual register, which will be stored in a slot named \Verb|dst|.
 \Verb|check-redundancy| checks if the expression being computed by the
 instruction is already a key of the \Verb|exprs>vns| table.  If it is, the
-instruction is redundant, and we call \Verb|redundant-instruction|;
-otherwise, we call \Verb|useful-instruction|.  The former uses
-\Verb|set-vn| to map the instruction's \Verb|dst| virtual register to the
-same value number as the expression that was a key of \Verb|exprs>vns|.
-Since value numbers are actually virtual registers, we may also use these two
-integers the source and destination registers in a new \Verb|##copy|
-instruction, which is then returned.  On the other hand,
-\Verb|useful-instruction| saves the instruction's information in the
-expression graph by setting the appropriate values in \Verb|vregs>vns|,
-\Verb|exprs>vns|, and \Verb|vns>insns|.
+instruction is redundant, and we call \Verb|redundant-instruction|; otherwise,
+we call \Verb|useful-instruction|.  The former uses \Verb|set-vn| to give the
+instruction's \Verb|dst| virtual register the same value number as the
+equivalent expression.  Since value numbers are actually virtual registers, we
+may also use these as the source and destination registers in a new
+\Verb|##copy| instruction, which is then returned.  On the other hand,
+\Verb|useful-instruction| saves the instruction's information in the expression
+graph by setting the appropriate values in \Verb|vregs>vns|, \Verb|exprs>vns|,
+and \Verb|vns>insns|.
 
 The \Verb|##copy| method of \Verb|process-instruction| cannot do anything
 to simplify the instruction, but will set the value number of the destination
@@ -202,8 +192,8 @@ behavior.
 related to Factor's \gls{FFI}.  Most involve fusing together the results of
 intermediate arithmetic.  The instructions that access raw memory (namely
 \Verb|##load-memory|, \Verb|##load-memory-imm|, \Verb|##store-memory|, and
-\Verb|##store-memory-imm|) tend to have inputs to perform address arithmetic.
-Each has slots for a \Verb|base| register containing an address and a literal
+\Verb|##store-memory-imm|) tend to have arguments for address arithmetic.  Each
+has slots for a \Verb|base| register containing an address and a literal
 \Verb|offset| from it.  But if \Verb|base| is defined by an \Verb|##add-imm|
 instruction, we can just update the \Verb|offset|, incrementing it by the
 literal operand of the \Verb|##add-imm|.  Then, \Verb|base| will just be
@@ -220,22 +210,22 @@ including rewrites for \Verb|##box-displaced-alien|s and
 \Verb|##unbox-any-c-ptr|s.
 \end{sloppypar}
 
-\Verb|compiler.cfg.value-numbering.comparisons| defines methods for the
-various branching and comparison instructions (which simply store booleans in
+\Verb|compiler.cfg.value-numbering.comparisons| defines methods for the various
+branching and comparison instructions (which simply store booleans in
 registers, rather than branching upon them).  The major optimizations performed
 are as follows:
 %
 \begin{itemize}
 %
 \item If possible, instructions are converted to more specific forms.  For
-example, non-immediate instructions (e.g., \Verb|##compare|) may be turned
-into their \Verb|-imm| counterparts (e.g., \Verb|##compare-imm|)  if one of
-their source registers corresponds to a literal value.
-\Verb|##compare-integer-imm| is also converted to \Verb|##test| if the
-architecture supports it.  This corresponds to a special instruction in x86
-that performs a bitwise AND for its side effects on particular flags,
-discarding the actual result.  This can be more efficient when using the AND
-result as a boolean.
+example, non-immediate instructions (e.g., \Verb|##compare|) may be turned into
+their \Verb|-imm| counterparts (e.g., \Verb|##compare-imm|)  if one of their
+source registers corresponds to a literal value.  \Verb|##compare-integer-imm|
+is also converted to \Verb|##test| if the architecture supports it.  This
+corresponds to a special instruction in x86 that performs a bitwise
+\textsc{and} for its side effects on particular flags, discarding the actual
+result.  This can be more efficient when using the \textsc{and} result as a
+boolean.
 %
 \item If both inputs to a comparison or branch are literals, we may
 constant-fold the instruction.  In the case of comparisons, this means
@@ -255,21 +245,21 @@ thing into a single instruction.
 \end{itemize}
 
 \Verb|compiler.cfg.value-numbering.folding| defines some auxiliary words for
-constant-folding arithmetic words.  Mainly, \Verb|unary-constant-fold| and
+constant-folding arithmetic.  \Verb|unary-constant-fold| and
 \Verb|binary-constant-fold| perform the actual operation on the one or two
 constant inputs provided.  These words are used in
-\Verb|compiler.cfg.value-numbering.math|, which predictably simplifies math
-via standard rules.  Arithmetic identities are rewritten---conceptually, $x+0$
+\Verb|compiler.cfg.value-numbering.math|, which predictably simplifies math via
+standard rules.  Arithmetic identities are rewritten.  Conceptually, $x+0$
 becomes just $x$, for instance.  If self-inverting instructions (namely
-\Verb|##neg| for numerical negation and \Verb|##not| for boolean negation)
-are called on registers that themselves correspond to the same instruction, we
-can safely rewrite them into \Verb|##copy| instructions.  Non-immediate
-instructions are converted to their \Verb|-imm| forms, if possible, and if
-both operands are constant, the expression is folded.  The most interesting
-math optimizations use the associative and distributive laws.
-\term{Reassociation} conceptually converts $(x \otimes y) \otimes z$ into $x
-\otimes (y \otimes z)$ when both $y$ and $z$ are constants and $\otimes$ is
-associative.  So, for example,
+\Verb|##neg| for numerical negation and \Verb|##not| for boolean negation) are
+called on registers that themselves correspond to the same instruction, we can
+safely rewrite them into \Verb|##copy| instructions---intuitively turning a
+double-negative into a positive.  Non-immediate instructions are converted to
+their \Verb|-imm| forms if possible.  When both operands are constant, the
+expression is folded.  The most interesting math optimizations use the
+associative and distributive laws.  \term{Reassociation} conceptually converts
+$(x \otimes y) \otimes z$ into $x \otimes (y \otimes z)$ when both $y$ and $z$
+are constants and $\otimes$ is associative.  So, for example,
 %
 \begin{center}
 \Verb|##add-imm 1 X Y|\\
@@ -303,10 +293,11 @@ bitwise shifts.  Therefore,
     \end{factorcode*}
   \end{minipage}
 \end{center}
-\noindent Notice that a new intermediate virtual register, \Verb|3|, had to
-be created.  However, if the product of \Verb|Y| and \Verb|Z| can be
-computed at compile-time and fits in an immediate operand, then we save cycles
-by using \Verb|##mul-imm| on a smaller number.
+\noindent Notice that a new intermediate virtual register, \Verb|3|, had to be
+created.  However, if the product of \Verb|Y| and \Verb|Z| can be computed at
+compile-time and fits in an immediate operand, then we save cycles by using
+\Verb|##mul-imm| on smaller numbers (multiplying the contents of \Verb|X| by
+the constant \Verb|Y|, rather than their sum by \Verb|Z|).
 
 \begin{sloppypar}
 The last few methods of \Verb|rewrite| provide some obvious simplifications.
@@ -319,12 +310,12 @@ for vector operations.  \Verb|compiler.cfg.value-numbering.slots| propagates
 \Verb|##replace| into \Verb|##replace-imm| if possible.
 \end{sloppypar}
 
-\inputfig{lvn}
-
 To finish the discussion of local value numbering and Factor's particular
-implementation, we'll examine the example from \cref{fig:value-numbering} in
+implementation, we'll examine the example from \vref{fig:value-numbering} in
 depth.  For convenience, the before/after snapshot of the \gls{CFG} is
-reproduced in \cref{fig:lvn}.
+reproduced in \vref{fig:lvn}.
+
+\inputfig{lvn} %XXX \clearpage?
 
 \Verb|value-numbering-step| begins at block $1$, where
 \Verb|process-instruction| is \factor|map|ped across the instructions.
@@ -385,13 +376,12 @@ behaves similarly, leaving:
 %
 \Verb|##load-integer 23 0|.
 %
-In calling \Verb|check-redundancy|, we discover that the integer expression
-for \Verb|0| is already in \Verb|exprs>vns|, so this is turned into a
+In calling \Verb|check-redundancy|, we discover that the integer expression for
+\Verb|0| is already in \Verb|exprs>vns|, so this is turned into a
 \Verb|##copy|, and the value number is noted.  The remaining instructions in
 block $1$ (aside from \Verb|##branch|) are all instances of \Verb|##copy|.
 \Verb|process-instruction| thus only sets their value numbers in the
-\Verb|vregs>vns| table, leaving them with the following at the end of block
-$1$:
+\Verb|vregs>vns| table, leaving us with the following at the end of block $1$:
 %
   \begin{factorcode}
     ! vregs>vns
@@ -421,7 +411,7 @@ $1$:
     }
   \end{factorcode}
 
-Next, block $2$ in \cref{fig:lvn} is processed.  The tables are all reset, so
+Next, block $2$ in \vref{fig:lvn} is processed.  The tables are all reset, so
 even though block $1$ happens to dominate block $2$, none of its definitions
 are known to \Verb|value-numbering|.  The \Verb|##phi|s are ignored, as no
 important methods dispatch upon them.  In trying to rewrite the
@@ -432,8 +422,8 @@ remove redundancy.  It happens to be correct here, though, as \Verb|26|
 corresponds to the integer \Verb|100|, while \Verb|30| is an induction variable
 of the loop.  However, \Verb|##compare-integer| cannot be rewritten into an
 immediate form, since our focus is local to the basic block, so we don't know
-that \Verb|26| has the value \Verb|100|.  The \Verb|##copy| instructions are
-processed as usual, and
+that the virtual register \Verb|26| has the value \Verb|100|.  The
+\Verb|##copy| instructions are processed as usual, and
 %
 \Verb|##compare-imm-branch 32 f cc/=|
 %
@@ -441,11 +431,12 @@ is rewritten into a \Verb|##compare-integer-branch|, as the virtual register
 \Verb|32| has the same value (through the copies) as the
 \Verb|##compare-integer| result.  This is a case of simplifying the 
 %
-\mint{java}|if (some_boolean != false) { ... }|
+% centered to avoid orphan lines in the factorcode listing below
+\begin{center} \mint{java}|if (some_boolean != false) { ... }| \end{center}
 %
 pattern, and the definition of the register \Verb|31| becomes dead code after
 \Verb|rewrite| finishes with this last instruction.  The expression graph is
-populated thus by the end:
+populated as follows by the end of block $2$:
 %
   \begin{factorcode}
     ! vregs>vns
@@ -486,13 +477,13 @@ is entered into the expression graph.  Since \Verb|35| is an operand of
 %
 \Verb|##add 36 29 35|,
 %
-\Verb|rewrite| changes this instruction into an \Verb|##add-imm|, as we
-know the constant value of the operand.  The next \Verb|##load-integer| gets
-turned into a \Verb|##copy|, like in block $1$, and the next \Verb|##add|
-is similarly changed to \Verb|##add-imm|.  The copies do little but set more
-value numbers.  As \Verb|process-instruction| calls \Verb|vreg>vn| on their
-sources, we'll insert entries into \Verb|vregs>vns| for those defined outside
-of the block, like \Verb|26|.  This leaves us with the following tables:
+\Verb|rewrite| changes this instruction into an \Verb|##add-imm|, as we know
+the constant value of the operand.  The next \Verb|##load-integer| gets turned
+into a \Verb|##copy|, like in block $1$, and the next \Verb|##add| is similarly
+changed to \Verb|##add-imm|.  The copies do little but set more value numbers.
+As \Verb|process-instruction| calls \Verb|vreg>vn| on their sources, we'll
+insert entries into \Verb|vregs>vns| for virtual registers defined outside of
+the block, like \Verb|26|.  This leaves us with the following tables:
 %
   \begin{factorcode}
     ! vregs>vns
@@ -529,23 +520,23 @@ of the block, like \Verb|26|.  This leaves us with the following tables:
 anything interesting, as the \Verb|##replace| cannot be changed into a
 \Verb|##replace-imm|.
 
-\inputfig{finalize-lvn}
-
 In summary, we managed to replace redundancies within basic blocks online by
 maintaining some simple hash tables.  After copy propagation and dead code
 elimination, the \gls{CFG} gets finalized to the one shown in
-\cref{fig:finalize-lvn}.  Because the value numbering algorithm was local, the
+\vref{fig:finalize-lvn}.  Because the value numbering algorithm was local, the
 \Verb|##compare-integer-branch| in block $2$ could not be simplified to a
-\Verb|##compare-integer-imm-branch|, and we instead have to waste a register
-on the integer \Verb|100|.  But it's important to note that even considering
-a topological ordering of the \gls{CFG} wouldn't have worked, as we'd have to
+\Verb|##compare-integer-imm-branch|, and we instead have to waste a register on
+the integer \Verb|100|.  But it's important to note that even considering a
+topological ordering of the \gls{CFG} wouldn't have worked, as we'd have to
 ignore back-edges.  The \Verb|##phi|s that used to be in block $2$ had inputs
 that flowed along the back-edge, and our pessimistic assumption would have to
 classify these values as distinct.  One is for the counter introduced by
-\Verb|times|, and the other is from the top value of the stack being
+\factor|times|, and the other is from the top value of the stack being
 incremented by \Verb|fixnum+fast|.  In this case, however, these induction
 variables are actually equal: both start at \Verb|0| and are incremented by
-\Verb|1| on each loop.  In terms of the \gls{CFG} in \cref{fig:finalize-lvn},
-the \Verb|EAX| and \Verb|EDX| registers are equivalent.  Yet the
-combination of the pessimism and locality of the algorithm keep us from
-discovering this.
+\Verb|1| on each loop iteration.  In terms of the \gls{CFG} in
+\vref{fig:finalize-lvn}, the \Verb|EAX| and \Verb|EDX| registers are
+equivalent.  Yet the combination of the pessimism and locality of the algorithm
+keep us from discovering this.
+
+\inputfig{finalize-lvn}
