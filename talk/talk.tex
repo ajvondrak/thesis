@@ -1,6 +1,19 @@
 \documentclass{beamer}
 
-\usepackage{stacks}
+\usepackage{stacks} % custom commands for typesetting stacks
+
+\usepackage{listings,bold-extra}
+\lstset{basicstyle=\ttfamily,
+        mathescape=true,
+        keepspaces=false,
+        morekeywords={:=,+,-,*,/,goto,if,<,<=,>,>=,=}}
+\usepackage{tikz}
+\usetikzlibrary{shapes.misc}
+
+\usepackage{../lib/minted}
+\usemintedstyle{bw}
+\newminted{factor}{gobble=0,frame=none}
+\newmint{factor}{}
 
 \mode<presentation>{
   \usetheme{CambridgeUS}
@@ -131,7 +144,7 @@ V{
   \end{example}
 \end{frame}
 
-\begin{frame}{Low-level IR}
+\begin{frame}[fragile]{Low-level IR}
   \begin{itemize}
     \item Control flow graph (CFG)
     \begin{itemize}
@@ -142,9 +155,122 @@ V{
           instructions
     \item \alert{Static single assignment} (SSA) form
   \end{itemize}
+  \begin{onlyenv}<1>
+  \begin{center}
+    \begin{minipage}{0.4\linewidth}
+      \begin{tikzpicture}[node distance=0.6in,>=latex]
+      \node[draw,label=right:{\small $B_1$}] (1) at (0,-1)
+        {\lstinline|if $P$ goto $B_3$|};
+      \node[draw,label=left:{\small $B_2$}] (2) [below left of=1]
+        {\lstinline|x := 5|};
+      \node[draw,label=right:{\small $B_3$}] (3) [below right of=1]
+        {\lstinline|x := 10|};
+      \node[draw,label=right:{\small $B_4$}] (4) [below right of=2]
+        {\lstinline|y := x + 1|};
+
+      \draw[->] (0,0) -- (1);
+      \draw (1) edge[->] (2)
+                edge[->] (3)
+            (2) edge[->] (4)
+            (3) edge[->] (4);
+      \end{tikzpicture}
+    \end{minipage}
+    \vrule
+    \begin{minipage}{0.4\linewidth}
+      \begin{tikzpicture}[node distance=0.6in,>=latex]
+      \node[draw,label=right:{\small $B_1$}] (1) at (0,-1)
+        {\lstinline|if $P$ goto $B_3$|};
+      \node[draw,label=left:{\small $B_2$}] (2) [below left of=1]
+        {\lstinline|x$_0$ := 5|};
+      \node[draw,label=right:{\small $B_3$}] (3) [below right of=1]
+        {\lstinline|x$_1$ := 10|};
+      \node[draw,label=right:{\small $B_4$}] (4) [below right of=2]
+        {\lstinline|y$_{~}$ := x$_?$ + 1|};
+
+      \draw[->] (0,0) -- (1);
+      \draw (1) edge[->] (2)
+                edge[->] (3)
+            (2) edge[->] (4)
+            (3) edge[->] (4);
+      \end{tikzpicture}
+    \end{minipage}
+  \end{center}
+  \end{onlyenv}
+  \begin{onlyenv}<2>
+  \begin{center}
+  \begin{tikzpicture}[node distance=0.7in,>=latex]
+  \node[draw,label=right:$B_1$] (1) at (0,-1) {\lstinline|if $P$ goto $B_3$|};
+  \node[draw,label=left:$B_2$] (2) [below left of=1] {\lstinline|x$_0$ := 5|};
+  \node[draw,label=right:$B_3$] (3) [below right of=1] {\lstinline|x$_1$ := 10|};
+  \node[draw,label=right:$B_4$] (4) [below right of=2] {
+  \begin{lstlisting}
+x$_2$ := $\phi$(x$_0$,x$_1$)
+y$_{~}$ := x$_2$ + 1
+  \end{lstlisting}
+  };
+
+  \draw[->] (0,0) -- (1);
+  \draw (1) edge[->] (2)
+            edge[->] (3)
+        (2) edge[->] (4)
+        (3) edge[->] (4);
+  \end{tikzpicture}
+  \end{center}
+  \end{onlyenv}
 \end{frame}
 
 \subsection{Optimizations}
+
+\begin{frame}[fragile]{Optimizations---High-level IR}
+\footnotesize
+\begin{center}
+\begin{minipage}{0.5\linewidth}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{k}{:} \PY{n+nf}{optimize-tree} \PY{n+nf}{(} \PY{n+nv}{nodes} \PY{n+nf}{--} \PY{n+nv}{nodes'} \PY{n+nf}{)}
+  [
+      analyze-recursive
+      normalize
+      propagate
+      cleanup
+      \PY{k}{dup }run-escape-analysis? [
+          escape-analysis
+          unbox-tuples
+      ] \PY{k}{when}
+      apply-identities
+      compute-def-use
+      remove-dead-code
+      ?check
+      compute-def-use
+      optimize-modular-arithmetic
+      finalize
+  ] \PY{k}{with-scope ;}
+\end{Verbatim}
+\end{minipage}
+\end{center}
+\end{frame}
+
+\begin{frame}[fragile]{Optimizations---Low-level IR}
+  \renewcommand{\theFancyVerbLine}{%
+    \ifnum\value{FancyVerbLine}=9%
+    $\longrightarrow$\else{}\fi}
+  \begin{center}
+  \begin{minipage}{0.5\linewidth}
+  \begin{factorcode*}{linenos}
+: optimize-cfg ( cfg -- cfg' )
+    optimize-tail-calls
+    delete-useless-conditionals
+    split-branches
+    join-blocks
+    normalize-height
+    construct-ssa
+    alias-analysis
+    value-numbering
+    copy-propagation
+    eliminate-dead-code ;
+  \end{factorcode*}
+  \end{minipage}
+  \end{center}
+\end{frame}
 
 \section{Value Numbering}
 
