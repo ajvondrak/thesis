@@ -5,33 +5,30 @@ average running time of programs, and to do so without changing their
 semantics.  Short of formal verification, the latter requirement makes it
 necessary to thoroughly test any code that gets compiled with the new pass
 enabled.  To this end, we'll employ Factor's extensive unit test coverage.
-Because Factor is (largely) self-hosting, its standard vocabularies are written
-in Factor code, typically coupled with tests.  While some vocabularies will
-have more test coverage than others, the total amount of tests is quite large.
-By compiling each vocabulary and running their tests, we're indirectly testing
-the compiler: if tests that used to pass no longer do, then the new pass is
-changing the semantics of the code somehow.  Though passing all tests does not
-guarantee the algorithm is correct, it does let us know that no known
-regressions have been introduced.  Happily, with the new
-\Verb|value-numbering| phase enabled, all the same tests pass as before in a
-call to \factor|test-all| from a freshly bootstrapped image.
+While some vocabularies will have more tests than others, the total number of
+unit tests is quite large.  By compiling each vocabulary and running their
+tests, we're indirectly testing the compiler: if tests that used to pass no
+longer do, then the new pass is changing the semantics of the code somehow.
+Though passing all tests does not guarantee the algorithm is correct, it does
+let us know that no known regressions have been introduced.  Happily, with the
+new \Verb|value-numbering| phase enabled, all the same tests pass as before in
+a call to \factor|test-all| from a freshly bootstrapped image.
 
 The efficacy of the changes, on the other hand, must be measured relative to
 old benchmarks.  Again, Factor has its bases covered, with a suite of $80$
 benchmarks run by the \Verb|benchmark| vocabulary.  Each benchmark is run $5$
-times, where the garbage collector is run before each iteration.  The minimum
-time from these runs is then used as the benchmark result.  The data below
-comes from two separate runs of the \factor|benchmarks| word, which invokes all
-the benchmark sub-vocabularies.  The ``before'' time used the local value
-numbering, while ``after'' times had \Verb|value-numbering| replaced with the
-\gls{GVN} pass.  The ``change'' is measured by the formula
+times, and the garbage collector is run before each iteration.  The minimum
+time from these runs is then used as the benchmark result.  The informal data
+below comes from two separate runs on my own personal computer of the
+\factor|benchmarks| word, which invokes all the \Verb|benchmark|
+sub-vocabularies.  The ``before'' time used the local value numbering, while
+``after'' times had \Verb|value-numbering| replaced with the \gls{GVN} pass.
+The ``change'' is measured by the formula
 %
 $$\frac{\text{before} - \text{after}}{\text{before}} \times 100$$
 %
 to indicate the relative running times.  Negative values in this column are
 good, as that means the running time has decreased.
-
-\todo[inline]{Guess I should provide my PC's specs}
 
 \begin{longtable}{llll}
 \toprule
@@ -120,14 +117,18 @@ Benchmark & Before (seconds) & After (seconds) & Change (\%) \\
 \texttt{yuv-to-rgb}               & 0.398174487       & 0.318891664         & $-19.91$    \\
 \end{longtable}
 
-The results are promising: of $80$ benchmarks, only $13$ showed any increase in
-running time.  And of those, even fewer showed significant increases.
-Duplicated below for convenience are the benchmarks that ran slower, sorted in
-decreasing order of the percent difference between running times.  We can see
-the last five or six benchmarks exhibited negligible differences---not only is
-the relative change tiny, but the absolute difference in running times is less
-than $0.1$ seconds.  (The \Verb|benchmark.tuple-arrays| results also show a
-similar absolute change, but it is relatively much larger.)
+\begin{sloppypar}
+These informal results are promising: the mean speedup was $-16.35\%$ (median
+$-18.97\%$), and of $80$ benchmarks, only $13$ showed any increase in running
+time.  The mean speedup among those that ran faster was $-22.24\%$ (median
+$-22.23\%$).  Of the $13$ that ran slower, even fewer showed significant
+increases in running time.  Duplicated below for convenience are the slower
+benchmarks, sorted in decreasing order of the percent change.  We can see the
+last five or six benchmarks exhibited negligible differences---not only is the
+relative change tiny, but the absolute difference in running times is less than
+$0.1$ seconds.  (The \Verb|tuple-arrays| results also show a similar absolute
+change, but it is relatively much larger.)
+\end{sloppypar}
 
 \begin{longtable}{llll}
 \toprule
