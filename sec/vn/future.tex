@@ -3,7 +3,7 @@
 The \gls{GVN} code presented in this thesis can be improved in various specific
 ways.  Furthermore, the literature on \gls{GVN} is extensive, and there are
 more overarching algorithmic strategies that have yet to be explored in the
-Factor code base.  In this \lcnamecref{sec:vn:future}, we explore some of these
+Factor code base.  In this \lcnamecref{sec:vn:future}, we review some of these
 options for possible directions that Factor's compiler can take from here.
 
 As it stands, the new pass could be smarter.  For instance, it does not
@@ -13,25 +13,24 @@ commutative instructions' expressions, thereby placing arguments in a canonical
 order.  This would increase the number of congruences discovered between
 \Verb|##add|s, \Verb|##mul|s, and even \Verb|##phi|s.  Also, the
 \Verb|copy-propagation| pass is remarkably similar to the new
-\Verb|value-numbering|---in fact, it could be removed altogether.  All it
-does is collect global information about congruences as established by
-\Verb|##copy| instructions (by a similar fixed-point iteration), then replace
-the virtual registers of instructions with the original value (i.e., the one
-not established by a \Verb|##copy|).  This allows \Verb|copy-propagation| to
-remove all \Verb|##copy| instructions.  But the information calculated by
+\Verb|value-numbering|---in fact, it could be removed altogether.  All it does
+is collect global information about congruences as established by \Verb|##copy|
+instructions (by a similar fixed-point iteration), then replace the virtual
+registers of instructions with the original value (i.e., the one not
+established by a \Verb|##copy|).  This allows \Verb|copy-propagation| to remove
+all \Verb|##copy| instructions.  But the information calculated by
 \Verb|value-numbering| is a superset of this copy-equivalence data, so it
 should be easy to do global copy propagation in the \gls{GVN} phase and save
-time on the redundant fixed-point iteration.
+compilation time on the redundant fixed-point iteration.
 
 There remains an open question about the \gls{GVN} implementation's use of
 availability, too.  As it stands, it's rather strict: if the canonical value
-number for an expression is not directly available, \Verb|rewrite| gives up
-on reusing that value.  However, the virtual registers which map to a single
-value number form a congruence class.  We need not look just at the canonical
-leader (the first virtual register in the whole program to compute the
-particular expression).  \Verb|rewrite| could change an instruction to reuse
-any member of the congruence class that was available.  It remains to be seen
-when and if such a rewrite would be useful or desirable.
+number for an expression is not directly available, \Verb|rewrite| gives up on
+reusing that value.  However, we need not look just at the canonical leader
+(the first virtual register in the whole program to compute the particular
+expression).  \Verb|rewrite| could change an instruction to reuse any available
+member of the congruence class.  It remains to be seen when and if such
+rewriting would be useful or desirable.
 
 Existing literature also gives plenty of material for a better implementation.
 We can make the existing \gls{RPO} algorithm more efficient in practice by
@@ -39,11 +38,10 @@ observing that the only times we need to iterate are where there are cyclic
 dependencies between values in the \gls{CFG}.  For instance, the example from
 \cref{sec:vn:avail} only has cyclic dependencies in the induction variables:
 the \Verb|##phi|s are defined by uses of virtual registers that are themselves
-defined by uses of the \Verb|##phi| targets in \Verb|##add|s.  The \gls{RPO}
-algorithm degenerates into the hash-based local algorithm of
-\cref{sec:vn:local} on straight-line code.  Thus, a more efficient algorithm
-will only iterate over the cycles between definitions instead of over the whole
-\gls{CFG}.  
+defined by uses of the \Verb|##phi| targets.  The \gls{RPO} algorithm
+degenerates into the hash-based local algorithm of \cref{sec:vn:local} on
+straight-line code.  Thus, a more efficient algorithm will only iterate over
+the cycles between definitions instead of over the whole \gls{CFG}.  
 
 Conceptually, we build a \term{value graph} (also known as \term{\gls{SSA}
 graph} \autocite{Simpson}) whose nodes represent definitions and directed edges
@@ -71,8 +69,7 @@ instructions.  \Citeauthor{Gargi} \autocite*{Gargi} proposes a
         \autocite{Click};
   \item global reassociation, thus performing the work already done in Factor;
   \item predicate inference, which can infer the values of comparisons
-        dominated by some related predicate (i.e., comparisons in a block that
-        is only reached via a particular conditional);
+        dominated by some related conditional;
   \item value inference, which can infer the values of variables dominated by
         some related predicate (similar to range propagation, as seen in
         \cref{sec:compiler:tree}); and
@@ -114,19 +111,18 @@ Dragon Book: a lattice is a partially-ordered set for which any two elements
 have a unique \term{least upper bound} (or \term{join}) and \term{greatest
 lower bound} (or \term{meet}).  By defining meet and join operators on a
 partially-ordered set of abstract values, we can represent many sorts of
-analyses on our programs.
+analyses of our programs.
 
-\inputfig{lattice}
-
-\citeauthor{Cousot} formalize the salient properties of such interpretation
-over lattices in a framework dubbed \term{abstract interpretation}.  To
-understand it intuitively, consider some arithmetic expression like $(-5 \times
-14)$.  Our first inclination is probably to interpret it with respect to
-numeric values, but we can understand it in several different contexts.  Let's
-use signs ($+$, $-$, and $\pm$) as our abstract domain and consider the
-operators to be defined by the rules of signs.  \Vref{fig:lattice} shows a
-lattice we can use for this.  Using a version of $\times$ cast in the context
-of this lattice, we can interpret $(-5 \times 14)$ as
+\citeauthor{Cousot} \autocite*{Cousot} formalize the salient properties of such
+interpretation over lattices in a framework dubbed \term{abstract
+interpretation}.  To understand it intuitively, consider some arithmetic
+expression like $(-5 \times 14)$.  Our first inclination is probably to
+interpret it with respect to numeric values, but we can understand it in
+several different contexts.  Let's use signs ($+$, $-$, and $\pm$) as our
+abstract domain and consider the operators to be defined by the rules of signs.
+\Vref{fig:lattice} shows a lattice we can use for this.  Using a version of
+$\times$ cast in the context of this lattice, we can interpret $(-5 \times 14)$
+as
 %
 $$-5 \times 14 \quad\to\quad (-) \times (+) \quad\to\quad (-)$$
 %
@@ -137,6 +133,8 @@ instance, we can interpret $(-5 + 14)$ as
 $$-5 + 14 \quad\to\quad (-) + (+) \quad\to\quad (\pm)$$
 %
 proving very little---the result is either positive or negative.
+
+\inputfig{lattice}
 
 Despite the inherent limitations, we find the results useful as approximations
 of more complex properties.  For example, we used congruence to approximate
@@ -198,7 +196,7 @@ same size restrictions to guarantee complexity.  Both also use an additional
 special-purpose data structure to represent the set of Herbrand equivalences
 and to perform abstract evaluations over them, which adds a conceptual load to
 the algorithms and might make them more difficult to implement.  However,
-unlike most other abstract interpretation-based algorithms, \citeauthor{Nie}'
+unlike most other abstract interpretation-based algorithms, \citeauthor{Nie}'s
 is demonstrably practical, as the authors implemented it for the GNU Compiler
 Collection (GCC).  In their experiments, the size restriction turned out to be
 unnecessary for avoiding the exponential case, showing that the main bottleneck
