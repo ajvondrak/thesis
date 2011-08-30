@@ -1,0 +1,153 @@
+\documentclass{beamer}
+
+\usepackage{stacks}
+
+\mode<presentation>{
+  \usetheme{CambridgeUS}
+  \useoutertheme{infolines}
+  \setbeamertemplate{navigation symbols}{}
+  \AtBeginSection[]{\frame{\tableofcontents[currentsection]}}
+}
+
+\title{Global Value Numbering in Factor}
+\author{Alex Vondrak}
+\institute{\texttt{ajvondrak@csupomona.edu}}
+\date{September 1, 2011}
+\pgfdeclareimage[width=0.5\textwidth]{logo}{dependencies.png}
+\titlegraphic{\pgfuseimage{logo}}
+
+\begin{document}
+
+\maketitle
+
+\begin{frame}{Factor}
+  Factor (\url{http://factorcode.org/})
+  \begin{itemize}
+    \item Started development September 2003---a baby among languages
+    \item \alert{Stack-based}
+    \item Object-oriented
+    \item Dynamically typed
+    \item Extensive standard library
+    \item High-level, yet fully \alert{compiled}
+  \end{itemize}
+
+  Won't really have time to discuss the language in depth
+\end{frame}
+
+\begin{frame}[fragile]{Stacks as an Evaluation Model}
+  \begin{example}[Code]
+    \begin{verbatim}
+1 2 +
+    \end{verbatim}
+  \end{example}
+
+  \begin{example}[Execution]
+    \begin{columns}[c,onlytextwidth]
+      \begin{column}[c]{.5\textwidth}
+        \begin{verbatim}
+push(1);
+push(2);
+y = pop();   // y = 2;
+x = pop();   // x = 1;
+push(x + y); // push(3);
+        \end{verbatim}
+      \end{column}
+
+      \begin{column}[c]{.5\textwidth}
+        \stackop{3}{+}{1 2 ~}{3 ~}
+      \end{column}
+    \end{columns}
+  \end{example}
+\end{frame}
+
+\section{Compiler}
+
+\subsection{Structure}
+
+\begin{frame}{Organization}
+  Non-optimizing base compiler
+  \begin{itemize}
+    \item VM written in C++
+    \item Responsible for basic runtime services
+    \begin{itemize}
+      \item Garbage collection
+      \item Method dispatch
+      \item Polymorphic inline caches
+      \item \ldots
+    \end{itemize}
+    \item Single pass---outputs assembly stubs for primitives
+  \end{itemize}
+
+  \alert{Optimizing compiler}
+  \begin{itemize}
+    \item Written in Factor code
+    \begin{itemize}
+      \item Possible by \emph{bootstrapping}
+    \end{itemize}
+    \item Optimizes in passes across two \alert{intermediate representations}
+    (IRs)
+    \begin{itemize}
+      \item High-level IR (\texttt{compiler.tree})
+      \item Low-level IR (\texttt{compiler.cfg})
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{High-level IR}
+  \begin{itemize}
+    \item Tree of \texttt{node} objects
+    \item Very simple virtual instruction set
+    \begin{itemize}
+      \item \texttt{\#introduce}, \texttt{\#return}
+      \item \texttt{\#push} \& \texttt{\#call}
+      \item \texttt{\#renaming}---\texttt{\#copy} \& \texttt{\#shuffle}
+      \item \texttt{\#declare} \& \texttt{\#terminate}
+      \item \texttt{\#branch}---\texttt{\#if} \& \texttt{\#dispatch}
+      \item \texttt{\#phi}
+      \item \texttt{\#recursive}, \texttt{\#enter-recursive},
+            \texttt{\#call-recursive}, \texttt{\#return-recursive}
+      \item \texttt{\#alien-node}, \texttt{\#alien-invoke},
+            \texttt{\#alien-indirect}, \texttt{\#alien-assembly},
+            \texttt{\#alien-callback}
+    \end{itemize}
+    \item Input/output values of stack given unique names
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{High-level IR}{\texttt{1~2~+}}
+  \begin{example}
+    \begin{verbatim}
+V{
+    T{ #push { literal 1 } { out-d { 6256273 } } }
+    T{ #push { literal 2 } { out-d { 6256274 } } }
+    T{ #call
+        { word + }
+        { in-d V{ 6256274 6256273 } }
+        { out-d { 6256275 } }
+    }
+    T{ #return { in-d V{ 6256275 } } }
+}
+    \end{verbatim}
+  \end{example}
+\end{frame}
+
+\begin{frame}{Low-level IR}
+  \begin{itemize}
+    \item Control flow graph (CFG)
+    \begin{itemize}
+      \item Basic blocks = maximal sequence of ``straight-line'' code
+      \item Directed edges = transfer of control flow
+    \end{itemize}
+    \item \texttt{insn} objects modeled closely after assembly-like
+          instructions
+    \item \alert{Static single assignment} (SSA) form
+  \end{itemize}
+\end{frame}
+
+\subsection{Optimizations}
+
+\section{Value Numbering}
+
+\section{Results}
+
+\end{document}

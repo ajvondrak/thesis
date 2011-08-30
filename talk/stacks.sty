@@ -1,0 +1,50 @@
+% Illustrating stack operations
+
+\usepackage{amsmath}
+
+%-------------------------------------------------------------------------------
+\makeatletter
+%-------------------------------------------------------------------------------
+
+\newcommand{\dostack}[1]{ {\huge \ensuremath{\xrightarrow{~\texttt{#1}~}}} }
+
+\def\bottom{.}
+
+\newcounter{stacksize}
+
+\newcommand{\stackop}[4]{
+  \stack{#1}{#3}
+  {\huge \ensuremath{\xrightarrow{~\texttt{#2}~}}}
+  \stack{#1}{#4}
+}
+
+\newcommand{\stack}[2]{
+  \setcounter{stacksize}{#1}
+  {\huge
+    \begin{tabular}{|p{0.5em}|}
+      \@stackify {} #2 . % using \bottom here errors for some reason
+    \end{tabular}
+  }
+}
+
+\def\@stackify#1 #2 #3{
+  \def\tmp{#3}
+  \addtocounter{stacksize}{-1}
+  \ifx\tmp\bottom
+    \def\next{\@emptyrest{#2\\\hline#1}}
+  \else
+    \def\next{\@stackify{#2\\\hline#1} {#3}}
+  \fi
+  \next}
+
+\newcommand{\@emptyrest}[1]{
+  \ifnum\value{stacksize}>0
+    \addtocounter{stacksize}{-1}
+    \@emptyrest{\\#1}
+  \else
+    #1
+  \fi}
+
+%-------------------------------------------------------------------------------
+\makeatother
+%-------------------------------------------------------------------------------
