@@ -155,7 +155,7 @@ The idea is to change
 %
 \noindent since \Verb|##neg| undoes itself.  But \Verb|rewrite| only has
 knowledge of one instruction at a time, so it looks up the redundant
-\Verb|##neg|'s source register in the \Verb|vregs>insns| table to see if
+\Verb|##neg|'s source register in the \Verb|vns>insns| table to see if
 it's computed by another \Verb|##neg| instruction.  For straight-line code this
 is alright, but the source of the originating \Verb|##neg| (in the example, the
 virtual register \Verb|2|) isn't necessarily available.  So, we have to use
