@@ -274,6 +274,44 @@ y$_{~}$ := x$_2$ + 1
 
 \section{Value Numbering}
 
+\begin{frame}{Value Numbering}
+  Idea: assign each variable a \alert{value number}
+  \begin{itemize}
+    \item Equal value numbers $\implies$ equal at runtime
+    \item Turn recomputations into \texttt{\#\#copy} instructions, saving time
+  \end{itemize}
+
+  General problem is undecidable
+  \begin{itemize}
+    \item Seek \alert{conservative} solution
+    \item Discover \emph{Herbrand equivalences}
+    \item Consider two values \alert{congruent} if
+    \begin{itemize}
+      \item They're computed by the same operator
+      \item Their operands are congruent
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\subsection{Local Value Numbering}
+
+\begin{frame}{Local Value Numbering}
+  \begin{itemize}
+    \item Thought to be invented by Balke in the 1960s
+    \item Largely credited to Cocke \& Schwartz in the 1970s
+    \item Current implementation Factor uses
+  \end{itemize}
+
+  \begin{itemize}
+    \item[Pro:] Easy to understand, implement, and extend
+
+    \item[Con:] Is \alert{local} and \alert{pessimistic}, discovering fewer
+    congruences
+  \end{itemize}
+\end{frame}
+
+\subsection{Global Value Numbering}
+
 \section{Results}
 
 \end{document}
