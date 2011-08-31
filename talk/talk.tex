@@ -27,6 +27,9 @@
   \includegraphics[#1]{#2.pdf}%
 }
 
+\newcommand{\vn}[1]{\ensuremath{\langle\texttt{#1}\rangle}}
+\newcommand{\vreg}[1]{\texttt{#1}}
+
 \mode<presentation>{
   \usetheme{CambridgeUS}
   \useoutertheme{infolines}
@@ -679,6 +682,261 @@ exprs>vns = H{ {  1 35 } { { ##add-imm 29 1 } 36 } ... }
 \end{frame}
 
 \subsection{Global Value Numbering}
+
+\begin{frame}[fragile]{Same Example, Global Algorithm}
+  Changes I made:
+  \begin{itemize}
+    \item \alert{Global}---don't wipe out hash tables after each block
+    \item \alert{Optimistic}---previously unseen values considered redundant
+    \item \alert{Fixed point} iteration---optimism may be wrong first time
+          around
+    \item \alert{Offline} replacements---only on final pass
+  \end{itemize}
+  \begin{definition}[Notation]
+    \begin{align*}
+      \vn{n} &= \{\vreg{x}, \vreg{y}, \vreg{z}\} \tag{\texttt{expr}}
+    \end{align*}
+    versus
+    \begin{center}
+    \begin{minipage}{0.5\linewidth}
+    \begin{Verbatim}
+vregs>vns = H{ { x n } { y n } { z n } }
+exprs>vns = H{ { expr n } }
+    \end{Verbatim}
+    \end{minipage}
+    \end{center}
+  \end{definition}
+\end{frame}
+
+\begin{frame}[fragile]{Global Value Numbering}{Iteration 1, Basic Block 1}
+  \footnotesize
+  \begin{columns}[t,onlytextwidth]
+    \begin{column}[t]{.5\textwidth}
+      \begin{Verbatim}[frame=single]
+##inc-d 3
+##load-integer 21 0
+##load-integer 22 100
+##load-integer 23 0
+##copy 24 22 any-rep
+##copy 25 21 any-rep
+##copy 26 24 any-rep
+##copy 27 23 any-rep
+##branch
+      \end{Verbatim}
+    \end{column}
+    \begin{column}{.5\textwidth}
+      \begin{onlyenv}<1>
+        \begin{align*}
+          \vn{\textbf{f}} &= U \tag{everything} \\
+        \end{align*}
+      \end{onlyenv}
+      \begin{onlyenv}<2>
+        \begin{align*}
+          \vn{21} &= \{\vreg{21}\} \tag{\texttt{0}} \\
+        \end{align*}
+      \end{onlyenv}
+      \begin{onlyenv}<3>
+        \begin{align*}
+          \vn{21} &= \{\vreg{21}\} \tag{\texttt{0}}   \\
+          \vn{22} &= \{\vreg{22}\} \tag{\texttt{100}} \\
+        \end{align*}
+      \end{onlyenv}
+      \begin{onlyenv}<4>
+        \begin{align*}
+          \vn{21} &= \{\vreg{21},\vreg{23}\} \tag{\texttt{0}}   \\
+          \vn{22} &= \{\vreg{22}\}           \tag{\texttt{100}} \\
+        \end{align*}
+      \end{onlyenv}
+      \begin{onlyenv}<5>
+        \begin{align*}
+          \vn{21} &= \{\vreg{21}, \vreg{23}, \vreg{25}, \vreg{27}\} \tag{\texttt{0}}   \\
+          \vn{22} &= \{\vreg{22}, \vreg{24}, \vreg{26}\}            \tag{\texttt{100}} \\
+        \end{align*}
+      \end{onlyenv}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}[fragile]{Global Value Numbering}{Iteration 1, Basic Block 2}
+  \footnotesize
+  \begin{columns}[t,onlytextwidth]
+    \begin{column}[t]{.5\textwidth}
+      \begin{Verbatim}[frame=single]
+##phi 29 H{ { 1 25 } { 3 41 } }
+##phi 30 H{ { 1 27 } { 3 42 } }
+##compare-integer 31 30 26 cc< 9
+##copy 32 31 any-rep
+##copy 33 26 any-rep
+##copy 34 31 any-rep
+##compare-imm-branch 32 f cc/=
+      \end{Verbatim}
+    \end{column}
+    \begin{column}{.5\textwidth}
+      \begin{onlyenv}<1>
+        \begin{align*}
+          \vn{21} &= \{\vreg{21}, \vreg{23}, \vreg{25}, \vreg{27}\} \tag{\texttt{0}}   \\
+          \vn{22} &= \{\vreg{22}, \vreg{24}, \vreg{26}\}            \tag{\texttt{100}} \\
+        \end{align*}
+      \end{onlyenv}
+      \begin{onlyenv}<2>
+        \begin{align*}
+          \vn{21} &= \{\vreg{21}, \vreg{23}, \vreg{25}, \vreg{27}, \vreg{29}\} \tag{\texttt{0}}   \\
+          \vn{22} &= \{\vreg{22}, \vreg{24}, \vreg{26}\}            \tag{\texttt{100}} \\
+        \end{align*}
+      \end{onlyenv}
+      \begin{onlyenv}<3>
+        \begin{align*}
+          \vn{21} &= \{\vreg{21}, \vreg{23}, \vreg{25}, \vreg{27}, \vreg{29}, \vreg{30}\} \tag{\texttt{0}}   \\
+          \vn{22} &= \{\vreg{22}, \vreg{24}, \vreg{26}\}            \tag{\texttt{100}} \\
+        \end{align*}
+      \end{onlyenv}
+      \begin{onlyenv}<4>
+        \begin{align*}
+          \vn{21} &= \{\vreg{21}, \vreg{23}, \vreg{25}, \vreg{27}, \vreg{29}, \vreg{30}\} \tag{\texttt{0}}   \\
+          \vn{22} &= \{\vreg{22}, \vreg{24}, \vreg{26}\}            \tag{\texttt{100}} \\
+          \vn{31} &= \{\vreg{31}\}                                  \tag{\texttt{\textbf{t}}} \\
+        \end{align*}
+      \end{onlyenv}
+      \begin{onlyenv}<5>
+        \begin{align*}
+          \vn{21} &= \{\vreg{21},
+                       \vreg{23},
+                       \vreg{25},
+                       \vreg{27},
+                       \vreg{29},
+                       \vreg{30}\} \tag{\texttt{0}} \\
+          \vn{22} &= \{\vreg{22},
+                       \vreg{24},
+                       \vreg{26},
+                       \vreg{33}\} \tag{\texttt{100}} \\
+          \vn{31} &= \{\vreg{31},
+                       \vreg{32},
+                       \vreg{34}\} \tag{\text{\factor|t|}}
+        \end{align*}
+      \end{onlyenv}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}[fragile]{Global Value Numbering}{Iteration 1, Basic Block 3}
+  \footnotesize
+  \begin{columns}[t,onlytextwidth]
+    \begin{column}[t]{.5\textwidth}
+      \begin{Verbatim}[frame=single]
+##load-integer 35 1
+##add 36 29 35
+##load-integer 37 1
+##add 38 30 37
+##copy 39 30 any-rep
+##copy 40 26 any-rep
+##copy 41 36 any-rep
+##copy 42 38 any-rep
+##branch
+      \end{Verbatim}
+    \end{column}
+    \begin{column}{.5\textwidth}
+      \begin{onlyenv}<1>
+        \begin{align*}
+          \vn{21} &= \{\vreg{21},
+                       \vreg{23},
+                       \vreg{25},
+                       \vreg{27},
+                       \vreg{29},
+                       \vreg{30}\} \tag{\texttt{0}} \\
+          \vn{22} &= \{\vreg{22},
+                       \vreg{24},
+                       \vreg{26},
+                       \vreg{33}\} \tag{\texttt{100}} \\
+          \vn{31} &= \{\vreg{31},
+                       \vreg{32},
+                       \vreg{34}\} \tag{\text{\factor|t|}}
+        \end{align*}
+      \end{onlyenv}
+      \begin{onlyenv}<2>
+        \begin{align*}
+          \vn{21} &= \{\vreg{21},
+                       \vreg{23},
+                       \vreg{25},
+                       \vreg{27},
+                       \vreg{29},
+                       \vreg{30}\} \tag{\texttt{0}} \\
+          \vn{22} &= \{\vreg{22},
+                       \vreg{24},
+                       \vreg{26},
+                       \vreg{33}\} \tag{\texttt{100}} \\
+          \vn{31} &= \{\vreg{31},
+                       \vreg{32},
+                       \vreg{34}\} \tag{\text{\factor|t|}} \\
+          \vn{35} &= \{\vreg{35}\} \tag{\texttt{1}}
+        \end{align*}
+      \end{onlyenv}
+      \begin{onlyenv}<3>
+        \begin{align*}
+          \vn{21} &= \{\vreg{21},
+                       \vreg{23},
+                       \vreg{25},
+                       \vreg{27},
+                       \vreg{29},
+                       \vreg{30}\} \tag{\texttt{0}} \\
+          \vn{22} &= \{\vreg{22},
+                       \vreg{24},
+                       \vreg{26},
+                       \vreg{33}\} \tag{\texttt{100}} \\
+          \vn{31} &= \{\vreg{31},
+                       \vreg{32},
+                       \vreg{34}\} \tag{\text{\factor|t|}} \\
+          \vn{35} &= \{\vreg{35},
+                       \vreg{36}\} \tag{\texttt{1}}
+        \end{align*}
+      \end{onlyenv}
+      \begin{onlyenv}<4>
+        \begin{align*}
+          \vn{21} &= \{\vreg{21},
+                       \vreg{23},
+                       \vreg{25},
+                       \vreg{27},
+                       \vreg{29},
+                       \vreg{30}\} \tag{\texttt{0}} \\
+          \vn{22} &= \{\vreg{22},
+                       \vreg{24},
+                       \vreg{26},
+                       \vreg{33}\} \tag{\texttt{100}} \\
+          \vn{31} &= \{\vreg{31},
+                       \vreg{32},
+                       \vreg{34}\} \tag{\text{\factor|t|}} \\
+          \vn{35} &= \{\vreg{35},
+                       \vreg{36},
+                       \vreg{37}\} \tag{\texttt{1}}
+        \end{align*}
+      \end{onlyenv}
+      \begin{onlyenv}<5>
+        \begin{align*}
+          \vn{21} &= \{\vreg{21},
+                       \vreg{23},
+                       \vreg{25},
+                       \vreg{27},
+                       \vreg{29},
+                       \vreg{30},
+                       \vreg{39}\} \tag{\texttt{0}} \\
+          \vn{22} &= \{\vreg{22},
+                       \vreg{24},
+                       \vreg{26},
+                       \vreg{33},
+                       \vreg{40}\} \tag{\texttt{100}} \\
+          \vn{31} &= \{\vreg{31},
+                       \vreg{32},
+                       \vreg{34}\} \tag{\text{\factor|t|}} \\
+          \vn{35} &= \{\vreg{35},
+                       \vreg{36},
+                       \vreg{37},
+                       \vreg{38},
+                       \vreg{41},
+                       \vreg{42}\} \tag{\texttt{1}}
+        \end{align*}
+      \end{onlyenv}
+    \end{column}
+  \end{columns}
+\end{frame}
 
 \section{Results}
 
