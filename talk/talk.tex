@@ -938,6 +938,351 @@ exprs>vns = H{ { expr n } }
   \end{columns}
 \end{frame}
 
+\begin{frame}[fragile]{Global Value Numbering}{Iteration 2, Basic Block 1}
+  \footnotesize
+  \begin{columns}[t,onlytextwidth]
+    \begin{column}[t]{.5\textwidth}
+      \begin{Verbatim}[frame=single]
+##inc-d 3
+##load-integer 21 0
+##load-integer 22 100
+##load-integer 23 0
+##copy 24 22 any-rep
+##copy 25 21 any-rep
+##copy 26 24 any-rep
+##copy 27 23 any-rep
+##branch
+      \end{Verbatim}
+    \end{column}
+    \begin{column}{.5\textwidth}
+      \begin{onlyenv}<1>
+        \begin{align*}
+          \vn{21} &= \{\vreg{21},
+                       \vreg{23},
+                       \vreg{25},
+                       \vreg{27},
+                       \vreg{29},
+                       \vreg{30},
+                       \vreg{39}\} \tag{---} \\
+          \vn{22} &= \{\vreg{22},
+                       \vreg{24},
+                       \vreg{26},
+                       \vreg{33},
+                       \vreg{40}\} \tag{---} \\
+          \vn{31} &= \{\vreg{31},
+                       \vreg{32},
+                       \vreg{34}\} \tag{---} \\
+          \vn{35} &= \{\vreg{35},
+                       \vreg{36},
+                       \vreg{37},
+                       \vreg{38},
+                       \vreg{41},
+                       \vreg{42}\} \tag{---}
+        \end{align*}
+      \end{onlyenv}
+      \begin{onlyenv}<2>
+        \begin{align*}
+          \vn{21} &= \{\vreg{21},
+                       \vreg{23},
+                       \vreg{25},
+                       \vreg{27},
+                       \vreg{29},
+                       \vreg{30},
+                       \vreg{39}\} \tag{\texttt{0}} \\
+          \vn{22} &= \{\vreg{22},
+                       \vreg{24},
+                       \vreg{26},
+                       \vreg{33},
+                       \vreg{40}\} \tag{\texttt{100}} \\
+          \vn{31} &= \{\vreg{31},
+                       \vreg{32},
+                       \vreg{34}\} \tag{---} \\
+          \vn{35} &= \{\vreg{35},
+                       \vreg{36},
+                       \vreg{37},
+                       \vreg{38},
+                       \vreg{41},
+                       \vreg{42}\} \tag{---}
+        \end{align*}
+      \end{onlyenv}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}[fragile]{Global Value Numbering}{Iteration 2, Basic Block 2}
+  \footnotesize
+  \begin{columns}[t,onlytextwidth]
+    \begin{column}[t]{.5\textwidth}
+      \begin{Verbatim}[frame=single]
+##phi 29 H{ { 1 25 } { 3 41 } }
+##phi 30 H{ { 1 27 } { 3 42 } }
+##compare-integer 31 30 26 cc< 9
+##copy 32 31 any-rep
+##copy 33 26 any-rep
+##copy 34 31 any-rep
+##compare-imm-branch 32 f cc/=
+      \end{Verbatim}
+    \end{column}
+    \begin{column}{.5\textwidth}
+      \begin{onlyenv}<1>
+        \begin{align*}
+          \vn{21} &= \{\vreg{21},
+                       \vreg{23},
+                       \vreg{25},
+                       \vreg{27},
+                       \vreg{29},
+                       \vreg{30},
+                       \vreg{39}\} \tag{\texttt{0}} \\
+          \vn{22} &= \{\vreg{22},
+                       \vreg{24},
+                       \vreg{26},
+                       \vreg{33},
+                       \vreg{40}\} \tag{\texttt{100}} \\
+          \vn{31} &= \{\vreg{31},
+                       \vreg{32},
+                       \vreg{34}\} \tag{---} \\
+          \vn{35} &= \{\vreg{35},
+                       \vreg{36},
+                       \vreg{37},
+                       \vreg{38},
+                       \vreg{41},
+                       \vreg{42}\} \tag{---}
+        \end{align*}
+      \end{onlyenv}
+      \begin{onlyenv}<2>
+        \begin{align*}
+          \vn{21} &= \{\vreg{21},
+                       \vreg{23},
+                       \vreg{25},
+                       \vreg{27},
+                       \vreg{30},
+                       \vreg{39}\} \tag{\texttt{0}} \\
+          \vn{22} &= \{\vreg{22},
+                       \vreg{24},
+                       \vreg{26},
+                       \vreg{33},
+                       \vreg{40}\} \tag{\texttt{100}} \\
+          \vn{29} &= \{\vreg{29}\} \tag{\texttt{\#\#phi 2 21 35}} \\
+          \vn{31} &= \{\vreg{31},
+                       \vreg{32},
+                       \vreg{34}\} \tag{---} \\
+          \vn{35} &= \{\vreg{35},
+                       \vreg{36},
+                       \vreg{37},
+                       \vreg{38},
+                       \vreg{41},
+                       \vreg{42}\} \tag{---}
+        \end{align*}
+      \end{onlyenv}
+      \begin{onlyenv}<3>
+        \begin{align*}
+          \vn{21} &= \{\vreg{21},
+                       \vreg{23},
+                       \vreg{25},
+                       \vreg{27},
+                       \vreg{39}\} \tag{\texttt{0}} \\
+          \vn{22} &= \{\vreg{22},
+                       \vreg{24},
+                       \vreg{26},
+                       \vreg{33},
+                       \vreg{40}\} \tag{\texttt{100}} \\
+          \vn{29} &= \{\vreg{29},
+                       \vreg{30}\} \tag{\texttt{\#\#phi 2 21 35}} \\
+          \vn{31} &= \{\vreg{31},
+                       \vreg{32},
+                       \vreg{34}\} \tag{---} \\
+          \vn{35} &= \{\vreg{35},
+                       \vreg{36},
+                       \vreg{37},
+                       \vreg{38},
+                       \vreg{41},
+                       \vreg{42}\} \tag{---}
+        \end{align*}
+      \end{onlyenv}
+      \begin{onlyenv}<4>
+        \begin{align*}
+          \vn{21} &= \{\vreg{21},
+                       \vreg{23},
+                       \vreg{25},
+                       \vreg{27},
+                       \vreg{39}\} \tag{\texttt{0}} \\
+          \vn{22} &= \{\vreg{22},
+                       \vreg{24},
+                       \vreg{26},
+                       \vreg{33},
+                       \vreg{40}\} \tag{\texttt{100}} \\
+          \vn{29} &= \{\vreg{29},
+                       \vreg{30}\} \tag{\texttt{\#\#phi 2 21 35}} \\
+          \vn{31} &= \{\vreg{31},
+                       \vreg{32},
+                       \vreg{34}\} \tag{\texttt{\#\#compare-integer-imm 29 100 cc<}} \\
+          \vn{35} &= \{\vreg{35},
+                       \vreg{36},
+                       \vreg{37},
+                       \vreg{38},
+                       \vreg{41},
+                       \vreg{42}\} \tag{---}
+        \end{align*}
+      \end{onlyenv}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}[fragile]{Global Value Numbering}{Iteration 2, Basic Block 3}
+  \footnotesize
+  \begin{columns}[t,onlytextwidth]
+    \begin{column}[t]{.5\textwidth}
+      \begin{Verbatim}[frame=single]
+##load-integer 35 1
+##add 36 29 35
+##load-integer 37 1
+##add 38 30 37
+##copy 39 30 any-rep
+##copy 40 26 any-rep
+##copy 41 36 any-rep
+##copy 42 38 any-rep
+##branch
+      \end{Verbatim}
+    \end{column}
+    \begin{column}{.5\textwidth}
+      \begin{onlyenv}<1>
+        \begin{align*}
+          \vn{21} &= \{\vreg{21},
+                       \vreg{23},
+                       \vreg{25},
+                       \vreg{27},
+                       \vreg{39}\} \tag{\texttt{0}} \\
+          \vn{22} &= \{\vreg{22},
+                       \vreg{24},
+                       \vreg{26},
+                       \vreg{33},
+                       \vreg{40}\} \tag{\texttt{100}} \\
+          \vn{29} &= \{\vreg{29},
+                       \vreg{30}\} \tag{\texttt{\#\#phi 2 21 35}} \\
+          \vn{31} &= \{\vreg{31},
+                       \vreg{32},
+                       \vreg{34}\} \tag{\texttt{\#\#compare-integer-imm 29 100 cc<}} \\
+          \vn{35} &= \{\vreg{35},
+                       \vreg{36},
+                       \vreg{37},
+                       \vreg{38},
+                       \vreg{41},
+                       \vreg{42}\} \tag{---}
+        \end{align*}
+      \end{onlyenv}
+      \begin{onlyenv}<2>
+        \begin{align*}
+          \vn{21} &= \{\vreg{21},
+                       \vreg{23},
+                       \vreg{25},
+                       \vreg{27},
+                       \vreg{39}\} \tag{\texttt{0}} \\
+          \vn{22} &= \{\vreg{22},
+                       \vreg{24},
+                       \vreg{26},
+                       \vreg{33},
+                       \vreg{40}\} \tag{\texttt{100}} \\
+          \vn{29} &= \{\vreg{29},
+                       \vreg{30}\} \tag{\texttt{\#\#phi 2 21 35}} \\
+          \vn{31} &= \{\vreg{31},
+                       \vreg{32},
+                       \vreg{34}\} \tag{\texttt{\#\#compare-integer-imm 29 100 cc<}} \\
+          \vn{35} &= \{\vreg{35},
+                       \vreg{36},
+                       \vreg{37},
+                       \vreg{38},
+                       \vreg{41},
+                       \vreg{42}\} \tag{\texttt{1}}
+        \end{align*}
+      \end{onlyenv}
+      \begin{onlyenv}<3>
+        \begin{align*}
+          \vn{21} &= \{\vreg{21},
+                       \vreg{23},
+                       \vreg{25},
+                       \vreg{27},
+                       \vreg{39}\} \tag{\texttt{0}} \\
+          \vn{22} &= \{\vreg{22},
+                       \vreg{24},
+                       \vreg{26},
+                       \vreg{33},
+                       \vreg{40}\} \tag{\texttt{100}} \\
+          \vn{29} &= \{\vreg{29},
+                       \vreg{30}\} \tag{\texttt{\#\#phi 2 21 35}} \\
+          \vn{31} &= \{\vreg{31},
+                       \vreg{32},
+                       \vreg{34}\} \tag{\texttt{\#\#compare-integer-imm 29 100 cc<}} \\
+          \vn{35} &= \{\vreg{35},
+                       \vreg{37},
+                       \vreg{38},
+                       \vreg{41},
+                       \vreg{42}\} \tag{\texttt{1}} \\
+          \vn{36} &= \{\vreg{36}\} \tag{\texttt{\#\#add-imm 29 1}}
+        \end{align*}
+      \end{onlyenv}
+      \begin{onlyenv}<4>
+        \begin{align*}
+          \vn{21} &= \{\vreg{21},
+                       \vreg{23},
+                       \vreg{25},
+                       \vreg{27}\} \tag{\texttt{0}} \\
+          \vn{22} &= \{\vreg{22},
+                       \vreg{24},
+                       \vreg{26},
+                       \vreg{33},
+                       \vreg{40}\} \tag{\texttt{100}} \\
+          \vn{29} &= \{\vreg{29},
+                       \vreg{30},
+                       \vreg{39}\} \tag{\texttt{\#\#phi 2 21 35}} \\
+          \vn{31} &= \{\vreg{31},
+                       \vreg{32},
+                       \vreg{34}\} \tag{\texttt{\#\#compare-integer-imm 29 100 cc<}} \\
+          \vn{35} &= \{\vreg{35},
+                       \vreg{37}\} \tag{\texttt{1}} \\
+          \vn{36} &= \{\vreg{36},
+                       \vreg{38},
+                       \vreg{41},
+                       \vreg{42}\} \tag{\texttt{\#\#add-imm 29 1}}
+        \end{align*}
+      \end{onlyenv}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Global Value Numbering}{Iteration 3}
+No value numbers change, only the expressions:
+\begin{align*}
+  \vn{21} &= \{\vreg{21},
+               \vreg{23},
+               \vreg{25},
+               \vreg{27}\} \tag{\texttt{0}} \\
+  \vn{22} &= \{\vreg{22},
+               \vreg{24},
+               \vreg{26},
+               \vreg{33},
+               \vreg{40}\} \tag{\texttt{100}} \\
+  \vn{29} &= \{\vreg{29},
+               \vreg{30},
+               \vreg{39}\} \tag{\texttt{\#\#phi 2 21 \alert{36}}} \\
+  \vn{31} &= \{\vreg{31},
+               \vreg{32},
+               \vreg{34}\} \tag{\texttt{\#\#compare-integer-imm 29 100 cc<}} \\
+  \vn{35} &= \{\vreg{35},
+               \vreg{37}\} \tag{\texttt{1}} \\
+  \vn{36} &= \{\vreg{36},
+               \vreg{38},
+               \vreg{41},
+               \vreg{42}\} \tag{\texttt{\#\#add-imm 29 1}}
+\end{align*}
+Final pass simplifies instructions based on this information
+\end{frame}
+
+\begin{frame}{Global Value Numbering Results}
+  \begin{center}
+    \includesvg[scale=0.5]{/home/alex/thesis/examples/gvn/11-finalize-cfg}
+  \end{center}
+\end{frame}
+
 \section{Results}
 
 \end{document}
