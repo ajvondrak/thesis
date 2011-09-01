@@ -804,25 +804,25 @@ exprs>vns = H{ { expr n } }
       \end{onlyenv}
       \begin{onlyenv}<2>
         \begin{align*}
-          \vn{21} &= \{\vreg{21}\} \tag{\texttt{0}} \\
+          \alert{\vn{21}} &= \alert{\{\vreg{21}\}} \tag{\alert{\texttt{0}}} \\
         \end{align*}
       \end{onlyenv}
       \begin{onlyenv}<3>
         \begin{align*}
           \vn{21} &= \{\vreg{21}\} \tag{\texttt{0}}   \\
-          \vn{22} &= \{\vreg{22}\} \tag{\texttt{100}} \\
+          \alert{\vn{22}} &= \alert{\{\vreg{22}\}} \tag{\alert{\texttt{100}}} \\
         \end{align*}
       \end{onlyenv}
       \begin{onlyenv}<4>
         \begin{align*}
-          \vn{21} &= \{\vreg{21},\vreg{23}\} \tag{\texttt{0}}   \\
+          \vn{21} &= \{\vreg{21},\alert{\vreg{23}}\} \tag{\texttt{0}}   \\
           \vn{22} &= \{\vreg{22}\}           \tag{\texttt{100}} \\
         \end{align*}
       \end{onlyenv}
       \begin{onlyenv}<5>
         \begin{align*}
-          \vn{21} &= \{\vreg{21}, \vreg{23}, \vreg{25}, \vreg{27}\} \tag{\texttt{0}}   \\
-          \vn{22} &= \{\vreg{22}, \vreg{24}, \vreg{26}\}            \tag{\texttt{100}} \\
+          \vn{21} &= \{\vreg{21}, \vreg{23}, \alert{\vreg{25}}, \alert{\vreg{27}}\} \tag{\texttt{0}}   \\
+          \vn{22} &= \{\vreg{22}, \alert{\vreg{24}}, \alert{\vreg{26}}\}            \tag{\texttt{100}} \\
         \end{align*}
       \end{onlyenv}
     \end{column}
@@ -898,13 +898,13 @@ exprs>vns = H{ { expr n } }
       \end{onlyenv}
       \begin{onlyenv}<2>
         \begin{align*}
-          \vn{21} &= \{\vreg{21}, \vreg{23}, \vreg{25}, \vreg{27}, \vreg{29}\} \tag{\texttt{0}}   \\
+          \vn{21} &= \{\vreg{21}, \vreg{23}, \vreg{25}, \vreg{27}, \alert{\vreg{29}}\} \tag{\texttt{0}}   \\
           \vn{22} &= \{\vreg{22}, \vreg{24}, \vreg{26}\}            \tag{\texttt{100}} \\
         \end{align*}
       \end{onlyenv}
       \begin{onlyenv}<3>
         \begin{align*}
-          \vn{21} &= \{\vreg{21}, \vreg{23}, \vreg{25}, \vreg{27}, \vreg{29}, \vreg{30}\} \tag{\texttt{0}}   \\
+          \vn{21} &= \{\vreg{21}, \vreg{23}, \vreg{25}, \vreg{27}, \vreg{29}, \alert{\vreg{30}}\} \tag{\texttt{0}}   \\
           \vn{22} &= \{\vreg{22}, \vreg{24}, \vreg{26}\}            \tag{\texttt{100}} \\
         \end{align*}
       \end{onlyenv}
@@ -912,7 +912,7 @@ exprs>vns = H{ { expr n } }
         \begin{align*}
           \vn{21} &= \{\vreg{21}, \vreg{23}, \vreg{25}, \vreg{27}, \vreg{29}, \vreg{30}\} \tag{\texttt{0}}   \\
           \vn{22} &= \{\vreg{22}, \vreg{24}, \vreg{26}\}            \tag{\texttt{100}} \\
-          \vn{31} &= \{\vreg{31}\}                                  \tag{\texttt{\textbf{t}}} \\
+          \alert{\vn{31}} &= \alert{\{\vreg{31}\}}                                  \tag{\alert{\texttt{\textbf{t}}}} \\
         \end{align*}
       \end{onlyenv}
       \begin{onlyenv}<5>
@@ -926,10 +926,10 @@ exprs>vns = H{ { expr n } }
           \vn{22} &= \{\vreg{22},
                        \vreg{24},
                        \vreg{26},
-                       \vreg{33}\} \tag{\texttt{100}} \\
+                       \alert{\vreg{33}}\} \tag{\texttt{100}} \\
           \vn{31} &= \{\vreg{31},
-                       \vreg{32},
-                       \vreg{34}\} \tag{\texttt{\textbf{t}}}
+                       \alert{\vreg{32}},
+                       \alert{\vreg{34}}\} \tag{\texttt{\textbf{t}}}
         \end{align*}
       \end{onlyenv}
     \end{column}
@@ -1052,7 +1052,7 @@ exprs>vns = H{ { expr n } }
           \vn{31} &= \{\vreg{31},
                        \vreg{32},
                        \vreg{34}\} \tag{\texttt{\textbf{t}}} \\
-          \vn{35} &= \{\vreg{35}\} \tag{\texttt{1}}
+          \alert{\vn{35}} &= \alert{\{\vreg{35}\}} \tag{\alert{\texttt{1}}}
         \end{align*}
       \end{onlyenv}
       \begin{onlyenv}<3>
@@ -1071,7 +1071,7 @@ exprs>vns = H{ { expr n } }
                        \vreg{32},
                        \vreg{34}\} \tag{\texttt{\textbf{t}}} \\
           \vn{35} &= \{\vreg{35},
-                       \vreg{36}\} \tag{\texttt{1}}
+                       \alert{\vreg{36}}\} \tag{\texttt{1}}
         \end{align*}
       \end{onlyenv}
       \begin{onlyenv}<4>
@@ -1091,7 +1091,7 @@ exprs>vns = H{ { expr n } }
                        \vreg{34}\} \tag{\texttt{\textbf{t}}} \\
           \vn{35} &= \{\vreg{35},
                        \vreg{36},
-                       \vreg{37}\} \tag{\texttt{1}}
+                       \alert{\vreg{37}}\} \tag{\texttt{1}}
         \end{align*}
       \end{onlyenv}
       \begin{onlyenv}<5>
@@ -1112,7 +1112,7 @@ exprs>vns = H{ { expr n } }
           \vn{35} &= \{\vreg{35},
                        \vreg{36},
                        \vreg{37},
-                       \vreg{38}\} \tag{\texttt{1}}
+                       \alert{\vreg{38}}\} \tag{\texttt{1}}
         \end{align*}
       \end{onlyenv}
       \begin{onlyenv}<6>
@@ -1123,12 +1123,12 @@ exprs>vns = H{ { expr n } }
                        \vreg{27},
                        \vreg{29},
                        \vreg{30},
-                       \vreg{39}\} \tag{\texttt{0}} \\
+                       \alert{\vreg{39}}\} \tag{\texttt{0}} \\
           \vn{22} &= \{\vreg{22},
                        \vreg{24},
                        \vreg{26},
                        \vreg{33},
-                       \vreg{40}\} \tag{\texttt{100}} \\
+                       \alert{\vreg{40}}\} \tag{\texttt{100}} \\
           \vn{31} &= \{\vreg{31},
                        \vreg{32},
                        \vreg{34}\} \tag{\texttt{\textbf{t}}} \\
@@ -1136,8 +1136,8 @@ exprs>vns = H{ { expr n } }
                        \vreg{36},
                        \vreg{37},
                        \vreg{38},
-                       \vreg{41},
-                       \vreg{42}\} \tag{\texttt{1}}
+                       \alert{\vreg{41}},
+                       \alert{\vreg{42}}\} \tag{\texttt{1}}
         \end{align*}
       \end{onlyenv}
     \end{column}
@@ -1170,21 +1170,21 @@ exprs>vns = H{ { expr n } }
                        \vreg{27},
                        \vreg{29},
                        \vreg{30},
-                       \vreg{39}\} \tag{---} \\
+                       \vreg{39}\} \tag{\alert{---}} \\
           \vn{22} &= \{\vreg{22},
                        \vreg{24},
                        \vreg{26},
                        \vreg{33},
-                       \vreg{40}\} \tag{---} \\
+                       \vreg{40}\} \tag{\alert{---}} \\
           \vn{31} &= \{\vreg{31},
                        \vreg{32},
-                       \vreg{34}\} \tag{---} \\
+                       \vreg{34}\} \tag{\alert{---}} \\
           \vn{35} &= \{\vreg{35},
                        \vreg{36},
                        \vreg{37},
                        \vreg{38},
                        \vreg{41},
-                       \vreg{42}\} \tag{---}
+                       \vreg{42}\} \tag{\alert{---}}
         \end{align*}
       \end{onlyenv}
       \begin{onlyenv}<2>
@@ -1195,12 +1195,12 @@ exprs>vns = H{ { expr n } }
                        \vreg{27},
                        \vreg{29},
                        \vreg{30},
-                       \vreg{39}\} \tag{\texttt{0}} \\
+                       \vreg{39}\} \tag{\alert{\texttt{0}}} \\
           \vn{22} &= \{\vreg{22},
                        \vreg{24},
                        \vreg{26},
                        \vreg{33},
-                       \vreg{40}\} \tag{\texttt{100}} \\
+                       \vreg{40}\} \tag{\alert{\texttt{100}}} \\
           \vn{31} &= \{\vreg{31},
                        \vreg{32},
                        \vreg{34}\} \tag{---} \\
@@ -1304,7 +1304,7 @@ exprs>vns = H{ { expr n } }
                        \vreg{26},
                        \vreg{33},
                        \vreg{40}\} \tag{\texttt{100}} \\
-          \vn{29} &= \{\vreg{29}\} \tag{\texttt{\#\#phi 2 21 35}} \\
+          \alert{\vn{29}} &= \alert{\{\vreg{29}\}} \tag{\alert{\texttt{\#\#phi 2 21 35}}} \\
           \vn{31} &= \{\vreg{31},
                        \vreg{32},
                        \vreg{34}\} \tag{---} \\
@@ -1329,7 +1329,7 @@ exprs>vns = H{ { expr n } }
                        \vreg{33},
                        \vreg{40}\} \tag{\texttt{100}} \\
           \vn{29} &= \{\vreg{29},
-                       \vreg{30}\} \tag{\texttt{\#\#phi 2 21 35}} \\
+                       \alert{\vreg{30}}\} \tag{\texttt{\#\#phi 2 21 35}} \\
           \vn{31} &= \{\vreg{31},
                        \vreg{32},
                        \vreg{34}\} \tag{---} \\
@@ -1357,7 +1357,7 @@ exprs>vns = H{ { expr n } }
                        \vreg{30}\} \tag{\texttt{\#\#phi 2 21 35}} \\
           \vn{31} &= \{\vreg{31},
                        \vreg{32},
-                       \vreg{34}\} \tag{\texttt{\#\#compare-integer-imm 29 100 cc<}} \\
+                       \vreg{34}\} \tag{\alert{\texttt{cmp 29 100 cc<}}} \\
           \vn{35} &= \{\vreg{35},
                        \vreg{36},
                        \vreg{37},
@@ -1470,7 +1470,7 @@ exprs>vns = H{ { expr n } }
                        \vreg{30}\} \tag{\texttt{\#\#phi 2 21 35}} \\
           \vn{31} &= \{\vreg{31},
                        \vreg{32},
-                       \vreg{34}\} \tag{\texttt{\#\#compare-integer-imm 29 100 cc<}} \\
+                       \vreg{34}\} \tag{\texttt{cmp 29 100 cc<}} \\
           \vn{35} &= \{\vreg{35},
                        \vreg{36},
                        \vreg{37},
@@ -1495,13 +1495,13 @@ exprs>vns = H{ { expr n } }
                        \vreg{30}\} \tag{\texttt{\#\#phi 2 21 35}} \\
           \vn{31} &= \{\vreg{31},
                        \vreg{32},
-                       \vreg{34}\} \tag{\texttt{\#\#compare-integer-imm 29 100 cc<}} \\
+                       \vreg{34}\} \tag{\texttt{cmp 29 100 cc<}} \\
           \vn{35} &= \{\vreg{35},
                        \vreg{36},
                        \vreg{37},
                        \vreg{38},
                        \vreg{41},
-                       \vreg{42}\} \tag{\texttt{1}}
+                       \vreg{42}\} \tag{\alert{\texttt{1}}}
         \end{align*}
       \end{onlyenv}
       \begin{onlyenv}<3>
@@ -1520,13 +1520,13 @@ exprs>vns = H{ { expr n } }
                        \vreg{30}\} \tag{\texttt{\#\#phi 2 21 35}} \\
           \vn{31} &= \{\vreg{31},
                        \vreg{32},
-                       \vreg{34}\} \tag{\texttt{\#\#compare-integer-imm 29 100 cc<}} \\
+                       \vreg{34}\} \tag{\texttt{cmp 29 100 cc<}} \\
           \vn{35} &= \{\vreg{35},
                        \vreg{37},
                        \vreg{38},
                        \vreg{41},
                        \vreg{42}\} \tag{\texttt{1}} \\
-          \vn{36} &= \{\vreg{36}\} \tag{\texttt{\#\#add-imm 29 1}}
+          \alert{\vn{36}} &= \alert{\{\vreg{36}\}} \tag{\alert{\texttt{\#\#add-imm 29 1}}}
         \end{align*}
       \end{onlyenv}
       \begin{onlyenv}<4>
@@ -1545,7 +1545,7 @@ exprs>vns = H{ { expr n } }
                        \vreg{30}\} \tag{\texttt{\#\#phi 2 21 35}} \\
           \vn{31} &= \{\vreg{31},
                        \vreg{32},
-                       \vreg{34}\} \tag{\texttt{\#\#compare-integer-imm 29 100 cc<}} \\
+                       \vreg{34}\} \tag{\texttt{cmp 29 100 cc<}} \\
           \vn{35} &= \{\vreg{35},
                        \vreg{37},
                        \vreg{38},
@@ -1570,13 +1570,13 @@ exprs>vns = H{ { expr n } }
                        \vreg{30}\} \tag{\texttt{\#\#phi 2 21 35}} \\
           \vn{31} &= \{\vreg{31},
                        \vreg{32},
-                       \vreg{34}\} \tag{\texttt{\#\#compare-integer-imm 29 100 cc<}} \\
+                       \vreg{34}\} \tag{\texttt{cmp 29 100 cc<}} \\
           \vn{35} &= \{\vreg{35},
                        \vreg{37},
                        \vreg{41},
                        \vreg{42}\} \tag{\texttt{1}} \\
           \vn{36} &= \{\vreg{36},
-                       \vreg{38}\} \tag{\texttt{\#\#add-imm 29 1}}
+                       \alert{\vreg{38}}\} \tag{\texttt{\#\#add-imm 29 1}}
         \end{align*}
       \end{onlyenv}
       \begin{onlyenv}<6>
@@ -1592,16 +1592,16 @@ exprs>vns = H{ { expr n } }
                        \vreg{40}\} \tag{\texttt{100}} \\
           \vn{29} &= \{\vreg{29},
                        \vreg{30},
-                       \vreg{39}\} \tag{\texttt{\#\#phi 2 21 35}} \\
+                       \alert{\vreg{39}}\} \tag{\texttt{\#\#phi 2 21 35}} \\
           \vn{31} &= \{\vreg{31},
                        \vreg{32},
-                       \vreg{34}\} \tag{\texttt{\#\#compare-integer-imm 29 100 cc<}} \\
+                       \vreg{34}\} \tag{\texttt{cmp 29 100 cc<}} \\
           \vn{35} &= \{\vreg{35},
                        \vreg{37}\} \tag{\texttt{1}} \\
           \vn{36} &= \{\vreg{36},
                        \vreg{38},
-                       \vreg{41},
-                       \vreg{42}\} \tag{\texttt{\#\#add-imm 29 1}}
+                       \alert{\vreg{41}},
+                       \alert{\vreg{42}}\} \tag{\texttt{\#\#add-imm 29 1}}
         \end{align*}
       \end{onlyenv}
     \end{column}
