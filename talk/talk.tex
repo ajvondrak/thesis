@@ -34,10 +34,10 @@
   \usetheme{CambridgeUS}
   \useoutertheme{infolines}
   \setbeamertemplate{navigation symbols}{}
-  \AtBeginSection[]{\frame{\tableofcontents[currentsection]}}
+  %\AtBeginSection[]{\frame{\tableofcontents[currentsection]}}
 }
 
-\title{Global Value Numbering in Factor}
+\title[Global Value Numbering in Factor]{$\overbrace{\text{Global Value Numbering}}^{\text{compiler optimization}} \text{~in~} \underbrace{\text{Factor}}_{\text{language}}$}
 \author{Alex Vondrak}
 \institute{\texttt{ajvondrak@csupomona.edu}}
 \date{September 1, 2011}
@@ -48,126 +48,104 @@
 
 \maketitle
 
-\begin{frame}{Factor}
+\begin{frame}[fragile]{Factor}
   Factor (\url{http://factorcode.org/})
   \begin{itemize}
     \item Started development September 2003---a baby among languages
     \item \alert{Stack-based}
-    \item Object-oriented
-    \item Dynamically typed
-    \item Extensive standard library
-    \item High-level, yet fully \alert{compiled}
-  \end{itemize}
-
-  Won't really have time to discuss the language in depth
-\end{frame}
-
-\begin{frame}[fragile]{Stacks as an Evaluation Model}
-  \begin{example}[Code]
-    \begin{verbatim}
-1 2 +
-    \end{verbatim}
-  \end{example}
-
-  \begin{example}[Execution]
-    \begin{columns}[c,onlytextwidth]
-      \begin{column}[c]{.5\textwidth}
-        \begin{verbatim}
-push(1);
-push(2);
-y = pop();   // y = 2;
-x = pop();   // x = 1;
-push(x + y); // push(3);
-        \end{verbatim}
-      \end{column}
-
-      \begin{column}[c]{.5\textwidth}
-        \stackop{3}{+}{1 2 ~}{3 ~}
-      \end{column}
-    \end{columns}
-  \end{example}
-\end{frame}
-
-\section{Compiler}
-
-\subsection{Structure}
-
-\begin{frame}{Organization}
-  Non-optimizing base compiler
-  \begin{itemize}
-    \item VM written in C++
-    \item Responsible for basic runtime services
-    \begin{itemize}
-      \item Garbage collection
-      \item Method dispatch
-      \item Polymorphic inline caches
-      \item \ldots
-    \end{itemize}
-    \item Single pass---outputs assembly stubs for primitives
-  \end{itemize}
-
-  \alert{Optimizing compiler}
-  \begin{itemize}
-    \item Written in Factor code
-    \begin{itemize}
-      \item Possible by \emph{bootstrapping}
-    \end{itemize}
-    \item Optimizes in passes across two \alert{intermediate representations}
-    (IRs)
-    \begin{itemize}
-      \item High-level IR (\texttt{compiler.tree})
-      \item Low-level IR (\texttt{compiler.cfg})
-    \end{itemize}
+    \begin{example}[1 2 +]
+      \centering
+      \stack{3}{}
+      \dostack{1}
+      \stack{3}{1 ~}
+      \dostack{2}
+      \stack{3}{1 2 ~}
+      \dostack{+}
+      \stack{3}{3 ~}
+    \end{example}
+    \item High-level, object-oriented, dynamically typed, extensive libraries\ldots
+    \item \ldots yet fully \alert{compiled}
   \end{itemize}
 \end{frame}
 
-\begin{frame}{High-level IR}
-  \begin{itemize}
-    \item Tree of \texttt{node} objects
-    \item Very simple virtual instruction set
-    \begin{itemize}
-      \item \texttt{\#introduce}, \texttt{\#return}
-      \item \texttt{\#push} \& \texttt{\#call}
-      \item \texttt{\#renaming}---\texttt{\#copy} \& \texttt{\#shuffle}
-      \item \texttt{\#declare} \& \texttt{\#terminate}
-      \item \texttt{\#branch}---\texttt{\#if} \& \texttt{\#dispatch}
-      \item \texttt{\#phi}
-      \item \texttt{\#recursive}, \texttt{\#enter-recursive},
-            \texttt{\#call-recursive}, \texttt{\#return-recursive}
-      \item \texttt{\#alien-node}, \texttt{\#alien-invoke},
-            \texttt{\#alien-indirect}, \texttt{\#alien-assembly},
-            \texttt{\#alien-callback}
-    \end{itemize}
-    \item Input/output values of stack given unique names
-  \end{itemize}
-\end{frame}
+%\section{Compiler}
 
-\begin{frame}[fragile]{High-level IR}{\texttt{1~2~+}}
-  \begin{example}
-    \begin{verbatim}
-V{
-    T{ #push { literal 1 } { out-d { 6256273 } } }
-    T{ #push { literal 2 } { out-d { 6256274 } } }
-    T{ #call
-        { word + }
-        { in-d V{ 6256273 6256274 } }
-        { out-d { 6256275 } }
-    }
-    T{ #return { in-d V{ 6256275 } } }
-}
-    \end{verbatim}
-  \end{example}
-\end{frame}
+%\subsection{Structure}
 
-\begin{frame}[fragile]{Low-level IR}
+%\begin{frame}{Organization}
+%  Non-optimizing base compiler
+%  \begin{itemize}
+%    \item VM written in C++
+%    \item Responsible for basic runtime services
+%    \begin{itemize}
+%      \item Garbage collection
+%      \item Method dispatch
+%      \item Polymorphic inline caches
+%      \item \ldots
+%    \end{itemize}
+%    \item Single pass---outputs assembly stubs for primitives
+%  \end{itemize}
+%
+%  \alert{Optimizing compiler}
+%  \begin{itemize}
+%    \item Written in Factor code
+%    \begin{itemize}
+%      \item Possible by \emph{bootstrapping}
+%    \end{itemize}
+%    \item Optimizes in passes across two \alert{intermediate representations}
+%    (IRs)
+%    \begin{itemize}
+%      \item High-level IR (\texttt{compiler.tree})
+%      \item Low-level IR (\texttt{compiler.cfg})
+%    \end{itemize}
+%  \end{itemize}
+%\end{frame}
+%
+%\begin{frame}{High-level IR}
+%  \begin{itemize}
+%    \item Tree of \texttt{node} objects
+%    \item Very simple virtual instruction set
+%    \begin{itemize}
+%      \item \texttt{\#introduce}, \texttt{\#return}
+%      \item \texttt{\#push} \& \texttt{\#call}
+%      \item \texttt{\#renaming}---\texttt{\#copy} \& \texttt{\#shuffle}
+%      \item \texttt{\#declare} \& \texttt{\#terminate}
+%      \item \texttt{\#branch}---\texttt{\#if} \& \texttt{\#dispatch}
+%      \item \texttt{\#phi}
+%      \item \texttt{\#recursive}, \texttt{\#enter-recursive},
+%            \texttt{\#call-recursive}, \texttt{\#return-recursive}
+%      \item \texttt{\#alien-node}, \texttt{\#alien-invoke},
+%            \texttt{\#alien-indirect}, \texttt{\#alien-assembly},
+%            \texttt{\#alien-callback}
+%    \end{itemize}
+%    \item Input/output values of stack given unique names
+%  \end{itemize}
+%\end{frame}
+%
+%\begin{frame}[fragile]{High-level IR}{\texttt{1~2~+}}
+%  \begin{example}
+%    \begin{verbatim}
+%V{
+%    T{ #push { literal 1 } { out-d { 6256273 } } }
+%    T{ #push { literal 2 } { out-d { 6256274 } } }
+%    T{ #call
+%        { word + }
+%        { in-d V{ 6256273 6256274 } }
+%        { out-d { 6256275 } }
+%    }
+%    T{ #return { in-d V{ 6256275 } } }
+%}
+%    \end{verbatim}
+%  \end{example}
+%\end{frame}
+
+\begin{frame}[fragile]{Low-level Representation}
   \begin{itemize}
     \item Control flow graph (CFG)
     \begin{itemize}
       \item Basic blocks = maximal sequence of ``straight-line'' code
       \item Directed edges = transfer of control flow
     \end{itemize}
-    \item \texttt{insn} objects modeled closely after assembly-like
-          instructions
     \item \alert{Static single assignment} (SSA) form
   \end{itemize}
   \begin{onlyenv}<1>
@@ -234,72 +212,99 @@ y$_{~}$ := x$_2$ + 1
   \end{onlyenv}
 \end{frame}
 
-\subsection{Optimizations}
-
-\begin{frame}[fragile]{Optimizations---High-level IR}
-\footnotesize
-\begin{center}
-\begin{minipage}{0.5\linewidth}
-\begin{Verbatim}[commandchars=\\\{\}]
-\PY{k}{:} \PY{n+nf}{optimize-tree} \PY{n+nf}{(} \PY{n+nv}{nodes} \PY{n+nf}{--} \PY{n+nv}{nodes'} \PY{n+nf}{)}
-  [
-      analyze-recursive
-      normalize
-      propagate
-      cleanup
-      \PY{k}{dup }run-escape-analysis? [
-          escape-analysis
-          unbox-tuples
-      ] \PY{k}{when}
-      apply-identities
-      compute-def-use
-      remove-dead-code
-      ?check
-      compute-def-use
-      optimize-modular-arithmetic
-      finalize
-  ] \PY{k}{with-scope ;}
-\end{Verbatim}
-\end{minipage}
-\end{center}
+\begin{frame}[fragile]{Low-level Representation}{Instructions}
+  \begin{itemize}
+    \item Code is translated into \verb|insn| objects
+    \item Modeled closely after typical assembly-like instructions
+    \item Instructions are called on \alert{virtual registers}
+  \end{itemize}
+  \begin{example}
+    \alt<2>{In diagrams}{In Factor syntax}:
+    \begin{onlyenv}<1>
+      \begin{Verbatim}[gobble=8]
+        {
+          T{ ##load-integer { dst 867 } { val 1 } }
+          T{ ##load-integer { dst 5309 } { val 2 } }
+          T{ ##add { dst 31337 } { src1 867 } { src2 5309 } }
+        }
+      \end{Verbatim}
+    \end{onlyenv}
+    \begin{onlyenv}<2>
+    \begin{center}
+    \begin{minipage}{0.5\textwidth}
+      \begin{Verbatim}[frame=single,gobble=8]
+        ##load-integer 867 1
+        ##load-integer 5309 2
+        ##add 31337 867 5309
+      \end{Verbatim}
+    \end{minipage}
+    \end{center}
+    \end{onlyenv}
+  \end{example}
 \end{frame}
 
-\begin{frame}[fragile]{Optimizations---Low-level IR}
-  \renewcommand{\theFancyVerbLine}{%
-    \ifnum\value{FancyVerbLine}=9%
-    $\longrightarrow$\else{}\fi}
+%\subsection{Optimizations}
+
+%\begin{frame}[fragile]{Optimizations---High-level IR}
+%\footnotesize
+%\begin{center}
+%\begin{minipage}{0.5\linewidth}
+%\begin{Verbatim}[commandchars=\\\{\}]
+%\PY{k}{:} \PY{n+nf}{optimize-tree} \PY{n+nf}{(} \PY{n+nv}{nodes} \PY{n+nf}{--} \PY{n+nv}{nodes'} \PY{n+nf}{)}
+%  [
+%      analyze-recursive
+%      normalize
+%      propagate
+%      cleanup
+%      \PY{k}{dup }run-escape-analysis? [
+%          escape-analysis
+%          unbox-tuples
+%      ] \PY{k}{when}
+%      apply-identities
+%      compute-def-use
+%      remove-dead-code
+%      ?check
+%      compute-def-use
+%      optimize-modular-arithmetic
+%      finalize
+%  ] \PY{k}{with-scope ;}
+%\end{Verbatim}
+%\end{minipage}
+%\end{center}
+%\end{frame}
+
+\begin{frame}[fragile]{Optimizations}
   \begin{center}
-  \begin{minipage}{0.5\linewidth}
-  \begin{factorcode*}{linenos}
-: optimize-cfg ( cfg -- cfg' )
-    optimize-tail-calls
-    delete-useless-conditionals
-    split-branches
-    join-blocks
-    normalize-height
-    construct-ssa
-    alias-analysis
-    value-numbering
-    copy-propagation
-    eliminate-dead-code ;
-  \end{factorcode*}
-  \end{minipage}
+    \begin{minipage}{0.5\linewidth}
+      \begin{Verbatim}[gobble=8,commandchars=\\\{\}]
+        \PY{k}{:} optimize-cfg ( cfg -- cfg' )
+            optimize-tail-calls
+            delete-useless-conditionals
+            split-branches
+            join-blocks
+            normalize-height
+            construct-ssa
+            alias-analysis
+            \alert{value-numbering}
+            copy-propagation
+            eliminate-dead-code \PY{k}{;}
+      \end{Verbatim}
+    \end{minipage}
   \end{center}
 \end{frame}
 
-\section{Value Numbering}
+%\section{Value Numbering}
 
 \begin{frame}{Value Numbering}
-  Idea: assign each variable a \alert{value number}
+  Idea: assign each virtual register a \alert{value number}
   \begin{itemize}
     \item Equal value numbers $\implies$ equal at runtime
-    \item Turn recomputations into \texttt{\#\#copy} instructions, saving time
+    \item Turn recomputations into \texttt{\#\#copy} instructions
   \end{itemize}
 
-  General problem is undecidable
+  Problem: equivalence is generally undecidable
   \begin{itemize}
-    \item Seek \alert{conservative} solution
-    \item Discover \emph{Herbrand equivalences}
+    \item Seek \alert{conservative} solution over \alert{Herbrand equivalences}
     \item Consider two values \alert{congruent} if
     \begin{itemize}
       \item They're computed by the same operator
@@ -308,42 +313,55 @@ y$_{~}$ := x$_2$ + 1
   \end{itemize}
 \end{frame}
 
-\subsection{Local Value Numbering}
+%\subsection{Local Value Numbering}
 
-\begin{frame}{Local Value Numbering}
+\begin{frame}[fragile,t]{Value Numbering}{Implementation}
   \begin{itemize}
-    \item Thought to be invented by Balke in the 1960s
-    \item Largely credited to Cocke \& Schwartz in the 1970s
-    \item Current implementation Factor uses
-  \end{itemize}
-
-  \begin{itemize}
-    \item[Pro:] Easy to understand, implement, and extend
-
-    \item[Con:] Is \alert{local} and \alert{pessimistic}, discovering fewer
-    congruences
-  \end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]{Local Value Numbering}{Implementation}
-  \begin{itemize}
-    \item \alert{Expressions} are constructed from instructions
+    \item \alert{Expressions} are constructed from instructions and value numbers
+    \begin{onlyenv}<1>
     \begin{example}
+      Suppose\ldots
+      \begin{itemize}
+        \item virtual register \texttt{2} has the value number \texttt{200}
+        \item virtual register \texttt{3} has the value number \texttt{300}
+      \end{itemize}
+      Then
       \begin{Verbatim}
 T{ ##add { dst 1 } { src1 2 } { src2 3 } } >expr
-{ ##add 2 3 }
+      \end{Verbatim}
+      returns
+      \begin{Verbatim}
+{ ##add 200 300 }
       \end{Verbatim}
     \end{example}
-
+    \end{onlyenv}
+    \pause
     \item \alert{Expression graph} = 3 global hash tables
     \begin{itemize}
       \item \texttt{vregs>vns}
       \item \texttt{exprs>vns}
       \item \texttt{vns>insns}
     \end{itemize}
-
     \item If possible, instructions are simplified using data from expression
     graph
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{\texttt{value-numbering}}
+  \begin{itemize}
+    \item Factor currently uses \alert{local} value numbering
+    \item Thought to be invented by Balke in the 1960s
+    \item Largely credited to Cocke \& Schwartz in the 1970s
+    \item \textcolor{green!80!black}{Pros:}
+    \begin{itemize}
+      \item Easy to understand
+      \item Easy to implement
+      \item Easy to extend
+    \end{itemize}
+    \item \alert{Cons:}
+    \begin{itemize}
+      \item Locality and \alert{pessimism} discover fewer congruences
+    \end{itemize}
   \end{itemize}
 \end{frame}
 
@@ -487,7 +505,7 @@ exprs>vns = H{ { { ##compare-integer 30 26 cc< } 31 } }
   \end{onlyenv}
   \begin{onlyenv}<3->
   \begin{Verbatim}
-vregs>vns = H{ { 30 30 } { 26 26 } { 31 31 } ... }
+vregs>vns = H{ { 30 30 } { 26 26 } { 31 31 } { 32 31 } ... }
 exprs>vns = H{ { { ##compare-integer 30 26 cc< } 31 } }
   \end{Verbatim}
   \end{onlyenv}
@@ -681,10 +699,10 @@ exprs>vns = H{ {  1 35 } { { ##add-imm 29 1 } 36 } ... }
   \end{center}
 \end{frame}
 
-\subsection{Global Value Numbering}
+%\subsection{Global Value Numbering}
 
 \begin{frame}[fragile]{Same Example, Global Algorithm}
-  Changes I made:
+  Changes:
   \begin{itemize}
     \item \alert{Global}---don't wipe out hash tables after each block
     \item \alert{Optimistic}---previously unseen values considered redundant
@@ -811,7 +829,7 @@ exprs>vns = H{ { expr n } }
                        \vreg{33}\} \tag{\texttt{100}} \\
           \vn{31} &= \{\vreg{31},
                        \vreg{32},
-                       \vreg{34}\} \tag{\text{\factor|t|}}
+                       \vreg{34}\} \tag{\texttt{\textbf{t}}}
         \end{align*}
       \end{onlyenv}
     \end{column}
@@ -849,7 +867,7 @@ exprs>vns = H{ { expr n } }
                        \vreg{33}\} \tag{\texttt{100}} \\
           \vn{31} &= \{\vreg{31},
                        \vreg{32},
-                       \vreg{34}\} \tag{\text{\factor|t|}}
+                       \vreg{34}\} \tag{\texttt{\textbf{t}}}
         \end{align*}
       \end{onlyenv}
       \begin{onlyenv}<2>
@@ -866,7 +884,7 @@ exprs>vns = H{ { expr n } }
                        \vreg{33}\} \tag{\texttt{100}} \\
           \vn{31} &= \{\vreg{31},
                        \vreg{32},
-                       \vreg{34}\} \tag{\text{\factor|t|}} \\
+                       \vreg{34}\} \tag{\texttt{\textbf{t}}} \\
           \vn{35} &= \{\vreg{35}\} \tag{\texttt{1}}
         \end{align*}
       \end{onlyenv}
@@ -884,7 +902,7 @@ exprs>vns = H{ { expr n } }
                        \vreg{33}\} \tag{\texttt{100}} \\
           \vn{31} &= \{\vreg{31},
                        \vreg{32},
-                       \vreg{34}\} \tag{\text{\factor|t|}} \\
+                       \vreg{34}\} \tag{\texttt{\textbf{t}}} \\
           \vn{35} &= \{\vreg{35},
                        \vreg{36}\} \tag{\texttt{1}}
         \end{align*}
@@ -903,7 +921,7 @@ exprs>vns = H{ { expr n } }
                        \vreg{33}\} \tag{\texttt{100}} \\
           \vn{31} &= \{\vreg{31},
                        \vreg{32},
-                       \vreg{34}\} \tag{\text{\factor|t|}} \\
+                       \vreg{34}\} \tag{\texttt{\textbf{t}}} \\
           \vn{35} &= \{\vreg{35},
                        \vreg{36},
                        \vreg{37}\} \tag{\texttt{1}}
@@ -925,7 +943,7 @@ exprs>vns = H{ { expr n } }
                        \vreg{40}\} \tag{\texttt{100}} \\
           \vn{31} &= \{\vreg{31},
                        \vreg{32},
-                       \vreg{34}\} \tag{\text{\factor|t|}} \\
+                       \vreg{34}\} \tag{\texttt{\textbf{t}}} \\
           \vn{35} &= \{\vreg{35},
                        \vreg{36},
                        \vreg{37},
@@ -1283,6 +1301,23 @@ Final pass simplifies instructions based on this information
   \end{center}
 \end{frame}
 
-\section{Results}
+\begin{frame}{Deliverables}
+  In total:
+  \begin{itemize}
+    \item Completely new Graphviz bindings
+    \begin{itemize}
+      \item Officially merged into Factor a few days ago!
+    \end{itemize}
+    \item New library to output CFG diagrams
+    \item Altered value numbering pass to make it global
+    \begin{itemize}
+      \item Passes same unit tests as before
+      \item Informal benchmark improvements (mean $-16.35\%$)
+      \item Many future improvements possible
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+%\section{Results}
 
 \end{document}
